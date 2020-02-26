@@ -1,0 +1,14 @@
+name: gwas
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+  - r
+dependencies:
+  - gxx_linux-64
+  - jupyter
+  - libopenblas
+  - python=3.7
+  - r-compositions
+  - r-irkernel
+  - r-bayesm
