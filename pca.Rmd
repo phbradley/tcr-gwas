@@ -1,0 +1,20 @@
+---
+title: "V gene usage PCA"
+---
+```{r echo=FALSE}
+library("ggfortify")
+```
+
+```{r}
+data = read.table("data/emerson_vfam_out_frame_frequencies.tsv", header = TRUE)
+# data = read.table("data/emerson_vfam_in_frame_frequencies.tsv", header = TRUE)
+head(data)
+```
+
+```{r}
+pca = princomp(data[3:NCOL(data)])
+```
+
+```{r}
+autoplot(pca)
+```
