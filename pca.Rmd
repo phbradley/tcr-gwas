@@ -1,20 +1,64 @@
 ---
 title: "V gene usage PCA"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
 ---
-```{r echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+library("compositions")
 library("ggfortify")
+data_sets =
+    structure(
+              c("data/emerson_vfam_in_frame_frequencies.tsv",
+                "data/emerson_vfam_out_frame_frequencies.tsv",
+                "data/emerson_vgene_in_frame_frequencies.tsv",
+                "data/emerson_vgene_out_frame_frequencies.tsv"),
+              names=c("family_in_frame",
+                      "family_out_frame",
+                      "gene_in_frame",
+                      "gene_out_frame"))
+knitr::opts_chunk$set(fig.width=16, fig.height=8)
+
+read_data_by_name = function(data_set_name) {
+    read.table(data_sets[data_set_name], header = TRUE)
+}
+
+freqs_from_data_with_pseudocount = function(data) {
+    pseudocount_is_the_min_element_divided_by_this = 10.
+    freqs = data[3:NCOL(data)]
+    min_freq = min(freqs[freqs > 0])
+    freqs = freqs + min_freq/pseudocount_is_the_min_element_divided_by_this
+    freqs / rowSums(freqs)
+}
+
+plot_pca = function(data_set_name) {
+    data = read_data_by_name(data_set_name)
+    freqs = freqs_from_data_with_pseudocount(data)
+    par(mfrow=c(1,2))
+    biplot(princomp(acomp(freqs)), main=paste("compositional: ", data_set_name), expand=0.8)
+    biplot(princomp(freqs), main=paste("naive: ", data_set_name), expand=0.8)
+}
+
 ```
 
-```{r}
-data = read.table("data/emerson_vfam_out_frame_frequencies.tsv", header = TRUE)
-# data = read.table("data/emerson_vfam_in_frame_frequencies.tsv", header = TRUE)
-head(data)
+```{r warning=FALSE, results='hide'}
+
+lapply(names(data_sets), plot_pca)
+
 ```
 
-```{r}
-pca = princomp(data[3:NCOL(data)])
-```
+It seems like 176, 440, and 518 are outliers.
+Is it because of TCR count?
 
 ```{r}
-autoplot(pca)
+
+data = read_data_by_name("gene_in_frame")
+summary(data["total_tcrs"])
+data[c(176,440,518), 1:2]
+
 ```
+
+They all appear to have low-ish count but aren't the lowest.

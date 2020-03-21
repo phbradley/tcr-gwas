@@ -3,13 +3,9 @@ channels:
   - anaconda
   - conda-forge
   - defaults
-  - r
 dependencies:
-  - gxx_linux-64
+  - scikit-bio
   - jupyter
-  - libopenblas
-  - python=3.7
-  - r-compositions
-  - r-ggfortify
-  - r-irkernel
-  - r-bayesm
+  - pandas
+  - python=3.6
+  - seaborn
