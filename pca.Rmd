@@ -9,7 +9,9 @@ output:
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 
 library("compositions")
-library("ggfortify")
+
+knitr::opts_chunk$set(fig.width=16, fig.height=8)
+
 data_sets =
     structure(
               c("data/emerson_vfam_in_frame_frequencies.tsv",
@@ -20,26 +22,43 @@ data_sets =
                       "family_out_frame",
                       "gene_in_frame",
                       "gene_out_frame"))
-knitr::opts_chunk$set(fig.width=16, fig.height=8)
 
-read_data_by_name = function(data_set_name) {
-    read.table(data_sets[data_set_name], header = TRUE)
+
+pseudocount_is_the_min_element_divided_by_this = 10.
+only_allow_genes_with_max_frequency_greater_than = 0.005
+min_total_tcr_count = 1000
+
+read_merged_by_name = function(data_set_name) {
+    data = read.table(data_sets[data_set_name], header = TRUE)
+    deletion_genotypes = read.table("data/TRB_deletion_genotypes.tsv", header = TRUE)
+    merge(deletion_genotypes, data, by="hipid")
 }
 
-freqs_from_data_with_pseudocount = function(data) {
-    pseudocount_is_the_min_element_divided_by_this = 10.
-    freqs = data[3:NCOL(data)]
+subsetted_freqs_from_data_with_pseudocount = function(freqs) {
+    freqs = freqs[apply(freqs, 2, max) > only_allow_genes_with_max_frequency_greater_than]
     min_freq = min(freqs[freqs > 0])
     freqs = freqs + min_freq/pseudocount_is_the_min_element_divided_by_this
     freqs / rowSums(freqs)
 }
 
+cleaned_data_with_genotypes_by_name = function (data_set_name) {
+    merged = read_merged_by_name(data_set_name)
+    merged = merged[merged$total_tcrs >= min_total_tcr_count,]
+    freqs = subsetted_freqs_from_data_with_pseudocount(merged[6:NCOL(merged)])
+    cleaned = cbind(merged["genotype_str"], freqs)
+    rownames(cleaned) = merged$hipid
+    cleaned
+}
+
 plot_pca = function(data_set_name) {
-    data = read_data_by_name(data_set_name)
-    freqs = freqs_from_data_with_pseudocount(data)
-    par(mfrow=c(1,2))
-    biplot(princomp(acomp(freqs)), main=paste("compositional: ", data_set_name), expand=0.8)
-    biplot(princomp(freqs), main=paste("naive: ", data_set_name), expand=0.8)
+    cleaned = cleaned_data_with_genotypes_by_name(data_set_name)
+    for (genotype in unique(cleaned$genotype_str)) {
+        freqs = cleaned[cleaned$genotype_str == genotype, 2:NCOL(cleaned)]
+        full_data_set_name = paste(data_set_name, genotype)
+        par(mfrow=c(1,2))
+        biplot(princomp(acomp(freqs)), main=paste("compositional: ", full_data_set_name), expand=0.8)
+        biplot(princomp(freqs), main=paste("naive: ", full_data_set_name), expand=0.8)
+    }
 }
 
 ```
@@ -49,16 +68,3 @@ plot_pca = function(data_set_name) {
 lapply(names(data_sets), plot_pca)
 
 ```
-
-It seems like 176, 440, and 518 are outliers.
-Is it because of TCR count?
-
-```{r}
-
-data = read_data_by_name("gene_in_frame")
-summary(data["total_tcrs"])
-data[c(176,440,518), 1:2]
-
-```
-
-They all appear to have low-ish count but aren't the lowest.
