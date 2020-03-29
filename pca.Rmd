@@ -50,21 +50,31 @@ cleaned_data_with_genotypes_by_name = function (data_set_name) {
     cleaned
 }
 
-plot_pca = function(data_set_name) {
+plot_pca = function(data_set_name, compositional) {
+    analysis_type = if(compositional) "compositional" else "naive"
     cleaned = cleaned_data_with_genotypes_by_name(data_set_name)
     for (genotype in unique(cleaned$genotype_str)) {
         freqs = cleaned[cleaned$genotype_str == genotype, 2:NCOL(cleaned)]
-        full_data_set_name = paste(data_set_name, genotype)
+        full_data_set_name = paste(data_set_name, genotype, sep="-")
+        pc = princomp(acomp(freqs))
+        title = paste(analysis_type, full_data_set_name, sep="-")
         par(mfrow=c(1,2))
-        biplot(princomp(acomp(freqs)), main=paste("compositional: ", full_data_set_name), expand=0.8)
-        biplot(princomp(freqs), main=paste("naive: ", full_data_set_name), expand=0.8)
+        biplot(pc, main=title, expand=0.8)
+        plot(pc, main=title)
+        write.csv(pc$scores[,1:10], file=paste0("_ignore/", title, ".csv"))
     }
+}
+
+plot_both_pcas = function(data_set_name) {
+    plot_pca(data_set_name, FALSE)
+    plot_pca(data_set_name, TRUE)
 }
 
 ```
 
+
 ```{r warning=FALSE, results='hide'}
 
-lapply(names(data_sets), plot_pca)
+lapply(names(data_sets), plot_both_pcas)
 
 ```
