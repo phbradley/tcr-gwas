@@ -56,7 +56,8 @@ plot_pca = function(data_set_name, compositional) {
     for (genotype in unique(cleaned$genotype_str)) {
         freqs = cleaned[cleaned$genotype_str == genotype, 2:NCOL(cleaned)]
         full_data_set_name = paste(data_set_name, genotype, sep="-")
-        pc = princomp(acomp(freqs))
+        freqs = if(compositional) acomp(freqs) else freqs
+        pc = princomp(freqs)
         title = paste(analysis_type, full_data_set_name, sep="-")
         par(mfrow=c(1,2))
         biplot(pc, main=title, expand=0.8)
