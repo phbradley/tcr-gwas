@@ -9,7 +9,7 @@ dir = getwd()
 files = list.files(path=dir, pattern="*.tsv", full.names=TRUE)
 
 condensed_trim_data = data.table()
-for (file in files){
+for (file in files[2]){
     temp_file = data.table()
     temp_file_condensed = data.table()
     temp_file = read.table(file, sep = "\t", fill=TRUE, header = TRUE)
@@ -24,4 +24,4 @@ for (file in files){
     print(paste(file))
 }
 
-write.table(condensed_trim_data, file='condensed_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(condensed_trim_data, file='../condensed_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
