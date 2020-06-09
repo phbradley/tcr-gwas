@@ -9,7 +9,7 @@ dir = getwd()
 files = list.files(path=dir, pattern="*.tsv", full.names=TRUE)
 
 condensed_trim_data = data.table()
-for (file in files[2]){
+for (file in files){
     temp_file = data.table()
     temp_file_condensed = data.table()
     temp_file = read.table(file, sep = "\t", fill=TRUE, header = TRUE)
@@ -18,8 +18,11 @@ for (file in files[2]){
     file_root_name = str_split(file_name, ".tsv")[[1]][1]
     patient_id = str_split(file_root_name, "_")[[1]][3]
     temp_file$patient_id = patient_id
+    temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, v_gene, productive)]
     temp_file_condensed = temp_file[,mean(v_trim), by = .(patient_id, v_gene, productive)]
-    colnames(temp_file_condensed) = c("patient_id", "v_gene", "productive", "v_trim")
+    together = merge(temp_file_condensed,temp_file_vgene_type_counts)
+    colnames(together) = c("patient_id", "v_gene", "productive", "v_trim", "v_gene_count")
+    together$weighted_v_gene_count = together$v_gene_count/nrow(temp_file)
     condensed_trim_data = rbind(condensed_trim_data, temp_file_condensed)
     print(paste(file))
 }
