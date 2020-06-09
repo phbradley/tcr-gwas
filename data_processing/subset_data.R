@@ -9,7 +9,7 @@ library(GWASTools)
 setwd("../_ignore/")
 
 # ALL VGENE TRIMMING DATA--condensed by patient
-condensed_trimming_data = as.data.table(read.table('emerson_stats/condensed_trim_data_all_patients.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE)[-1])
+condensed_trimming_data = as.data.table(read.table('condensed_trim_data_all_patients.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE)[-1])
 
 # subset data and write table for two patients
 condensed_trimming_data_subset = condensed_trimming_data[patient_id == "HIP00110" | patient_id == "HIP00169"]
