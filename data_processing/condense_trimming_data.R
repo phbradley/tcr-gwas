@@ -23,7 +23,7 @@ for (file in files){
     together = merge(temp_file_condensed,temp_file_vgene_type_counts)
     colnames(together) = c("patient_id", "v_gene", "productive", "v_trim", "v_gene_count")
     together$weighted_v_gene_count = together$v_gene_count/nrow(temp_file)
-    condensed_trim_data = rbind(condensed_trim_data, temp_file_condensed)
+    condensed_trim_data = rbind(condensed_trim_data, together)
     print(paste(file))
 }
 
