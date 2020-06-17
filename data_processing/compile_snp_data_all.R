@@ -18,7 +18,8 @@ sampleid <- read.gdsn(n)
 
 
 # Take a subset of the genotype data into two individuals and 2500 snps(This is where I will get all of the data)
-genotypes <- read.gdsn(index.gdsn(snps_gds, "genotype"), start=c(1,1))
+genotypes <- read.gdsn(index.gdsn(snps_gds, "genotype"), start=c(1,1), count = c(398, -1))
+print("genotypes read")
 
 row.names(genotypes) = c(sampleid)
 genotypes_df = data.frame(scanID = row.names(genotypes), genotypes)
@@ -34,7 +35,7 @@ closefn.gds(snps_gds)
 subject_id_mapping = as.data.table(read.table('snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
 
 genotypes_dt_bothID = merge(genotypes_dt, subject_id_mapping, by = "scanID")
-
+print("snp data compiled")
 
     
 
