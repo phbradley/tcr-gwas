@@ -14,7 +14,7 @@ subset_data_snp <- function(snpID, snps_dataframe, condensed_trimming_dataframe,
 }
 
 #model_coef <- function(data, index){
-    coef(glm(formula = v_trim ~ snp, data = data, weights = weighted_v_gene_count, subset = index))
+#    coef(glm(formula = v_trim ~ snp, data = data, weights = weighted_v_gene_count, subset = index))
 #}
 #
 #bootstrap_coef <- function(data, repetitions){
@@ -52,7 +52,7 @@ bootstrap_se <- function(data, repetitions, gene_type){
 
 regression_weighted_bootstrap_se <- function(snps_dataframe, condensed_trimming_dataframe, productive, repetitions, gene_type){
     bootstrap_results = data.frame()
-    for (snpID in names(snps_dataframe)[-c(1,1185)]){
+    for (snpID in names(snps_dataframe)[-c(1,ncol(snps_dataframe))]){
         data = subset_data_snp(snpID, snps_dataframe, condensed_trimming_dataframe, productive)
         se = bootstrap_se(data, repetitions, gene_type)
         bootstrap_results = rbind(bootstrap_results, data.frame(snp = snpID, standard_error = se))
