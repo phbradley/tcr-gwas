@@ -43,15 +43,18 @@ condense_trim_data <- function(gene_type){
             together$weighted_j_gene_count = together$j_gene_count/nrow(temp_file)
         } 
         condensed_trim_data = rbind(condensed_trim_data, together)
-        print(paste(file))
+        print(paste0(file, "processed for ", gene_type))
     }
+    print(paste0("finished with ", gene_type))
     return(condensed_trim_data)
 }
 
-v_gene_trimming = condense_trim_data('v_gene')
-d_gene_trimming = condense_trim_data('d_gene')
-j_gene_trimming = condense_trim_data('j_gene')
+#v_gene_trimming = condense_trim_data('v_gene')
+#write.table(v_gene_trimming, file='../condensed_v_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
 
-write.table(v_gene_trimming, file='../condensed_v_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
+
+d_gene_trimming = condense_trim_data('d_gene')
 write.table(d_gene_trimming, file='../condensed_d_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
+
+j_gene_trimming = condense_trim_data('j_gene')
 write.table(j_gene_trimming, file='../condensed_j_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)

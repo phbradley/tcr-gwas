@@ -54,6 +54,9 @@ regression_weighted_bootstrap_se <- function(snps_dataframe, condensed_trimming_
     bootstrap_results = data.frame()
     for (snpID in names(snps_dataframe)[-c(1,ncol(snps_dataframe))]){
         data = subset_data_snp(snpID, snps_dataframe, condensed_trimming_dataframe, productive)
+        if(length(unique(data[snp != "NA"]$snp)) == 1){
+            next
+        }
         se = bootstrap_se(data, repetitions, gene_type)
         bootstrap_results = rbind(bootstrap_results, data.frame(snp = snpID, standard_error = se))
     }

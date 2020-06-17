@@ -60,6 +60,9 @@ trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_
         regression = NULL
         sub = data.frame(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
         sub2 = as.data.table(merge(sub, condensed_trimming_dataframe, by = "localID"))
+        if(length(unique(sub2[snp != "NA"]$snp)) == 1){
+            next
+        }
         if (gene_type =='v_gene'){
             regression = glm(formula = v_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_v_gene_count)
         } else if (gene_type =='d0_gene'){

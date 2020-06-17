@@ -27,13 +27,13 @@ snps_gds = openfn.gds("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
 n <- index.gdsn(snps_gds, "sample.id")
 sampleid <- read.gdsn(n) 
 #sz <- 10
-sz <- 1000
+sz <- 100000
 #nloop <- 10
-nloop <- 35490
+nloop <- 355
 bigsize <- 35481497
-bootstrap_regression_results_v_gene_productive = data.frame()
-bootstrap_regression_results_v_gene_NOT_productive = data.frame()
 for ( i in 1:nloop ) {
+    bootstrap_regression_results_v_gene_productive = data.frame()
+    bootstrap_regression_results_v_gene_NOT_productive = data.frame()
     start <- (i-1)*sz + 1
     numrows <- min( sz, bigsize-start+1 ) 
     genotypes <- read.gdsn(index.gdsn(snps_gds, "genotype"), start=c(1,start), count = c(398, numrows))
@@ -57,6 +57,7 @@ for ( i in 1:nloop ) {
     # Get ride of snp columns which have NA for all entries (missing for all individuals)
     snps_no_NA = snps[,which(unlist(lapply(snps, function(x)!all(is.na(x))))),with=F]
 
+
     weighted_regression_patient_vgene_results_productive = trimming_snp_regression_weighted(snps_no_NA, v_trimming, productive = "True", gene_type = 'v_gene')
     print("finished weighted_regression_patient_vgene_results_productive")
 
@@ -78,14 +79,16 @@ for ( i in 1:nloop ) {
         bootstrap_regression_results_v_gene_NOT_productive = rbind(bootstrap_regression_results_v_gene_NOT_productive, bootstrap_regression_combine(bootstrap_weighted_v_gene_NOT_productive, weighted_regression_patient_vgene_results_NOT_productive))
     }
     print("finished bootstrap_regression_weighted_NOT_productive")
+
+    write.table(bootstrap_regression_results_v_gene_NOT_productive, file=paste0('regression_bootstrap_results/productive/v_gene/v_gene_NOT_productive_', i, 'tsv'), quote=FALSE, sep='\t', col.names = NA)
+    write.table(bootstrap_regression_results_v_gene_productive, file=paste0('regression_bootstrap_results/NOT_productive/v_gene/v_gene_productive_', i, '.tsv'), quote=FALSE, sep='\t', col.names = NA)
     
     print(paste0("finished bootstrap for snp data", i, " of ", nloop))
 }
 
 closefn.gds(snps_gds)
 
-write.table(bootstrap_regression_results_v_gene_NOT_productive, file='regression_bootstrap_results/v_gene_NOT_productive.tsv', quote=FALSE, sep='\t', col.names = NA)
-write.table(bootstrap_regression_results_v_gene_productive, file='regression_bootstrap_results/v_gene_productive.tsv', quote=FALSE, sep='\t', col.names = NA)
+
 
     
 
