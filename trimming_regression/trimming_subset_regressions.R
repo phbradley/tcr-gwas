@@ -11,7 +11,7 @@ trimming = as.data.table(read.table("../_ignore/condensed_trim_data_all_patients
 colnames(trimming) = c("localID", "v_gene", "productive", "v_trim", "v_gene_count", "weighted_v_gene_count")
 
 # Replace '3' genotypes with NA (missing genotype)
-subset_snps[subset_snps==3]<-NA
+subset_snps[subset_snps==3] <- NA
 subset_snps = as.data.table(subset_snps)
 
 # Get ride of snp columns which have NA for all entries (missing for all individuals)
@@ -48,11 +48,11 @@ print("finished loading data")
 # Next, for each patient, vgene we can create a regression to predict trimming length given SNP minor allele frequency
 # (here, averaging trimming length for all tcells with the same vgene) and weighting regression by proportion of t-cells with the specified vgenes, by patient
 
-weighted_regression_patient_vgene_results_productive = trimming_snp_regression_weighted(subset_snps_no_NA, trimming, productive = "True")
+weighted_regression_patient_vgene_results_productive = trimming_snp_regression_weighted(subset_snps_no_NA, trimming, productive = "True", gene_type = 'v_gene')
 
 print("finished weighted_regression_patient_vgene_results_productive")
 
-weighted_regression_patient_vgene_results_NOT_productive = trimming_snp_regression_weighted(subset_snps_no_NA, trimming, productive = "False")
+weighted_regression_patient_vgene_results_NOT_productive = trimming_snp_regression_weighted(subset_snps_no_NA, trimming, productive = "False", gene_type = 'v_gene')
 
 print("finished weighted_regression_patient_vgene_results_NOT_productive")
 

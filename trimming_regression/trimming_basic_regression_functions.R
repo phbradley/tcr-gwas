@@ -47,7 +47,7 @@ trimming_snp_regression_by_vgene_subject_varying_intercepts_subject <- function(
 }
 
 
-trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_dataframe, productive){
+trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_dataframe, productive, gene_type){
     simple_regression_results = data.frame()
     if (productive == "True"){
         condensed_trimming_dataframe = condensed_trimming_dataframe[productive == "True"]
@@ -60,10 +60,17 @@ trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_
         regression = NULL
         sub = data.frame(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
         sub2 = as.data.table(merge(sub, condensed_trimming_dataframe, by = "localID"))
-        regression = glm(formula = v_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_v_gene_count)
+        if (gene_type =='v_gene'){
+            regression = glm(formula = v_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_v_gene_count)
+        } else if (gene_type =='d0_gene'){
+            regression = glm(formula = d0_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_d_gene_count)
+        } else if (gene_type =='d1_gene'){
+            regression = glm(formula = d1_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_d_gene_count)
+        } else if (gene_type =='j_gene'){
+            regression = glm(formula = j_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_j_gene_count)
+        }
         simple_regression_results = rbind(simple_regression_results, data.frame(snp = snpID, intercept = as.numeric(coef(regression)[1]), slope = as.numeric(coef(regression)[2]), nonNA_snp_observation_count = as.numeric(nrow(sub2[snp != "NA"]))))
     }
-
     return(simple_regression_results)
 }
 
