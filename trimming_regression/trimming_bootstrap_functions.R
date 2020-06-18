@@ -65,7 +65,7 @@ bootstrap_regression_combine <- function(bootstrap_results, regression_results){
     if (nrow(bootstrap_results) != 0 & nrow(regression_results) != 0){
         together = merge(bootstrap_results, regression_results, by = "snp")
         together$zscore = together$slope/together$standard_error
-        together$pvalue = dnorm(together$zscore)
+        together$pvalue = 2*pnorm(-abs(together$zscore))
     } else {
         together = data.table()
     }
