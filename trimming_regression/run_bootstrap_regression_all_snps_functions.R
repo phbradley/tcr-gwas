@@ -100,6 +100,67 @@ run_snps_trimming <- function(snps_per_run, number_of_runs, gene_type){
 }
 
 
+run_snps_trimming_parallel <- function(snp_start, snp_end, gene_type){
+    # ALL SNP DATA
+    # Get snp meta data
+    snps_gds = openfn.gds("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    n <- index.gdsn(snps_gds, "sample.id")
+    sampleid <- read.gdsn(n) 
+    bigsize <- 35481497
+    bootstrap_regression_results_v_gene_productive = data.table()
+    bootstrap_regression_results_v_gene_NOT_productive = data.table()
+    numrows <- min( snp_end-snp_start, bigsize-snp_start+1 ) 
+    genotypes <- read.gdsn(index.gdsn(snps_gds, "genotype"), start=c(1,snp_start), count = c(398, numrows))
+    genotypes_df = data.frame(scanID = c(sampleid), genotypes)
+    snpid <- read.gdsn(index.gdsn(snps_gds, "snp.id"), start = snp_start, count=numrows)
+    colnames(genotypes_df) = c("scanID", paste0("snp",snpid))
+    genotypes_dt = as.data.table(genotypes_df)
+    genotypes_dt$scanID = as.numeric(as.character(genotypes_dt$scanID))
+    # Convert subject names and compile condensed data: 
+    subject_id_mapping = as.data.table(read.table('../_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
 
+    snps = merge(genotypes_dt, subject_id_mapping, by = "scanID")
+    print(paste0("snp data ", i, " of ", nloop, " compiled for ", gene_type))
+    # Replace '3' genotypes with NA (missing genotype)
+    snps[snps==3]<-NA
+    snps = as.data.table(snps)
+    # Get rid of snp columns which have the same entry for all entries and get ride of snp columns which have NA for all entries (missing for all individuals)
+    snps_no_NA = Filter(function(x) length(unique(x))!=1, snps)
+    snps_no_N2 = Filter(function(x) length(unique(snps_no_NA[x != "NA"])) != 1, snps_no_NA)
+    snps_no_NA2 = data.frame(localID = snps_no_NA$localID)
+    for (column in names(snps_no_NA)[-c(1, ncol(snps_no_NA))]){
+        if (length(unique(na.omit(snps_no_NA[[column]]))) > 1){
+            snps_no_NA2 = cbind(snps_no_NA2, snps_no_NA[[column]])
+            names(snps_no_NA2)[names(snps_no_NA2) == 'snps_no_NA[[column]]'] <- paste0(column)
+        }
+    }
+    if (gene_type == "v_gene"){
+        trimming_data = v_trimming
+    } else if (gene_type == "d0_gene" | gene_type == "d1_gene"){
+        trimming_data = d_trimming2
+    } else if (gene_type == "j_gene"){
+        trimming_data = j_trimming
+    } 
+    weighted_regression_bootstrap_patient_vgene_results_productive = trimming_snp_regression_weighted(snps_no_NA2, trimming_data, productive = "True", gene_type =gene_type, repetitions = 300)
+    print("finished weighted_regression_patient_vgene_results_productive")
+    if (nrow(weighted_regression_bootstrap_patient_vgene_results_productive) != 0){
+        bootstrap_regression_results_v_gene_productive = rbind(bootstrap_regression_results_v_gene_productive, weighted_regression_bootstrap_patient_vgene_results_productive)
+        write.table(bootstrap_regression_results_v_gene_productive, file=paste0('regression_bootstrap_results/productive/', gene_type, '/', gene_type, '_productive_', i, '.tsv'), quote=FALSE, sep='\t', col.names = NA)
+    }
+    print("finished bootstrap_regression_weighted_productive")
+
+
+    weighted_regression_bootstrap_patient_vgene_results_NOT_productive = trimming_snp_regression_weighted(snps_no_NA2, trimming_data, productive = "False", gene_type =gene_type,  repetitions = 300)
+    print("finished weighted_regression_patient_vgene_results_NOT_productive")
+    if (nrow(weighted_regression_bootstrap_patient_vgene_results_NOT_productive) != 0){
+        bootstrap_regression_results_v_gene_NOT_productive = rbind(bootstrap_regression_results_v_gene_NOT_productive, weighted_regression_bootstrap_patient_vgene_results_NOT_productive)
+        write.table(bootstrap_regression_results_v_gene_NOT_productive, file=paste0('regression_bootstrap_results/NOT_productive/', gene_type, '/', gene_type, '_NOT_productive_', i, '.tsv'), quote=FALSE, sep='\t', col.names = NA)
+    }
+    print("finished bootstrap_regression_weighted_NOT_productive")
+
+    print(paste0("finished bootstrap for snp data ", i, " of ", nloop, " for ", gene_type))
+
+    closefn.gds(snps_gds)
+}
     
 
