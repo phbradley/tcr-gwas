@@ -1,6 +1,7 @@
 library(data.table)
 library(lme4)
 library(boot)
+library(ClusterBootstrap)
 
 subset_data_snp <- function(snpID, snps_dataframe, condensed_trimming_dataframe, productive){
     condensed_trimming_dataframe = as.data.table(condensed_trimming_dataframe)
@@ -51,11 +52,25 @@ bootstrap_se <- function(data, repetitions, gene_type){
     return(standard_error)
 }
 
+bootstrap_cluster <- function(data, repetitions, gene_type){
+    if (gene_type =='v_gene'){
+        boot = clusbootglm(v_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
+    } else if (gene_type =='d0_gene'){
+        boot = clusbootglm(d0_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
+    } else if (gene_type =='d1_gene'){
+        boot = clusbootglm(d1_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
+    } else if (gene_type =='j_gene'){
+        boot = clusbootglm(j_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
+    }
+    standard_error = boot$boot.sds[2]
+    return(standard_error)
+}
+
 regression_weighted_bootstrap_se <- function(snps_dataframe, condensed_trimming_dataframe, productive, repetitions, gene_type){
     bootstrap_results = data.frame()
     for (snpID in names(snps_dataframe)[-c(1,ncol(snps_dataframe))]){
         data = subset_data_snp(snpID, snps_dataframe, condensed_trimming_dataframe, productive)
-        se = bootstrap_se(data, repetitions, gene_type)
+        se = bootstrap_cluster(data, repetitions, gene_type)
         bootstrap_results = rbind(bootstrap_results, data.frame(snp = snpID, standard_error = se))
     }
     return(bootstrap_results)

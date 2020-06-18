@@ -74,7 +74,7 @@ trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_
             regression = glm(formula = j_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_j_gene_count)
         }
         simple_regression_results = rbind(simple_regression_results, data.table(snp = snpID, intercept = as.numeric(coef(regression)[1]), slope = as.numeric(coef(regression)[2])))
-        se = bootstrap_se(sub2[snp != "NA"], repetitions, gene_type)
+        se = bootstrap_cluster(sub2[snp != "NA"], repetitions, gene_type)
         bootstrap_results = rbind(bootstrap_results, data.table(snp = snpID, standard_error = se))
     }
     together = bootstrap_regression_combine(bootstrap_results, simple_regression_results)
