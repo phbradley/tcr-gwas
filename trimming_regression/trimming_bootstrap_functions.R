@@ -3,13 +3,14 @@ library(lme4)
 library(boot)
 
 subset_data_snp <- function(snpID, snps_dataframe, condensed_trimming_dataframe, productive){
+    condensed_trimming_dataframe = as.data.table(condensed_trimming_dataframe)
     if (productive == "True"){
         condensed_trimming_dataframe = condensed_trimming_dataframe[productive == "True"]
     } else if (productive == "False"){
         condensed_trimming_dataframe = condensed_trimming_dataframe[productive == "False"]
     }
-    sub = data.frame(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
-    sub2 = as.data.table(merge(sub, condensed_trimming_dataframe, by = "localID"))
+    sub = data.table(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
+    sub2 = merge(sub, condensed_trimming_dataframe, by = "localID")
     return(sub2[snp != "NA"])
 }
 
@@ -45,7 +46,7 @@ bootstrap_se <- function(data, repetitions, gene_type){
     } else if (gene_type =='j_gene'){
         weight = data$weighted_j_gene_count
     }
-    boot = boot(data, model_se, repetitions, gene_type = gene_type, weights = weight)
+    boot = boot(data, model_se, repetitions, gene_type = gene_type, weights = weight, parallel="multicore", ncpus = 20)
     standard_error = colMeans(boot$t)[2]
     return(standard_error)
 }
@@ -54,9 +55,6 @@ regression_weighted_bootstrap_se <- function(snps_dataframe, condensed_trimming_
     bootstrap_results = data.frame()
     for (snpID in names(snps_dataframe)[-c(1,ncol(snps_dataframe))]){
         data = subset_data_snp(snpID, snps_dataframe, condensed_trimming_dataframe, productive)
-        if(length(unique(data[snp != "NA"]$snp)) == 1){
-            next
-        }
         se = bootstrap_se(data, repetitions, gene_type)
         bootstrap_results = rbind(bootstrap_results, data.frame(snp = snpID, standard_error = se))
     }
@@ -64,9 +62,13 @@ regression_weighted_bootstrap_se <- function(snps_dataframe, condensed_trimming_
 }
 
 bootstrap_regression_combine <- function(bootstrap_results, regression_results){
-    together = merge(bootstrap_results, regression_results, by = "snp")
-    together$zscore = together$slope/together$standard_error
-    together$pvalue = dnorm(together$zscore)
+    if (nrow(bootstrap_results) != 0 & nrow(regression_results) != 0){
+        together = merge(bootstrap_results, regression_results, by = "snp")
+        together$zscore = together$slope/together$standard_error
+        together$pvalue = dnorm(together$zscore)
+    } else {
+        together = data.table()
+    }
     return(together)
 }
 
