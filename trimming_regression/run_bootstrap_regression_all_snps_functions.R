@@ -197,7 +197,7 @@ run_snps_trimming_start_end <- function(snp_start, snp_end, trim_type){
 run_snps_trimming_snp_list <- function(snp_id_list, trim_type){
     # ALL SNP DATA
     # Get snp meta data
-    snps_gds = openfn.gds("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
     n <- index.gdsn(snps_gds, "sample.id")
     sampleid <- read.gdsn(n) 
     bigsize <- 35481497
@@ -206,10 +206,9 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type){
     i = 0
     for (snp in snp_id_list){
         i = i + 1
-        genotypes <- read.gdsn(index.gdsn(snps_gds, "genotype"), start=c(1,snp), count = c(398, 1))
-        genotypes_df = data.frame(scanID = c(sampleid), genotypes)
-        snpid <- read.gdsn(index.gdsn(snps_gds, "snp.id"), start = snp, count=1)
-        colnames(genotypes_df) = c("scanID", paste0("snp",snpid))
+        genotype = snpgdsGetGeno(snps_gds, snp.id=snp)
+        genotypes_df = data.frame(scanID = c(sampleid), genotype)
+        colnames(genotypes_df) = c("scanID", paste0("snp",snp))
         genotypes_dt = as.data.table(genotypes_df)
         genotypes_dt$scanID = as.numeric(as.character(genotypes_dt$scanID))
         # Convert subject names and compile condensed data: 
