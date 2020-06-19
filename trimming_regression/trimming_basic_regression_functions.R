@@ -57,7 +57,7 @@ trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_
     } else if (productive == "False"){
         condensed_trimming_dataframe = condensed_trimming_dataframe[productive == "False"]
     }
-    for (snpID in names(snps_dataframe)[-c(1,ncol(snps_dataframe))]){
+    for (snpID in names(snps_dataframe)[-c(1)]){
         sub = NULL
         sub2 = NULL
         regression = NULL
