@@ -48,7 +48,7 @@ trimming_snp_regression_by_vgene_subject_varying_intercepts_subject <- function(
 }
 
 
-trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_dataframe, productive, gene_type, repetitions){
+trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, repetitions){
     condensed_trimming_dataframe = as.data.table(condensed_trimming_dataframe)
     simple_regression_results = data.table()
     bootstrap_results = data.table()
@@ -64,17 +64,23 @@ trimming_snp_regression_weighted <- function(snps_dataframe, condensed_trimming_
         sub = data.table(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
         sub2 = merge(sub, condensed_trimming_dataframe, by = "localID")
     
-        if (gene_type =='v_gene'){
+        if (trim_type =='v_trim'){
             regression = glm(formula = v_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_v_gene_count)
-        } else if (gene_type =='d0_gene'){
+        } else if (trim_type =='d0_trim'){
             regression = glm(formula = d0_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_d_gene_count)
-        } else if (gene_type =='d1_gene'){
+        } else if (trim_type =='d1_trim'){
             regression = glm(formula = d1_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_d_gene_count)
-        } else if (gene_type =='j_gene'){
+        } else if (trim_type =='j_trim'){
             regression = glm(formula = j_trim ~ snp, data = sub2[snp != "NA"], weights = weighted_j_gene_count)
+        } else if (trim_type =='vj_insert'){
+            regression = glm(formula = vj_insert ~ snp, data = sub2[snp != "NA"], weights = weighted_vj_gene_count)
+        } else if (trim_type =='dj_insert'){
+            regression = glm(formula = dj_insert ~ snp, data = sub2[snp != "NA"], weights = weighted_dj_gene_count)
+        } else if (trim_type =='vd_insert'){
+            regression = glm(formula = vd_insert ~ snp, data = sub2[snp != "NA"], weights = weighted_vd_gene_count)
         }
         simple_regression_results = rbind(simple_regression_results, data.table(snp = snpID, intercept = as.numeric(coef(regression)[1]), slope = as.numeric(coef(regression)[2])))
-        se = bootstrap_cluster(sub2[snp != "NA"], repetitions, gene_type)
+        se = bootstrap_cluster(sub2[snp != "NA"], repetitions, trim_type)
         bootstrap_results = rbind(bootstrap_results, data.table(snp = snpID, standard_error = se))
     }
     together = bootstrap_regression_combine(bootstrap_results, simple_regression_results)

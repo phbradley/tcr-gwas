@@ -52,15 +52,21 @@ bootstrap_se <- function(data, repetitions, gene_type){
     return(standard_error)
 }
 
-bootstrap_cluster <- function(data, repetitions, gene_type){
-    if (gene_type =='v_gene'){
+bootstrap_cluster <- function(data, repetitions, trim_type){
+    if (trim_type =='v_trim'){
         boot = clusbootglm(v_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
-    } else if (gene_type =='d0_gene'){
+    } else if (trim_type =='d0_trim'){
         boot = clusbootglm(d0_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
-    } else if (gene_type =='d1_gene'){
+    } else if (trim_type =='d1_trim'){
         boot = clusbootglm(d1_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
-    } else if (gene_type =='j_gene'){
+    } else if (trim_type =='j_trim'){
         boot = clusbootglm(j_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
+    } else if (trim_type =='vj_insert'){
+        boot = clusbootglm(vj_insert ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
+    } else if (trim_type =='dj_insert'){
+        boot = clusbootglm(dj_insert ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
+    } else if (trim_type =='vd_insert'){
+        boot = clusbootglm(vd_insert ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
     }
     standard_error = boot$boot.sds[2]
     return(standard_error)
