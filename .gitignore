@@ -1,6 +1,7 @@
 # Hide data files
 _ignore/
 regression_bootstrap_results/
+figures/
 
 # Custom
 *.html

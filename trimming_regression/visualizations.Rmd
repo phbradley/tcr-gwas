@@ -1,0 +1,33 @@
+---
+title: "VDJ trimming/insertion regression by SNP visualizations"
+output:
+  html_document:
+    fig_crop: no
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(Cairo)
+knitr::opts_chunk$set(dev="CairoPNG")
+knitr::opts_chunk$set(fig.width=12, fig.height=8) 
+knitr::opts_chunk$set(fig.path = "figures/")
+
+source("manha_visualization.R")
+
+chr7_data = as.data.table(read.table("../_ignore/tcrb_vgene_oof_hg19_pvals.tsv", header = TRUE))
+```
+
+
+```{r echo=TRUE}
+productivity = c("productive", "NOT_productive")
+trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "dj_insert")
+
+for (trim in trimming_types) {
+    for (prod in productivity) {
+        compile_data_manhattan(chr7_data, prod, trim)
+    }
+}
+```
