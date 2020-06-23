@@ -52,6 +52,7 @@ bootstrap_se <- function(data, repetitions, gene_type){
     return(standard_error)
 }
 
+
 bootstrap_cluster <- function(data, repetitions, trim_type){
     if (trim_type =='v_trim'){
         boot = clusbootglm(v_trim ~ snp, data, clusterid = localID, B = repetitions, n.cores = 6)
@@ -72,6 +73,39 @@ bootstrap_cluster <- function(data, repetitions, trim_type){
     return(standard_error)
 }
 
+bootstrap_cluster_lmer <- function(regression, repetitions){
+    # preserves grouping from lmer regression
+    subject_slope = function(.) {coef(.)$localID[,"snp"]}
+    merBoot <- bootMer(regression, subject_slope, nsim = repetitions, re.form = NA, ncpus = 10, parallel = "multicore")
+    standard_error <- mean(apply(merBoot$t, 2, sd))
+    return(standard_error)
+}
+
+# This one definitely does clustering (which is what we want I think)--this incorporates fixed and random effects!
+clusboot_lmer <- function(regression, data, cluster, repetitions){
+    control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4))
+    clusters <- names(table(cluster))
+    sterrs <- matrix(NA, nrow=repetitions, ncol=length(c(coef(summary(regression))[1], coef(summary(regression))[2])))
+    for(i in 1:repetitions){
+        index <- sample(1:length(clusters), length(clusters), replace=TRUE)
+        aa <- clusters[index]
+        bb <- table(aa)
+        bootdat <- NULL
+        for(j in 1:max(bb)){
+            cc <- data[cluster %in% names(bb[bb %in% j]),]
+            for(k in 1:j){
+                bootdat <- rbind(bootdat, cc)
+            }
+        }
+        formula = formula(regression)   
+        sterrs[i,] <- c(colMeans(coef((lmer(formula, bootdat, control = control)))$localID[1]), colMeans(coef(lmer(formula, bootdat, control = control))$localID[2]))
+    }
+    val <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(sterrs,2,sd))
+    colnames(val) <- c("Estimate","Std. Error")
+    return(val)
+}
+
+
 regression_weighted_bootstrap_se <- function(snps_dataframe, condensed_trimming_dataframe, productive, repetitions, gene_type){
     bootstrap_results = data.frame()
     for (snpID in names(snps_dataframe)[-c(1,ncol(snps_dataframe))]){
@@ -82,14 +116,22 @@ regression_weighted_bootstrap_se <- function(snps_dataframe, condensed_trimming_
     return(bootstrap_results)
 }
 
-bootstrap_regression_combine <- function(bootstrap_results, regression_results){
+bootstrap_regression_combine <- function(bootstrap_results, regression_results, bonferroni){
     if (nrow(bootstrap_results) != 0 & nrow(regression_results) != 0){
         together = merge(bootstrap_results, regression_results, by = "snp")
         together$zscore = together$slope/together$standard_error
         together$pvalue = 2*pnorm(-abs(together$zscore))
+        if(together$pvalue < bonferroni){
+            se = clusboot_lmer(regression, data = sub2[snp != "NA"], cluster = sub2[snp != "NA"]$localID, repetitions=1000)[2,2]
+
+            together$standard_error = se
+            together$zscore = together$slope/together$standard_error
+            together$pvalue = 2*pnorm(-abs(together$zscore))
+        }
     } else {
         together = data.table()
     }
+
     return(together)
 }
 

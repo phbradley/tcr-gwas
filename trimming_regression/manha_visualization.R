@@ -5,6 +5,7 @@ library(ggplot2)
 
 
 compile_data_manhattan <- function(snp_meta_data, productivity, trim_type){
+    bonferroni = 0.05/35481497
     if (nrow(snp_meta_data) == 11267){
         snp_meta_data = snp_meta_data[,mean(mwu_pval), by = .(snpnum, chromosome, hg19_pos)]
         snp_meta_data$snpnum = paste0("snp", snp_meta_data$snpnum)
@@ -38,6 +39,6 @@ compile_data_manhattan <- function(snp_meta_data, productivity, trim_type){
     par(mar=c(5,6,4,4)+.1)
     plot(together$BP, -1*log(together$P, base =10), col = alpha("black", 0.25), pch=19, cex = 1.25, xlab = 'Chromosome 7 position', ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs"), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1)
     points(together_other$BP, -1*log(together_other$P, base =10), col = alpha("blue", 0.35), pch=19, cex = 1.25,)
-    abline(h = -1*log(0.05, base = 10), col = "red", lwd = 4, lty = 2)
+    abline(h = -1*log(bonferroni, base = 10), col = "red", lwd = 4, lty = 2)
     legend("topleft", box.lty=0, legend=c("-log10(0.05)", paste0("significant for ", prod, " TCRs")), col=c("red", alpha("blue", 0.35)), lty=c(2, NA), lwd = c(3, NA), pch = c(NA, 19), cex = 1.25)
 }
