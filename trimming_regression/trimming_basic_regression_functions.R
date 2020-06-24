@@ -39,7 +39,7 @@ trimming_snp_regression_weighted_varying_int_subject <- function(snps_dataframe,
         }
         simple_regression_results = rbind(simple_regression_results, data.table(snp = snpID, intercept = mean(as.numeric(as.character(unlist(coefficients(regression)[[1]][1])))), slope = mean(as.numeric(as.character(unlist(coefficients(regression)[[1]][2]))))))
         
-        se = clusboot_lmer(regression, data = sub2[snp != "NA"], cluster = sub2[snp != "NA"]$localID, repetitions)[2,2]
+        se = clusboot_lmer(regression, data = sub2[snp != "NA"], cluster_variable = sub2[snp != "NA"]$localID, repetitions)[2,2]
         
         bootstrap_results = rbind(bootstrap_results, data.table(snp = snpID, standard_error = se))
     }

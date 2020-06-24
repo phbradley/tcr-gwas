@@ -238,7 +238,7 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, repe
         snps = as.data.table(snps)
         # Get rid of snp columns which have the same entry for all entries and get ride of snp columns which have NA for all entries (missing for all individuals)
         snps_no_NA = Filter(function(x) length(unique(x))!=1, snps)
-        snps_no_N2 = Filter(function(x) length(unique(snps_no_NA[x != "NA"])) != 1, snps_no_NA)
+        snps_no_NA = Filter(function(x) length(unique(snps_no_NA[x != "NA"])) != 1, snps_no_NA)
         snps_no_NA2 = data.frame(localID = snps_no_NA$localID)
         for (column in names(snps_no_NA)[-c(1, ncol(snps_no_NA))]){
             if (length(unique(na.omit(snps_no_NA[[column]]))) > 1){

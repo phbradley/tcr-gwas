@@ -82,27 +82,27 @@ bootstrap_cluster_lmer <- function(regression, repetitions){
 }
 
 # This one definitely does clustering (which is what we want I think)--this incorporates fixed and random effects!
-clusboot_lmer <- function(regression, data, cluster, repetitions){
+clusboot_lmer <- function(regression, data, cluster_variable, repetitions){
     control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4))
-    clusters <- names(table(cluster))
-    sterrs <- matrix(NA, nrow=repetitions, ncol=length(c(coef(summary(regression))[1], coef(summary(regression))[2])))
+    clusters <- names(table(cluster_variable))
+    standard_errors <- matrix(NA, nrow=repetitions, ncol=2)
     for(i in 1:repetitions){
         index <- sample(1:length(clusters), length(clusters), replace=TRUE)
-        aa <- clusters[index]
-        bb <- table(aa)
+        clusters_by_index <- clusters[index]
+        contingency_table_clusters <- table(clusters_by_index)
         bootdat <- NULL
-        for(j in 1:max(bb)){
-            cc <- data[cluster %in% names(bb[bb %in% j]),]
+        for(j in 1:max(contingency_table_clusters)){
+            data_subset <- data[cluster_variable %in% names(contingency_table_clusters[contingency_table_clusters %in% j]),]
             for(k in 1:j){
-                bootdat <- rbind(bootdat, cc)
+                bootdat <- rbind(bootdat, data_subset)
             }
         }
         formula = formula(regression)   
-        sterrs[i,] <- c(colMeans(coef((lmer(formula, bootdat, control = control)))$localID[1]), colMeans(coef(lmer(formula, bootdat, control = control))$localID[2]))
+        standard_errors[i,] <- c(colMeans(coef((lmer(formula, bootdat, control = control)))$localID[1]), colMeans(coef(lmer(formula, bootdat, control = control))$localID[2]))
     }
-    val <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(sterrs,2,sd))
-    colnames(val) <- c("Estimate","Std. Error")
-    return(val)
+    coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(standard_errors,2,sd))
+    colnames(coefficients_se) <- c("Estimate","Std. Error")
+    return(coefficients_se)
 }
 
 
