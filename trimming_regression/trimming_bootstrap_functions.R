@@ -1,7 +1,7 @@
-library(data.table)
-library(lme4)
-library(boot)
-library(ClusterBootstrap)
+library("data.table")
+library("lme4")
+library("boot")
+library("ClusterBootstrap")
 
 subset_data_snp <- function(snpID, snps_dataframe, condensed_trimming_dataframe, productive){
     condensed_trimming_dataframe = as.data.table(condensed_trimming_dataframe)
