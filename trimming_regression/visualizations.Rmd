@@ -17,17 +17,21 @@ knitr::opts_chunk$set(fig.path = "figures/")
 
 source("manha_visualization.R")
 
-chr7_data = as.data.table(read.table("../_ignore/tcrb_vgene_oof_hg19_pvals.tsv", header = TRUE))
+snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pvals_for_maggie.tsv", sep = "\t", fill=TRUE, header = TRUE))[-c(1:4)]
 ```
 
 
-```{r echo=TRUE}
-productivity = c("productive", "NOT_productive")
+```{r echo=TRUE, warning=FALSE}
+productive = c("productive", "NOT_productive")
 trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "dj_insert")
+chromosome = c(7,10)
 
 for (trim in trimming_types) {
-    for (prod in productivity) {
-        compile_data_manhattan(chr7_data, prod, trim)
+    for (product in productive) {
+        for (chrom in chromosome){
+            compile_data_manhattan(snp_meta_data = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, trim_type = trim, chromosome = chrom)
+        }
+        compare_phil(phil_p_vals = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, trim_type = trim)
     }
 }
 ```

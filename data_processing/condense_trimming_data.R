@@ -1,8 +1,10 @@
-library(data.table)
-library(gdsfmt)
-library(plyr)
-library(readr)
-library(stringr)
+library("data.table")
+library("gdsfmt")
+library("plyr")
+library("readr")
+library("stringr")
+
+args = commandArgs(trailingOnly=TRUE)
 
 setwd("../_ignore/emerson_stats/")
 dir = getwd()
@@ -22,6 +24,7 @@ infer_d_gene <- function(patient_trimming_table){
             index = which(sample == 1)
             patient_trimming_table_missing_d[row]$d_gene = empirical_dist[index]$d_gene
         } else {
+            # This might need to change ...
             sample = rmultinom(1,1,rep(0.33333, 3))
             index = which(sample == 1)
             d_gene_options = unique(patient_trimming_table_NO_missing_d$d_gene)
@@ -48,13 +51,12 @@ condense_trim_data <- function(trim_type){
     for (file in files){
         temp_file = data.table()
         temp_file_condensed = data.table()
-        temp_file = read.table(file, sep = "\t", fill=TRUE, header = TRUE)
+        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
         temp_file = as.data.table(temp_file)
         file_name = str_split(file, "/")[[1]][7]
         file_root_name = str_split(file_name, ".tsv")[[1]][1]
         patient_id = str_split(file_root_name, "_")[[1]][3]
         temp_file$patient_id = patient_id
-        temp_file = infer_d_gene(temp_file)
         if (trim_type == 'v_trim'){
             temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, v_gene, productive)]
             temp_file_condensed = temp_file[,mean(v_trim), by = .(patient_id, v_gene, productive)]
@@ -62,6 +64,7 @@ condense_trim_data <- function(trim_type){
             colnames(together) = c("patient_id", "v_gene", "productive", "v_trim", "v_gene_count")
             together$weighted_v_gene_count = together$v_gene_count/nrow(temp_file)
         } else if (trim_type == 'd_trim'){
+            temp_file = infer_d_gene(temp_file)
             temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, d_gene, productive)]
             temp_file_condensed_d0 = temp_file[,mean(d0_trim), by = .(patient_id, d_gene, productive)]
             colnames(temp_file_condensed_d0) = c("patient_id", "d_gene", "productive", "d0_trim")
@@ -84,12 +87,14 @@ condense_trim_data <- function(trim_type){
             colnames(together) = c("patient_id", "v_gene", "j_gene", "productive", "vj_insert", "vj_gene_count")
             together$weighted_vj_gene_count = together$vj_gene_count/nrow(temp_file)
         } else if (trim_type == 'dj_insert'){
+            temp_file = infer_d_gene(temp_file)
             temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, d_gene, j_gene, productive)]
             temp_file_condensed = temp_file[,mean(dj_insert), by = .(patient_id, d_gene, j_gene, productive)]
             together= merge(temp_file_condensed, temp_file_vgene_type_counts)
             colnames(together) = c("patient_id", "d_gene", "j_gene", "productive", "dj_insert", "dj_gene_count")
             together$weighted_dj_gene_count = together$dj_gene_count/nrow(temp_file)
         } else if (trim_type == 'vd_insert'){
+            temp_file = infer_d_gene(temp_file)
             temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, v_gene, d_gene, productive)]
             temp_file_condensed = temp_file[,mean(vd_insert), by = .(patient_id, v_gene, d_gene, productive)]
             together = merge(temp_file_condensed,temp_file_vgene_type_counts)
@@ -103,21 +108,5 @@ condense_trim_data <- function(trim_type){
     return(condensed_trim_data)
 }
 
-#v_gene_trimming = condense_trim_data('v_trim')
-#write.table(v_gene_trimming, file='../condensed_v_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
 
-
-#d_gene_trimming = condense_trim_data('d_trim')
-#write.table(d_gene_trimming, file='../condensed_d_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
-
-#j_gene_trimming = condense_trim_data('j_trim')
-#write.table(j_gene_trimming, file='../condensed_j_trim_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
-
-vj_gene_insert = condense_trim_data('vj_insert')
-write.table(vj_gene_insert, file='../condensed_vj_insert_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
-
-dj_gene_insert = condense_trim_data('dj_insert')
-write.table(dj_gene_insert, file='../condensed_dj_insert_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
-
-vd_gene_insert = condense_trim_data('vd_insert')
-write.table(vd_gene_insert, file='../condensed_vd_insert_data_all_patients.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(condense_trim_data(args[1]), file=paste0('../condensed_', args[1],'_data_all_patients.tsv'), quote=FALSE, sep='\t', col.names = NA)
