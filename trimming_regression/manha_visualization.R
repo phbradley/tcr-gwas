@@ -75,12 +75,12 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, productivity, tri
             xlimit = c(min(together_not_correlated$hg19_pos)-1000, max(together_not_correlated$hg19_pos)+1000)
             ylimit = c(0, max(-1*log(together_not_correlated$pvalue, base =10))+5)
         }
-        plot(as.numeric(together_not_correlated$hg19_pos), as.numeric(-1*log(together_not_correlated$pvalue, base =10)), col = alpha("black", 0.4), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs \n on Chromosome ", chromosome, "\n", correlated_snps), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 19, cex = 1.5, xlim = xlimit, ylim = ylimit)
+        plot(as.numeric(together_not_correlated$hg19_pos), as.numeric(-1*log(together_not_correlated$pvalue, base =10)), bg = alpha("black", 0.4), col = alpha("black", 0.9), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs \n on Chromosome ", chromosome, "\n", correlated_snps), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 21, cex = 1.5, xlim = xlimit, ylim = ylimit)
 
-        palette(brewer.pal(n = length(unique(together_correlated$index)), name = 'Set2'))
+        palette(brewer.pal(n = length(unique(together_correlated$index)), name = 'Set3'))
         col = setNames(palette(), levels(together_correlated$index))
         if (nrow(together_correlated) > 0){
-            points(together_correlated$hg19_pos, -1*log(together_correlated$pvalue, base =10), col = c(factor(together_correlated$index), alpha = 0.4), pch=19, cex = 1.5)
+            points(together_correlated$hg19_pos, -1*log(together_correlated$pvalue, base =10), bg = c(factor(together_correlated$index), alpha = 0.4), col = alpha("black", 0.9), pch=21, cex = 1.5)
         }
         points(as.numeric(together_other$hg19_pos), -1*log(together_other$pvalue, base =10), col = alpha("red", 0.9), pch=1, cex = 1.5)
     } else {
@@ -88,10 +88,10 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, productivity, tri
             xlimit = c(min(together_correlated$hg19_pos)-1000, max(together_correlated$hg19_pos)+1000)
             ylimit = c(0, max(-1*log(together_correlated$pvalue, base =10))+5)
         }
-        palette(brewer.pal(n = length(unique(together_correlated$index)), name = 'Set2'))
+        palette(brewer.pal(n = length(unique(together_correlated$index)), name = 'Set3'))
         col = setNames(palette(), levels(together_correlated$index))
 
-        plot(together_correlated$hg19_pos, -1*log(together_correlated$pvalue, base =10), col = c(factor(together_correlated$index), alpha = 0.4), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs \n on Chromosome ", chromosome, "\n", correlated_snps), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 19, cex = 1.5, xlim = c(min(together_not_correlated$hg19_pos, together_correlated$hg19_pos)-1000, max(together_not_correlated$hg19_pos, together_correlated$hg19_pos)+1000), ylim = c(0, max(-1*log(together_not_correlated$pvalue, base =10), -1*log(together_correlated$pvalue, base =10))+5))
+        plot(together_correlated$hg19_pos, -1*log(together_correlated$pvalue, base =10), bg = c(factor(together_correlated$index), alpha = 0.4), col = alpha("black", 0.9), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs \n on Chromosome ", chromosome, "\n", correlated_snps), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 21, cex = 1.5, xlim = c(min(together_not_correlated$hg19_pos, together_correlated$hg19_pos)-1000, max(together_not_correlated$hg19_pos, together_correlated$hg19_pos)+1000), ylim = c(0, max(-1*log(together_not_correlated$pvalue, base =10), -1*log(together_correlated$pvalue, base =10))+5))
 
         points(as.numeric(together_other$hg19_pos), -1*log(together_other$pvalue, base =10), col = alpha("red", 0.9), pch=1, cex = 1.5)
     }

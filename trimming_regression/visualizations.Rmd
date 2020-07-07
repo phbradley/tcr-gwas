@@ -23,7 +23,7 @@ snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pv
 
 ```{r echo=TRUE, warning=FALSE}
 productive = c("productive", "NOT_productive")
-trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "dj_insert")
+trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "dj_insert", "vj_insert", "vd_insert")
 chromosome = c(7,10)
 
 for (trim in trimming_types) {
