@@ -55,7 +55,7 @@ trimming_snp_regression_weighted_varying_int_subject <- function(snps_dataframe,
         regression = lmer(formula = form, data = sub2[snp != "NA"], weights = get(weight), control=control)
         
         # Calculate slope, intercept 
-        intercept = mean(as.numeric(as.character(unlist(coefficients(regression)[[1]][1]))))
+        intercept = mean(as.numeric(as.character(unlist([[1]coefficients(regression)][1]))))
         slope = mean(as.numeric(as.character(unlist(coefficients(regression)[[1]][2]))))
 
         if (slope != "NA"){

@@ -8,17 +8,17 @@ library("ClusterBootstrap")
 clusboot_lmer <- function(regression, data, cluster_variable, repetitions){
     # Hide warnings for singularity
     control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4))
-    # forms cluster variable
+    # forms cluster variable (here, extract patient names)
     clusters <- names(table(cluster_variable))
     # Set empty matrix to hold results
     standard_errors <- matrix(NA, nrow=repetitions, ncol=2)
 
     for(i in 1:repetitions){
-        # Create index for clusters
+        # Sample clusters (patients) with replacement
         index <- sample(1:length(clusters), length(clusters), replace=TRUE)
         # Assign clusters to index
         clusters_by_index <- clusters[index]
-        # Create a contingency table for the clusters by index
+        # Create a contingency table for the clusters
         contingency_table_clusters <- table(clusters_by_index)
         bootdat <- NULL
 

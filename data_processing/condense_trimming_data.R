@@ -9,27 +9,47 @@ args = commandArgs(trailingOnly=TRUE)
 setwd("../_ignore/emerson_stats/")
 dir = getwd()
 files = list.files(path=dir, pattern="*.tsv", full.names=TRUE)
+
 infer_d_gene <- function(patient_trimming_table){
+    # filter between entries that have missing d_gene and those that do not have a missing dgene
     patient_trimming_table_NO_missing_d = patient_trimming_table[d_gene != '-']
     patient_trimming_table_missing_d = patient_trimming_table[d_gene == '-']
+
+    # condense and count triplet observations (i.e. VDJ combos)
     triplet_counts = patient_trimming_table_NO_missing_d[,.N, by = .(v_gene, d_gene, j_gene)]
+    doublet_dj = patient_trimming_table_NO_missing_d[,.N, by = .(j_gene, d_gene)]
+    doublet_vd = patient_trimming_table_NO_missing_d[,.N, by = .(v_gene, d_gene)]
+
+    # for each row with missing d gene...
     for (row in 1:nrow(patient_trimming_table_missing_d)){
+        # Find observed v and j gene
         v_gene_observed = patient_trimming_table_missing_d[row]$v_gene
         j_gene_observed = patient_trimming_table_missing_d[row]$j_gene
 
-        empirical_dist = triplet_counts[v_gene == v_gene_observed & j_gene == j_gene_observed]
-        if (nrow(empirical_dist) != 0) {
-            empirical_dist$probability = empirical_dist$N/sum(empirical_dist$N)
-            sample = rmultinom(1,1,empirical_dist$probability)
+        # Find observed triplets containing the observed v,j (or both) gene
+        empirical_dist_vj = triplet_counts[v_gene == v_gene_observed & j_gene == j_gene_observed]
+        empirical_dist_j = doublet_dj[j_gene == j_gene_observed]
+        empirical_dist_v = doublet_vd[v_gene == v_gene_observed]
+
+        # If both the v and j gene are observed empirically, sample from the empirical distribution to infer missing d gene
+        if (nrow(empirical_dist_vj) != 0) {
+            empirical_dist_vj$probability = empirical_dist_vj$N/sum(empirical_dist_vj$N)
+            sample = rmultinom(1,1,empirical_dist_vj$probability)
             index = which(sample == 1)
-            patient_trimming_table_missing_d[row]$d_gene = empirical_dist[index]$d_gene
+            patient_trimming_table_missing_d[row]$d_gene = empirical_dist_vj[index]$d_gene
+        # If both the v and j gene are NOT observed empirically, sample from the empirical distribution of just the j gene observations to infer missing d gene
+        } else if (nrow(empirical_dist_j) != 0) {
+            empirical_dist_j$probability = empirical_dist_j$N/sum(empirical_dist_j$N)
+            sample = rmultinom(1,1,empirical_dist_j$probability)
+            index = which(sample == 1)
+            patient_trimming_table_missing_d[row]$d_gene = empirical_dist_j[index]$d_gene
         } else {
-            # This might need to change ...
-            sample = rmultinom(1,1,rep(0.33333, 3))
+            empirical_dist_v$probability = empirical_dist_v$N/sum(empirical_dist_v$N)
+            sample = rmultinom(1,1,empirical_dist_v$probability)
             index = which(sample == 1)
-            d_gene_options = unique(patient_trimming_table_NO_missing_d$d_gene)
-            patient_trimming_table_missing_d[row]$d_gene = d_gene_options[index]
+            patient_trimming_table_missing_d[row]$d_gene = empirical_dist_v[index]$d_gene
         } 
+        # Now, trim or insert half of the dgene (length is different depending on dgene)
         if (patient_trimming_table_missing_d[row]$d_gene == "TRBD2*01" | patient_trimming_table_missing_d[row]$d_gene == "TRBD2*02"){
             patient_trimming_table_missing_d[row]$d0_trim = 4
             patient_trimming_table_missing_d[row]$d1_trim = 4
@@ -46,9 +66,15 @@ infer_d_gene <- function(patient_trimming_table){
     return(inferred)
 }
 
-condense_trim_data <- function(trim_type){
-    condensed_trim_data = data.table()
+condense_trim_data <- function(trim_types){
+    for (trim in trim_types){
+        assign(paste0('condensed_', trim, '_data'), data.table())
+    }
+    count = 0
+    # for each patient...
     for (file in files){
+        count = count + 1
+        # read file...
         temp_file = data.table()
         temp_file_condensed = data.table()
         temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
@@ -57,56 +83,44 @@ condense_trim_data <- function(trim_type){
         file_root_name = str_split(file_name, ".tsv")[[1]][1]
         patient_id = str_split(file_root_name, "_")[[1]][3]
         temp_file$patient_id = patient_id
-        if (trim_type == 'v_trim'){
-            temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, v_gene, productive)]
-            temp_file_condensed = temp_file[,mean(v_trim), by = .(patient_id, v_gene, productive)]
-            together = merge(temp_file_condensed,temp_file_vgene_type_counts)
-            colnames(together) = c("patient_id", "v_gene", "productive", "v_trim", "v_gene_count")
-            together$weighted_v_gene_count = together$v_gene_count/nrow(temp_file)
-        } else if (trim_type == 'd_trim'){
-            temp_file = infer_d_gene(temp_file)
-            temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, d_gene, productive)]
-            temp_file_condensed_d0 = temp_file[,mean(d0_trim), by = .(patient_id, d_gene, productive)]
-            colnames(temp_file_condensed_d0) = c("patient_id", "d_gene", "productive", "d0_trim")
-            temp_file_condensed_d1 = temp_file[,mean(d1_trim), by = .(patient_id, d_gene, productive)]
-            colnames(temp_file_condensed_d1) = c("patient_id", "d_gene", "productive", "d1_trim")
-            d_together = merge(temp_file_condensed_d0, temp_file_condensed_d1, by = c("patient_id", "d_gene", "productive"))
-            together= merge(d_together, temp_file_vgene_type_counts)
-            colnames(together) = c("patient_id", "d_gene", "productive", "d0_trim", "d1_trim", "d_gene_count")
-            together$weighted_d_gene_count = together$d_gene_count/nrow(temp_file)
-        } else if (trim_type == 'j_trim'){
-            temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, j_gene, productive)]
-            temp_file_condensed = temp_file[,mean(j_trim), by = .(patient_id, j_gene, productive)]
-            together = merge(temp_file_condensed,temp_file_vgene_type_counts)
-            colnames(together) = c("patient_id", "j_gene", "productive", "j_trim", "j_gene_count")
-            together$weighted_j_gene_count = together$j_gene_count/nrow(temp_file)
-        } else if (trim_type == 'vj_insert'){
-            temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, v_gene, j_gene, productive)]
-            temp_file_condensed = temp_file[,mean(vj_insert), by = .(patient_id, v_gene, j_gene, productive)]
-            together = merge(temp_file_condensed,temp_file_vgene_type_counts)
-            colnames(together) = c("patient_id", "v_gene", "j_gene", "productive", "vj_insert", "vj_gene_count")
-            together$weighted_vj_gene_count = together$vj_gene_count/nrow(temp_file)
-        } else if (trim_type == 'dj_insert'){
-            temp_file = infer_d_gene(temp_file)
-            temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, d_gene, j_gene, productive)]
-            temp_file_condensed = temp_file[,mean(dj_insert), by = .(patient_id, d_gene, j_gene, productive)]
-            together= merge(temp_file_condensed, temp_file_vgene_type_counts)
-            colnames(together) = c("patient_id", "d_gene", "j_gene", "productive", "dj_insert", "dj_gene_count")
-            together$weighted_dj_gene_count = together$dj_gene_count/nrow(temp_file)
-        } else if (trim_type == 'vd_insert'){
-            temp_file = infer_d_gene(temp_file)
-            temp_file_vgene_type_counts = temp_file[,.N, by = .(patient_id, v_gene, d_gene, productive)]
-            temp_file_condensed = temp_file[,mean(vd_insert), by = .(patient_id, v_gene, d_gene, productive)]
-            together = merge(temp_file_condensed,temp_file_vgene_type_counts)
-            colnames(together) = c("patient_id", "v_gene", "d_gene", "productive", "vd_insert", "vd_gene_count")
-            together$weighted_vd_gene_count = together$vd_gene_count/nrow(temp_file)
-        } 
-        condensed_trim_data = rbind(condensed_trim_data, together)
-        print(paste0(file, "processed for ", trim_type))
+
+        # Infer d genes (when d gene is missing)
+        temp_file = infer_d_gene(temp_file)
+        for (trim in trim_types){
+            together = data.table()
+
+            if ((str_split(trim, "_")[[1]][2])== "trim"){
+                # extract gene type (separate from '_trim')
+                gene_type = paste0(substr(trim, 1, 1), '_gene')
+
+                # condense patient file by gene type (and take the mean trimming for each gene type)
+                together = temp_file[,.(mean(v_trim), mean(d0_trim), mean(d1_trim), mean(j_trim), mean(vj_insert), mean(dj_insert), mean(vd_insert), .N), by = .(patient_id, eval(parse(text=gene_type)), productive)]
+
+                colnames(together) = c("patient_id", paste(gene_type), "productive", "v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert", paste0(gene_type, '_count'))
+            } else if ((str_split(trim, "_")[[1]][2])== "insert"){
+                # extract gene type (separate from '_trim')
+                gene_type1 = paste0(substr(trim, 1, 1), '_gene')
+                gene_type2 = paste0(substr(trim, 2, 2), '_gene')
+                gene_type = paste0(substr(trim, 1, 2), '_gene')
+
+                # condense patient file by gene type (and take the mean trimming for each gene type)
+                together = temp_file[,.(mean(v_trim), mean(d0_trim), mean(d1_trim), mean(j_trim), mean(vj_insert), mean(dj_insert), mean(vd_insert), .N), by = .(patient_id, eval(parse(text=gene_type1)), eval(parse(text=gene_type2)), productive)]
+
+                colnames(together) = c("patient_id", paste(gene_type1), paste(gene_type2), "productive", "v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert", paste0(gene_type, '_count'))
+            }
+            
+            together[[paste0('weighted_', gene_type, '_count')]] = together[[paste0(gene_type, '_count')]]/nrow(temp_file)
+            assign(paste0('condensed_', trim, '_data'), rbind(get(paste0('condensed_', trim, '_data')), together))
+            print(paste0(count," of ", length(files), " processed for ", trim))
+        }
     }
-    print(paste0("finished with ", trim_type))
-    return(condensed_trim_data)
+    print(paste0("finished processing!"))
+
+    for (trim in trim_types){
+        write.table(get(paste0('condensed_', trim, '_data')), file=paste0('../condensed_', trim,'_data_all_patients.tsv'), quote=FALSE, sep='\t', col.names = NA)
+    }
 }
 
+condense_trim_data(trim_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert"))
 
-write.table(condense_trim_data(args[1]), file=paste0('../condensed_', args[1],'_data_all_patients.tsv'), quote=FALSE, sep='\t', col.names = NA)
+
