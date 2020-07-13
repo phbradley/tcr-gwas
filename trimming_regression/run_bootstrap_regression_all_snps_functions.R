@@ -13,7 +13,7 @@ source("trimming_bootstrap_functions.R")
 v_trimming = as.data.table(read.table("../_ignore/condensed_v_trim_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
 colnames(v_trimming) = c("localID", "v_gene", "productive", "v_trim", "v_gene_count", "weighted_v_gene_count")
 
-d_trimming = as.data.table(read.table("../_ignore/condensed_d_trim_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
+d_trimming = as.data.table(read.table("../_ignore/condensed_d0_trim_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
 colnames(d_trimming) = c("localID", "d_gene", "productive", "d0_trim", "d1_trim", "d_gene_count", "weighted_d_gene_count")
 
 j_trimming = as.data.table(read.table("../_ignore/condensed_j_trim_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
@@ -38,8 +38,8 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, repe
     n <- index.gdsn(snps_gds, "sample.id")
     sampleid <- read.gdsn(n) 
     bigsize <- 35481497
-    bootstrap_regression_results_v_gene_productive = data.table()
-    bootstrap_regression_results_v_gene_NOT_productive = data.table()
+    boot_regression_results_productive = data.table()
+    boot_regression_results_NOT_productive = data.table()
     i = 0
 
     for (snp in snp_id_list){
@@ -84,32 +84,47 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, repe
         }
 
         # do regression, bootstrap
-        weighted_regression_bootstrap_patient_vgene_results_productive = trimming_snp_regression_weighted_varying_int_subject(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions)
-        print("finished weighted_regression_patient_vgene_results_productive")
+        if (varying_int == "True"){
+            regression_productive = trimming_snp_regression_weighted_varying_int_subject(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions)
+            print("finished regression_productive")
 
-        weighted_regression_bootstrap_patient_vgene_results_NOT_productive = trimming_snp_regression_weighted_varying_int_subject(snps_no_NA2, trimming_data, productive = "False", trim_type = trim_type,  repetitions =  repetitions)
-        print("finished weighted_regression_patient_vgene_results_NOT_productive")
+            regression_NOT_productive = trimming_snp_regression_weighted_varying_int_subject(snps_no_NA2, trimming_data, productive = "False", trim_type = trim_type,  repetitions =  repetitions)
+            print("finished regression_NOT_productive")
+
+             # set path name
+            prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_varying_intercepts_by_subject_with_gene.tsv')
+            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_varying_intercepts_by_subject_with_gene.tsv')  
+
+        } else {
+            regression_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions)
+            print("finished simple_regression_productive")
+
+            regression_NOT_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "False", trim_type = trim_type,  repetitions =  repetitions)
+            print("finished simple_regression_NOT_productive")
+
+             # set path name
+            prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_simple.tsv')
+            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_simple.tsv')  
+        }
+        
         
         # if regression, bootstrap conducted, add them to the results tables
-        if (nrow(weighted_regression_bootstrap_patient_vgene_results_productive) != 0){
-            bootstrap_regression_results_v_gene_productive = rbind(bootstrap_regression_results_v_gene_productive, weighted_regression_bootstrap_patient_vgene_results_productive)
+        if (nrow(regression_productive) != 0){
+            boot_regression_results_productive = rbind(boot_regression_results_productive, regression_productive)
         }
-        print("finished bootstrap_regression_weighted_productive")
+        print("finished bootstrap_regression_productive")
 
-        if (nrow(weighted_regression_bootstrap_patient_vgene_results_NOT_productive) != 0){
-            bootstrap_regression_results_v_gene_NOT_productive = rbind(bootstrap_regression_results_v_gene_NOT_productive, weighted_regression_bootstrap_patient_vgene_results_NOT_productive)
+        if (nrow(regression_NOT_productive) != 0){
+            boot_regression_results_NOT_productive = rbind(boot_regression_results_NOT_productive, regression_NOT_productive)
         }
-        print("finished bootstrap_regression_weighted_NOT_productive")
+        print("finished bootstrap_regression_NOT_productive")
 
         print(paste0("finished bootstrap for snp data for ", i, " of ", length(snp_id_list), " for ", trim_type))
-    }
-     # set path name
-    prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_varying_intercepts_by_subject.tsv')
-    not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_varying_intercepts_by_subject.tsv')   
+    } 
 
     # Write tables
-    write.table(bootstrap_regression_results_v_gene_productive, file= prod_name, quote=FALSE, sep='\t', col.names = NA)
-    write.table(bootstrap_regression_results_v_gene_NOT_productive, file= not_prod_name, quote=FALSE, sep='\t', col.names = NA)
+    write.table(boot_regression_results_productive, file= prod_name, quote=FALSE, sep='\t', col.names = NA)
+    write.table(boot_regression_results_NOT_productive, file= not_prod_name, quote=FALSE, sep='\t', col.names = NA)
 
     closefn.gds(snps_gds)
 }

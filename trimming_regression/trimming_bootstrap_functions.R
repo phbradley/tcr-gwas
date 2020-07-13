@@ -3,6 +3,17 @@ library("lme4")
 library("boot")
 library("ClusterBootstrap")
 
+bootstrap_screen <- function(regression){
+    # extract standard error from regression object for snp slope
+    se = summary(regression)$coefficients[,'Std. Error']['snp']
+    slope = summary(regression)$coefficients[,'Estimate']['snp']
+
+    # zscore calculation
+    zscore = slope/se
+    # calculate two sided pvalue
+    pvalue = 2*pnorm(-abs(zscore))
+    return(data.frame(standard_error = se, pvalue = pvalue))
+}
 
 # This one definitely does clustering (which is what we want I think)--this incorporates fixed and random effects!
 clusboot_lmer <- function(regression, data, cluster_variable, repetitions){
@@ -37,6 +48,7 @@ clusboot_lmer <- function(regression, data, cluster_variable, repetitions){
     }
 
     # combine results into output
+    # Note...the standard error of the intercept does NOT include variation by gene choice...but the snp standard error is CORRECT
     coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(standard_errors,2,sd))
     colnames(coefficients_se) <- c("Estimate","Std. Error")
     return(coefficients_se)
