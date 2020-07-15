@@ -24,14 +24,18 @@ snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pv
 ```{r echo=TRUE, warning=FALSE}
 productive = c("productive", "NOT_productive")
 trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "dj_insert", "vj_insert", "vd_insert")
+trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "dj_insert", "vd_insert")
 chromosome = c(7,10)
 
 for (trim in trimming_types) {
     for (product in productive) {
         for (chrom in chromosome){
-            compile_data_manhattan(snp_meta_data = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, trim_type = trim, chromosome = chrom)
+            for (gene_cond in c('True', 'False')){
+                compile_data_manhattan(snp_meta_data = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, varying_int = 'True', trim_type = trim, chromosome = chrom, correlate_snps = "False", gene_conditioning = gene_cond, weighting = 'True')
+            }
+            #compare_phil(phil_p_vals = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, varying_int = 'True', trim_type = trim)
         }
-        compare_phil(phil_p_vals = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, trim_type = trim)
+        compare_phil_ALL(phil_p_vals = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, varying_int = 'True', trim_type = trim)
     }
 }
 ```

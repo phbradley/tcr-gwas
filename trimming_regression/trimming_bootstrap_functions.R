@@ -16,13 +16,18 @@ bootstrap_screen <- function(regression){
 }
 
 # This one definitely does clustering (which is what we want I think)--this incorporates fixed and random effects!
-clusboot_lmer <- function(regression, data, cluster_variable, repetitions){
-    # Hide warnings for singularity
-    control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4))
+clusboot_lmer <- function(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions){
     # forms cluster variable (here, extract patient names)
     clusters <- names(table(cluster_variable))
     # Set empty matrix to hold results
     standard_errors <- matrix(NA, nrow=repetitions, ncol=2)
+
+    # set regression weights
+    if (trim_type =='d1_trim' | trim_type =='d0_trim'){
+        weight = paste0("weighted_d_gene_count")
+    } else {
+        weight = paste0("weighted_", str_split(trim_type, "_")[[1]][1], "_gene_count")
+    }
 
     for(i in 1:repetitions){
         # Sample clusters (patients) with replacement
@@ -43,46 +48,40 @@ clusboot_lmer <- function(regression, data, cluster_variable, repetitions){
             }
         }
         # Repeat regression for this data subset, calculate standard errors
-        formula = formula(regression)   
-        standard_errors[i,] <- c(colMeans(coef((lmer(formula, bootdat, control = control)))$localID[1]), colMeans(coef(lmer(formula, bootdat, control = control))$localID[2]))
-    }
+        formula = formula(regression) 
+        if (varying_int == 'True'){
+            # Hide warnings for singularity
+            control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4))
 
-    # combine results into output
-    # Note...the standard error of the intercept does NOT include variation by gene choice...but the snp standard error is CORRECT
-    coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(standard_errors,2,sd))
-    colnames(coefficients_se) <- c("Estimate","Std. Error")
+            if (weighting == 'True'){
+                regression_temp = lmer(formula, bootdat, weights = get(weight), control = control)
+                standard_errors[i,] <- c(colMeans(coef((regression_temp))$localID[1]), colMeans(coef(regression_temp)$localID[2]))
+            } else {
+                regression_temp =lmer(formula, bootdat, control = control)
+                standard_errors[i,] <- c(colMeans(coef(regression_temp)$localID[1]), colMeans(coef(regression_temp)$localID[2]))
+            }
+            # combine results into output
+            # Note...the standard error of the intercept does NOT include variation by gene choice...but the snp standard error is CORRECT
+            coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(standard_errors,2,sd))
+            colnames(coefficients_se) <- c("Estimate","Std. Error")
+        } else {
+            standard_errors[i,] <- c(coef(glm(formula = formula, data = bootdat))[1], coef(glm(formula = formula, data = bootdat))[2])
+            coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(standard_errors,2,sd))
+            colnames(coefficients_se) <- c("Estimate","Std. Error")
+        }
+    }
     return(coefficients_se)
 }
 
 
-# combine bootstrap, results, and calculate p value
-bootstrap_regression_combine <- function(bootstrap_results, regression_results, bonferroni, regression, data, cluster, repetitions){
-    # If there was a valid regression, bootstrap
-    if (nrow(bootstrap_results) != 0 & nrow(regression_results) != 0){
-        # merge bootstrap and regression results
-        together = merge(bootstrap_results, regression_results, by = "snp")
-        # calculate zscore
-        together$zscore = together$slope/together$standard_error
-        # calculate two sided pvalue
-        together$pvalue = 2*pnorm(-abs(together$zscore))
-        # if p-value is significant, repeat bootstrap for 1000 repetitions, recalculate zscore, pvalue, etc.
-        if(together$pvalue < bonferroni){
-            se = clusboot_lmer(regression, data, cluster, repetitions)[2,2]
-            together$standard_error = se
-            together$zscore = together$slope/together$standard_error
-            together$pvalue = 2*pnorm(-abs(together$zscore))
-        }
-    } else {
-        together = data.table()
-    }
-    return(together)
-}
-
-
-calculate_pvalue <- function(regression, data, cluster_variable, repetitions){
+calculate_pvalue <- function(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions){
     # cluster bootstrap (clustered by individual)
-    se = clusboot_lmer(regression, data, cluster_variable, repetitions)[2,2]
-    slope = mean(as.numeric(as.character(unlist(coefficients(regression)[[1]][2]))))
+    se = clusboot_lmer(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions)[2,2]
+    if (varying_int == 'True'){
+        slope = mean(as.numeric(as.character(unlist(coefficients(regression)[[1]][2]))))
+    } else {
+        slope = coefficients(regression)['snp']
+    }
     # zscore calculation
     zscore = slope/se
     # calculate two sided pvalue

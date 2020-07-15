@@ -7,30 +7,24 @@ library("SNPRelate")
 library("GWASTools")
 
 source("trimming_basic_regression_functions.R")
+source("trimming_regression_functions.R")
 source("trimming_bootstrap_functions.R")
 
+trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert", "dj_insert", "vd_insert")
 
-v_trimming = as.data.table(read.table("../_ignore/condensed_v_trim_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
-colnames(v_trimming) = c("localID", "v_gene", "productive", "v_trim", "v_gene_count", "weighted_v_gene_count")
-
-d_trimming = as.data.table(read.table("../_ignore/condensed_d0_trim_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
-colnames(d_trimming) = c("localID", "d_gene", "productive", "d0_trim", "d1_trim", "d_gene_count", "weighted_d_gene_count")
-
-j_trimming = as.data.table(read.table("../_ignore/condensed_j_trim_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
-colnames(j_trimming) = c("localID", "j_gene", "productive", "j_trim", "j_gene_count", "weighted_j_gene_count")
-
-vj_insert = as.data.table(read.table("../_ignore/condensed_vj_insert_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
-colnames(vj_insert) = c("localID", "v_gene", "j_gene", "productive", "vj_insert", "vj_gene_count", "weighted_vj_gene_count")
-
-dj_insert = as.data.table(read.table("../_ignore/condensed_dj_insert_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
-colnames(dj_insert) = c("localID", "d_gene", "j_gene", "productive", "dj_insert", "dj_gene_count", "weighted_dj_gene_count")
-
-vd_insert = as.data.table(read.table("../_ignore/condensed_vd_insert_data_all_patients.tsv", sep = "\t", fill=TRUE, header = TRUE)[-1])
-colnames(vd_insert) = c("localID", "v_gene", "d_gene", "productive", "vd_insert", "vd_gene_count", "weighted_vd_gene_count")
+for (trimming_type in trimming_types){
+    type = str_split(trimming_type, "_")[[1]][2]
+    if (type == 'trim'){
+        assign(paste0(trimming_type, 'ming'), as.data.table(read.table(paste0("../_ignore/condensed_", trimming_type, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        setnames(get(paste0(trimming_type, 'ming')), "patient_id", "localID")
+    } else if (type == 'insert'){
+        assign(paste0(trimming_type, 'ing'), as.data.table(read.table(paste0("../_ignore/condensed_", trimming_type, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        setnames(get(paste0(trimming_type, 'ing')), "patient_id", "localID")
+    }
+}
 
 
-
-run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, repetitions){
+run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, gene_conditioning, weighting, repetitions){
     # Get snp meta data
     snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
 
@@ -63,38 +57,32 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, repe
         snps = as.data.table(snps)
 
         # Get rid of snp columns which have the same entry for all entries and get rid of snp columns which have NA for all entries (missing for all individuals)
-        snps_no_NA = Filter(function(x) length(unique(x))!=1, snps)
-        snps_no_NA = Filter(function(x) length(unique(snps_no_NA[x != "NA"])) != 1, snps_no_NA)
-        snps_no_NA2 = data.frame(snps_no_NA$localID, snps_no_NA[[paste0("snp",snp)]])
+        snps_no_NA2 = data.frame(snps$localID, snps[[paste0("snp",snp)]])
         colnames(snps_no_NA2) = c("localID", paste0("snp",snp))
 
-        # import condensed trimming data
-        if (trim_type == "v_trim"){
-            trimming_data = v_trimming
-        } else if (trim_type == "d0_trim" | trim_type == "d1_trim"){
-            trimming_data = d_trimming
-        } else if (trim_type == "j_trim"){
-            trimming_data = j_trimming
-        } else if (trim_type == "vj_insert"){
-            trimming_data = vj_insert
-        } else if (trim_type == "dj_insert"){
-            trimming_data = dj_insert
-        } else if (trim_type == "vd_insert"){
-            trimming_data = vd_insert
+        # skip iteration if the genotypes are all the same...
+        if (length(unique(snps_no_NA2$snp)[!is.na(unique(snps_no_NA2$snp))]) <= 1){
+            next
         }
+
+        # import condensed trimming data
+        type = str_split(trim_type, "_")[[1]][2]
+        if (type == 'trim'){
+            trimming_data = get(paste0(trim_type, 'ming'))
+        } else if (type == 'insert'){
+            trimming_data = get(paste0(trim_type, 'ing'))
+        }
+
 
         # do regression, bootstrap
         if (varying_int == "True"){
-            regression_productive = trimming_snp_regression_weighted_varying_int_subject(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions)
+            regression_productive = trimming_regression(snps_dataframe = snps_no_NA2, condensed_trimming_dataframe = trimming_data, productive = "True",trim_type = trim_type, bootstrap_repetitions = repetitions, gene_conditioning, weighting)
             print("finished regression_productive")
-
-            regression_NOT_productive = trimming_snp_regression_weighted_varying_int_subject(snps_no_NA2, trimming_data, productive = "False", trim_type = trim_type,  repetitions =  repetitions)
+            regression_NOT_productive = trimming_regression(snps_dataframe = snps_no_NA2, condensed_trimming_dataframe = trimming_data, productive = "False", trim_type = trim_type, bootstrap_repetitions = repetitions, gene_conditioning, weighting)
             print("finished regression_NOT_productive")
-
              # set path name
-            prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_varying_intercepts_by_subject_with_gene.tsv')
-            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_varying_intercepts_by_subject_with_gene.tsv')  
-
+            prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting)
+            not_prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'False', gene_conditioning, weighting)
         } else {
             regression_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions)
             print("finished simple_regression_productive")

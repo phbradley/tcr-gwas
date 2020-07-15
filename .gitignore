@@ -2,6 +2,7 @@
 _ignore/
 regression_bootstrap_results/
 figures/
+old_scripts/
 
 # Custom
 *.html

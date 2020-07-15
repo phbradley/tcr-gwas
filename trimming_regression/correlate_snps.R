@@ -124,3 +124,73 @@ group_p_values <- function(snp_id_list, snp_meta_data, productivity, trim_type, 
 #condense_correlated_snps_pvals <- function(correlated_snps){
 
 #}
+
+correlated_snps_LD <- function(snp_list){
+    snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    sampleid <- read.gdsn(index.gdsn(snps_gds, "sample.id"))
+    snp_chrom <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"))
+    all_genotypes = data.table(localID = sampleid)
+    index_start = 1
+    for (chrom in c(1:22, 'X')){
+        snps_count_chr = length(snp_chrom[snp_chrom == chrom])
+        index_end = index_start + snps_count_chr - 1
+
+        snp_id <- read.gdsn(index.gdsn(snps_gds, "snp.id"), start = index_start, count=(index_end-index_start))
+        
+        genotypes <- read.gdsn(index.gdsn(snps_gds, "genotype"), start=c(1,index_start), count = c(398, (index_end-index_start)))
+        index_start = index_end + 1
+
+        genotypes_matrix = as.matrix(genotypes)
+        genotypes_matrix[genotypes_matrix==3]<-NA
+        colnames(genotypes_matrix) = snp_id
+        genotypes_matrix_noNA = Filter(function(x) length(unique(x))!=1, snps)
+        snps_no_NA = Filter(function(x) length(unique(snps_no_NA[x != "NA"])) != 1, snps_no_NA)
+        ld.Rsquare(genotypes_matrix)
+    }
+    closefn.gds(snps_gds)
+}
+
+group_p_values <- function(snp_id_list, snp_meta_data, productivity, trim_type, bonferroni, proximity_cutoff, pvalue_cutoff){
+    correlated_snps = correlate_snps(snp_id_list, snp_meta_data, productivity, trim_type, bonferroni, proximity_cutoff, pvalue_cutoff)
+    if (nrow(correlated_snps) >= 1){
+        correlated_snps_with_group_p_val = data.table()
+        snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+        n <- index.gdsn(snps_gds, "sample.id")
+        sampleid <- read.gdsn(n)
+        for (i in unique(correlated_snps$index)){
+            if(length(correlated_snps$feature) > 0){
+                snps = unique(correlated_snps[index == i][,-c(8,10)])
+            } else {
+                snps = unique(correlated_snps[index == i])
+            }
+            if (nrow(snps)>1){
+                genotype_list = data.table(scanID = c(sampleid))
+                colnames(genotype_list) = c("scanID")
+                genotype_list$scanID = as.numeric(as.character(genotype_list$scanID))
+                subject_id_mapping = as.data.table(read.table('../_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
+                genotypes_subjects = merge(genotype_list, subject_id_mapping, by = "scanID")
+                for (snp in snps$snp){
+                    snp_id = as.numeric(substring(snp, 4))
+                    genotype = snpgdsGetGeno(snps_gds, snp.id=snp_id)
+                    genotypes_df = data.table(genotype)
+                    colnames(genotypes_df) = c(snp)
+                    # Convert subject names and compile condensed data: 
+                    genotypes_subjects = cbind(genotypes_subjects, genotypes_df)
+                }
+                #This may throw an error if there are NA entries: 
+                snps$group_p_val = COMBAT(x = snps$p, snp.ref = genotypes_subjects[,-c(1,2)])[1]
+            } else {
+                snps$group_p_val = snps$p
+            }
+            correlated_snps_with_group_p_val= rbind(correlated_snps_with_group_p_val, snps)
+        }
+        closefn.gds(snps_gds)
+        print("finished p-value grouping")
+
+        name = paste0('regression_bootstrap_results/', productivity, '/', trim_type, '/', trim_type, '_correlated_snps_from_snplist_', snp_id_list[1], "-",snp_id_list[length   (snp_id_list)], '_snps_varying_intercepts_by_subject.tsv')
+
+        write.table(correlated_snps_with_group_p_val, file= name, quote=FALSE, sep='\t', col.names = NA)
+    } else {
+        print("no correlated snps!!!")
+    } 
+}
