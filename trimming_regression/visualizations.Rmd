@@ -16,8 +16,11 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8)
 knitr::opts_chunk$set(fig.path = "figures/")
 
 source("manha_visualization.R")
+source("correlate_snps.R")
+source("make_snp_file.R")
 
 snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pvals_for_maggie.tsv", sep = "\t", fill=TRUE, header = TRUE))[-c(1:4)]
+artemis = snp_file(chromosome = 10, position1= 14397359, position2= 15454432)
 ```
 
 
@@ -30,12 +33,27 @@ chromosome = c(7,10)
 for (trim in trimming_types) {
     for (product in productive) {
         for (chrom in chromosome){
+            correlated_snps_list = correlate_snps_ld(chrom, snp_list, cutoff = 0.85)
             for (gene_cond in c('True', 'False')){
-                compile_data_manhattan(snp_meta_data = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, varying_int = 'True', trim_type = trim, chromosome = chrom, correlate_snps = "False", gene_conditioning = gene_cond, weighting = 'True')
+                compile_data_manhattan(snp_meta_data = snp_list, snp_id_list = unique(snp_list$snpid), correlated_snps = correlated_snps_list, productivity = product, varying_int = 'True', trim_type = trim, chromosome = chrom, correlate_snps = "True", gene_conditioning = gene_cond, weighting = 'True')
             }
             #compare_phil(phil_p_vals = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, varying_int = 'True', trim_type = trim)
         }
         compare_phil_ALL(phil_p_vals = snp_list, snp_id_list = unique(snp_list$snpid), productivity = product, varying_int = 'True', trim_type = trim)
+    }
+}
+```
+
+```{r echo=TRUE, warning=FALSE}
+productive = c("productive", "NOT_productive")
+trimming_types = c("d0_trim", "d1_trim", "j_trim")
+chromosome = 10
+
+#correlated_snps_list = correlate_snps_ld(chromosome, artemis, cutoff = 0.85)
+
+for (trim in trimming_types) {
+    for (product in productive) {
+        compile_data_manhattan(snp_meta_data = artemis, snp_id_list = unique(artemis$snp), correlated_snps = 'False', productivity = product, varying_int = 'True', trim_type = trim, chromosome = chromosome, correlate_snps = "False", gene_conditioning = 'True', weighting = 'True')
     }
 }
 ```
