@@ -121,6 +121,65 @@ condense_trim_data <- function(trim_types){
     }
 }
 
-condense_trim_data(trim_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert"))
+compile_trim_data_no_condense <- function(){
+    count = 0
+    all_patients = data.table()
+    # for each patient...
+    for (file in files){
+        count = count + 1
+        # read file...
+        temp_file = data.table()
+        temp_file_condensed = data.table()
+        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
+        temp_file = as.data.table(temp_file)
+        file_name = str_split(file, "/")[[1]][7]
+        file_root_name = str_split(file_name, ".tsv")[[1]][1]
+        patient_id = str_split(file_root_name, "_")[[1]][3]
+        temp_file$patient_id = patient_id
 
+        # Infer d genes (when d gene is missing)
+        temp_file = infer_d_gene(temp_file)
 
+        all_patients = rbind(all_patients, temp_file)
+        
+        write.table(all_patients, file=paste0('../not_condensed_data_all_patients.tsv'), quote=FALSE, sep='\t', col.names = NA)
+
+        print(paste0(count," of ", length(files), " processed"))
+    }
+}
+
+compile_trim_data_condense_by_patient <- function(){
+    count = 0
+    all_patients = data.table()
+    # for each patient...
+    for (file in files){
+        count = count + 1
+        # read file...
+        temp_file = data.table()
+        temp_file_condensed = data.table()
+        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
+        temp_file = as.data.table(temp_file)
+        file_name = str_split(file, "/")[[1]][7]
+        file_root_name = str_split(file_name, ".tsv")[[1]][1]
+        patient_id = str_split(file_root_name, "_")[[1]][3]
+        temp_file$patient_id = patient_id
+
+        # Infer d genes (when d gene is missing)
+        temp_file = infer_d_gene(temp_file)
+	
+	together = temp_file[,.(mean(v_trim), mean(d0_trim), mean(d1_trim), mean(j_trim), mean(vj_insert), mean(dj_insert), mean(vd_insert), .N), by = .(patient_id, productive)]
+
+	colnames(together) = c("patient_id", "productive", "v_trim" , "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert", "tcr_count")        
+	all_patients = rbind(all_patients, together)
+
+        write.table(all_patients, file=paste0('../by_patient_condensed_data_all_patients.tsv'), quote=FALSE, sep='\t', col.names = NA) 
+
+        print(paste0(count," of ", length(files), " processed"))
+    }
+}
+
+#condense_trim_data(trim_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert"))
+
+#compile_trim_data_no_condense()
+
+compile_trim_data_condense_by_patient()

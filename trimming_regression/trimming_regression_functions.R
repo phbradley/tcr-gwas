@@ -86,12 +86,12 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 }
 
 
-generate_file_name <- function(snp_id_list, trim_type, productivity, gene_conditioning, weighting){
+generate_file_name <- function(snp_id_list, trim_type, productivity, gene_conditioning, weighting, condensing){
     prod = ifelse(productivity == 'True', 'productive', 'NOT_productive')
     gene = ifelse(gene_conditioning == 'True', 'with_gene', '')
     weight = ifelse(weighting == 'True', '_with_weighting', '')
 
-    name = paste0('regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '.tsv') 
+    name = paste0('regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '.tsv') 
 
     return(name)
 }
