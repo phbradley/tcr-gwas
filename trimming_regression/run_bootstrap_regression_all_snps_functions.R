@@ -10,21 +10,8 @@ source("trimming_basic_regression_functions.R")
 source("trimming_regression_functions.R")
 source("trimming_bootstrap_functions.R")
 
-trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert", "dj_insert", "vd_insert")
 
-for (trimming_type in trimming_types){
-    type = str_split(trimming_type, "_")[[1]][2]
-    if (type == 'trim'){
-        assign(paste0(trimming_type, 'ming'), as.data.table(read.table(paste0("../_ignore/condensed_", trimming_type, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
-        setnames(get(paste0(trimming_type, 'ming')), "patient_id", "localID")
-    } else if (type == 'insert'){
-        assign(paste0(trimming_type, 'ing'), as.data.table(read.table(paste0("../_ignore/condensed_", trimming_type, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
-        setnames(get(paste0(trimming_type, 'ing')), "patient_id", "localID")
-    }
-}
-
-
-run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, gene_conditioning, weighting, repetitions){
+run_snps_trimming_snp_list <- function(snp_id_list, trim_type, condensing, gene_conditioning, weighting, repetitions){
     # Get snp meta data
     snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
 
@@ -35,6 +22,11 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, gene
     boot_regression_results_productive = data.table()
     boot_regression_results_NOT_productive = data.table()
     i = 0
+
+    # import condensed trimming file
+    assign('trimming_data', as.data.table(read.table(paste0("../_ignore/condensed_", trim_type, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+    setnames(trimming_data, "patient_id", "localID")
+
 
     for (snp in snp_id_list){
         i = i + 1
@@ -65,25 +57,18 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, gene
             next
         }
 
-        # import condensed trimming data
-        type = str_split(trim_type, "_")[[1]][2]
-        if (type == 'trim'){
-            trimming_data = get(paste0(trim_type, 'ming'))
-        } else if (type == 'insert'){
-            trimming_data = get(paste0(trim_type, 'ing'))
-        }
-
-
         # do regression, bootstrap
-        if (varying_int == "True"){
+        if (condensing == "by_gene"){
             regression_productive = trimming_regression(snps_dataframe = snps_no_NA2, condensed_trimming_dataframe = trimming_data, productive = "True",trim_type = trim_type, bootstrap_repetitions = repetitions, gene_conditioning, weighting)
             print("finished regression_productive")
+
             regression_NOT_productive = trimming_regression(snps_dataframe = snps_no_NA2, condensed_trimming_dataframe = trimming_data, productive = "False", trim_type = trim_type, bootstrap_repetitions = repetitions, gene_conditioning, weighting)
             print("finished regression_NOT_productive")
+            
              # set path name
-            prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting)
-            not_prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'False', gene_conditioning, weighting)
-        } else {
+            prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting, condensing)
+            not_prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'False', gene_conditioning, weighting, condensing)
+        } else if (condensing == 'by_patient'){
             regression_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions)
             print("finished simple_regression_productive")
 
@@ -91,8 +76,18 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, varying_int, gene
             print("finished simple_regression_NOT_productive")
 
              # set path name
-            prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_simple.tsv')
-            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_simple.tsv')  
+            prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_simple_condensing_', condensing, '.tsv')
+            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_simple_condensing_', condensing, '.tsv')  
+        } else if (condensing == 'none'){
+            regression_productive = simple_trimming_snp_regression_no_condensing(snps_no_NA2, productive = "True", trim_type = trim_type)
+            print("finished simple_regression_productive")
+
+            regression_NOT_productive = simple_trimming_snp_regression_no_condensing(snps_no_NA2, productive = "False", trim_type = trim_type)
+            print("finished simple_regression_NOT_productive")
+
+             # set path name
+            prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_simple_condensing_', condensing, '.tsv')
+            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_simple_condensing_', condensing, '.tsv')  
         }
         
         

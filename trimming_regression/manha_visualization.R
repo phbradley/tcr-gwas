@@ -118,7 +118,11 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
     }
 
     abline(h = -1*log(bonferroni, base = 10), col = "red", lwd = 4, lty = 2)
-    legend("topleft", box.lty=0, legend=c("-log10(bonferroni)", paste0("significant for ", prod, " TCRs"), "not in a cluster", rep("cluster", length(unique(together_correlated$cluster)))), col=c("red", alpha("red", 0.9), alpha("black", 0.4), alpha(col, 0.8)), lty=c(2, NA, NA, rep(NA, length(unique(together_correlated$cluster)))), lwd = c(3, NA, NA,rep(NA, length(unique(together_correlated$cluster)))), pch = c(NA, 1, 19,rep(19, length(unique(together_correlated$cluster)))), cex = 1.5)
+    if (correlate_snps == 'True'){
+        legend("topleft", box.lty=0, legend=c("-log10(bonferroni)", paste0("significant for ", prod, " TCRs"), "not in a cluster", rep("cluster", length(unique(together_correlated$cluster)))), col=c("red", alpha("red", 0.9), alpha("black", 0.4), alpha(col, 0.8)), lty=c(2, NA, NA, rep(NA, length(unique(together_correlated$cluster)))), lwd = c(3, NA, NA,rep(NA, length(unique(together_correlated$cluster)))), pch = c(NA, 1, 19,rep(19, length(unique(together_correlated$cluster)))), cex = 1.5)
+    } else {
+        legend("topleft", box.lty=0, legend=c("-log10(bonferroni)", paste0("significant for ", prod, " TCRs")), col=c("red", alpha("red", 0.9)), lty=c(2, NA), lwd = c(3, NA), pch = c(NA, 1), cex = 1.5)
+    }
 }
 
 
