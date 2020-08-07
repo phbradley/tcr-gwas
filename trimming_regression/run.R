@@ -9,6 +9,9 @@ args = commandArgs(trailingOnly=TRUE)
 # Read in snp list
 snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pvals_for_maggie.tsv", sep = "\t", fill=TRUE, header = TRUE))[-c(1:4)]
 #artemis = snp_file(chromosome = 10, position1= 14397359, position2= 15454432)
+#tdt = snp_file(chromosome = 10, position1= 95804409, position2= 96838564)
+#mhc = snp_file(chromosome = 6, position1= 0, position2= 4050069)
+#rag = snp_file(chromosome = 11, position1= 36010709, position2= 37,093,156)
 
 # Run regression/bootstrap
 #run_snps_trimming_snp_list(snp_id_list = unique(artemis$snp), trim_type = args[1], condensing = 'by_gene', gene_conditioning = 'True', weighting = 'True', repetitions = 10)
