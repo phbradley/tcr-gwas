@@ -69,15 +69,16 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, condensing, gene_
             prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting, condensing)
             not_prod_name = generate_file_name(snp_id_list, trim_type, productivity = 'False', gene_conditioning, weighting, condensing)
         } else if (condensing == 'by_patient'){
-            regression_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions)
+            regression_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "True", trim_type =trim_type, repetitions =  repetitions, python_test = 'True')
             print("finished simple_regression_productive")
 
-            regression_NOT_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "False", trim_type = trim_type,  repetitions =  repetitions)
+            regression_NOT_productive = simple_trimming_snp_regression(snps_no_NA2, trimming_data, productive = "False", trim_type = trim_type,  repetitions =  repetitions, python_test = 'True')
             print("finished simple_regression_NOT_productive")
 
              # set path name
             prod_name = paste0('regression_bootstrap_results/productive/', trim_type, '/', trim_type, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_simple_condensing_', condensing, '.tsv')
-            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_simple_condensing_', condensing, '.tsv')  
+            not_prod_name = paste0('regression_bootstrap_results/NOT_productive/', trim_type, '/', trim_type, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_simple_condensing_', condensing, '.tsv') 
+
         } else if (condensing == 'none'){
             regression_productive = simple_trimming_snp_regression_no_condensing(snps_no_NA2, productive = "True", trim_type = trim_type)
             print("finished simple_regression_productive")

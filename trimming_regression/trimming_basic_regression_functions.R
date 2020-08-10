@@ -1,11 +1,13 @@
 library("lme4")
 library("data.table")
 library('biglm')
+library(reticulate)
+use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 
 source("trimming_bootstrap_functions.R")
 
 # fully condensed data (mean by patient)
-simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, repetitions, bonferroni){
+simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, repetitions, bonferroni, python_test){
     varying_int = "False"
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
@@ -47,21 +49,39 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
         slope = summary(regression)$coefficients[,'Estimate']['snp']
 
         if (slope != "NA"){
+            #NO BOOTSTRAP FOR THIS ANALYSIS
             # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
-            boot_screen = bootstrap_screen(regression)
-            if (boot_screen[2]< (bonferroni*10)){
-                bootstrap_results = calculate_pvalue(regression, data = sub2[snp != "NA"], cluster_variable = sub2[snp != "NA"]$localID, varying_int, repetitions)
-                if (bootstrap_results[2]<bonferroni){
-                    bootstrap_results = calculate_pvalue(regression, data = sub2[snp != "NA"], cluster_variable = sub2[snp != "NA"]$localID, varying_int, repetitions=1000)
-                } else {
-                    bootstrap_results = bootstrap_results
-                }
-            } else {
-                bootstrap_results = boot_screen
-            }
+            se = summary(regression)$coefficients[,'Std. Error']['snp']
+            zscore = slope/se
+            # calculate two sided pvalue
+            pvalue = 2*pnorm(-abs(zscore))
+            bootstrap_results = data.frame(standard_error = se, pvalue = pvalue)
         } else {
             bootstrap_results = data.table()
         }
+
+        if (python_test == 'True'){
+            source_python('test_phil.py')
+            pval_py = linear_reg_phil(sub2[snp != "NA"]$snp, sub2[snp != "NA"][[paste0(trim_type)]])
+            bootstrap_results$pval_py = pval_py
+        }
+
+        #if (slope != "NA"){
+        #    # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
+        #    boot_screen = bootstrap_screen(regression)
+        #    if (boot_screen[2]< (bonferroni*10)){
+        #        bootstrap_results = calculate_pvalue(regression, data = sub2[snp != "NA"], cluster_variable = sub2[snp != "NA"]$localID, varying_int, repetitions)
+        #        if (bootstrap_results[2]<bonferroni){
+        #            bootstrap_results = calculate_pvalue(regression, data = sub2[snp != "NA"], cluster_variable = sub2[snp != "NA"]$localID, varying_int, #repetitions=1000)
+        #        } else {
+        #            bootstrap_results = bootstrap_results
+        #        }
+        #    } else {
+        #        bootstrap_results = boot_screen
+        #    }
+        #} else {
+        #    bootstrap_results = data.table()
+        #}
         together = cbind(data.table(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
         
         # Combine snpID, intercept, slope, etc.

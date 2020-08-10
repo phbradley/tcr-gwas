@@ -203,3 +203,31 @@ compare_phil_ALL <- function(phil_p_vals, snp_id_list, productivity, varying_int
     abline(a = 0, b = 1, lty = 2, lwd = 4)
     legend("bottomright", box.lty=0, legend=levels(as.factor(together$regression_type)), col= alpha(col, 0.6), pch = c(rep(19, 4)), cex = 1.5)
 }
+
+compare_phil_me <- function(){
+    png(file='figures/phil_pvalue_troublshoot_plot.png', width=600, height=600)
+
+    snps_pvals = as.data.table(read.table('regression_bootstrap_results/phil_pvalue_troubleshooting.tsv', header = TRUE))
+
+    pvals_maggie_lm_pvalue = snps_pvals[,c(1:4, 10)]
+    colnames(pvals_maggie_lm_pvalue) = c('snp', 'chromosome', 'feature', 'hg19_pos', 'maggie_lm_pvalue')
+
+    pvals_maggie_python_pvalue = snps_pvals[,c(1:4, 11)]
+    colnames(pvals_maggie_python_pvalue) = c('snp', 'chromosome', 'feature', 'hg19_pos', 'maggie_python_pvalue')
+
+    pvals_phil_python_pvalue = snps_pvals[,c(1:5)]
+    colnames(pvals_phil_python_pvalue) = c('snp', 'chromosome', 'feature', 'hg19_pos', 'phil_python_pvalue')
+
+    snps_pvals_plotting = cbind(pvals_maggie_lm_pvalue, pvals_maggie_python_pvalue, pvals_phil_python_pvalue)
+
+    palette(brewer.pal(n = length(unique(snps_pvals_plotting$feature)), name = 'Set2'))
+    col = setNames(palette(), levels(as.factor(snps_pvals_plotting$feature)))
+
+    plot(jitter(-1*log(snps_pvals_plotting$phil_python_pvalue, base =10), 0.5), -1*log(snps_pvals_plotting$maggie_python_pvalue, base =10), xlim = c(0, 90), ylim = c(0, 90), col = alpha(col[snps_pvals_plotting$feature], 0.6), pch=17, cex = 1.5, ylab = 'P values from Maggie Analysis', xlab = 'P values from Phil Analysis', main = paste0('P value comparison'), cex.main=1.5, cex.lab=1.5, cex.axis=1, panel.first = grid())
+
+    points(jitter(-1*log(snps_pvals_plotting$phil_python_pvalue, base =10), 0.5), -1*log(snps_pvals_plotting$maggie_lm_pvalue, base =10), pch=15, cex = 1.5, col = alpha(col[snps_pvals_plotting$feature], 0.6))
+
+    abline(a = 0, b = 1, lty = 2, lwd = 4)
+    legend("topleft", box.lty=0, legend=c('Maggie python regression', 'Maggie R lm regression', levels(as.factor(snps_pvals_plotting$feature))), col= c('black', 'black', alpha(col, 0.6)), pch = c(17, 15, rep(19, length(unique(snps_pvals_plotting$feature)))), cex = 1.5)
+    dev.off()
+}
