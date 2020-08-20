@@ -79,7 +79,7 @@ condense_trim_data <- function(trim_types){
         temp_file_condensed = data.table()
         temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
         temp_file = as.data.table(temp_file)
-        file_name = str_split(file, "/")[[1]][7]
+        file_name = str_split(file, "/")[[1]][5]
         file_root_name = str_split(file_name, ".tsv")[[1]][1]
         patient_id = str_split(file_root_name, "_")[[1]][3]
         temp_file$patient_id = patient_id

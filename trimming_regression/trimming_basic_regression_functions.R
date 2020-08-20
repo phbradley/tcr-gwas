@@ -1,11 +1,13 @@
 library("lme4")
 library("data.table")
 library('biglm')
+library(reticulate)
+use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 
 source("trimming_bootstrap_functions.R")
 
 # fully condensed data (mean by patient)
-simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, repetitions, bonferroni){
+simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, repetitions, bonferroni, python_test){
     varying_int = "False"
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
@@ -21,9 +23,7 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
         condensed_trimming_dataframe = condensed_trimming_dataframe[productive == "FALSE"]
     } 
 
-    # get an individual mean for trimming....
-    condensed_trimming_dataframe = condensed_trimming_dataframe[, .(mean(v_trim), mean(d0_trim), mean(d1_trim), mean(j_trim), mean(vj_insert), mean(dj_insert), mean(vd_insert)), by = .(localID, productive)]
-    colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vj_insert', 'dj_insert', 'vd_insert')
+    colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vj_insert', 'dj_insert', 'vd_insert', 'total_tcr')
  
     # For each snpID:
     for (snpID in names(snps_dataframe)[-c(1)]){
@@ -45,23 +45,17 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
         # Add the Intercept term with a mean of the gene specific intercept
         intercept = summary(regression)$coefficients[,'Estimate']['(Intercept)']
         slope = summary(regression)$coefficients[,'Estimate']['snp']
+        se = summary(regression)$coefficients[,'Std. Error']['snp']
+        pvalue = summary(regression)$coefficients[,'Pr(>|t|)']['snp']
+        bootstrap_results = data.frame(standard_error = se, pvalue = pvalue)
 
-        if (slope != "NA"){
-            # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
-            boot_screen = bootstrap_screen(regression)
-            if (boot_screen[2]< (bonferroni*10)){
-                bootstrap_results = calculate_pvalue(regression, data = sub2[snp != "NA"], cluster_variable = sub2[snp != "NA"]$localID, varying_int, repetitions)
-                if (bootstrap_results[2]<bonferroni){
-                    bootstrap_results = calculate_pvalue(regression, data = sub2[snp != "NA"], cluster_variable = sub2[snp != "NA"]$localID, varying_int, repetitions=1000)
-                } else {
-                    bootstrap_results = bootstrap_results
-                }
-            } else {
-                bootstrap_results = boot_screen
-            }
-        } else {
-            bootstrap_results = data.table()
+
+        if (python_test == 'True'){
+            source_python('test_phil.py')
+            pval_py = linear_reg_phil(sub2[snp != "NA"]$snp, sub2[snp != "NA"][[paste0(trim_type)]])
+            bootstrap_results$pval_py = pval_py
         }
+
         together = cbind(data.table(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
         
         # Combine snpID, intercept, slope, etc.

@@ -19,7 +19,6 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     # Indicate which snp we are regressing
     snpID = names(snps_dataframe)[-c(1)]
 
-    # set weights and gene type for regression
     if (trim_type =='d1_trim' | trim_type =='d0_trim'){
         weight = paste0("weighted_d_gene_count")
         gene_type = paste0("d_gene")
@@ -41,13 +40,14 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     # set base formula
     form = formula(get(paste0(trim_type)) ~ snp + (1|localID))
     
+    
     if (gene_conditioning == 'True'){
         if (str_split(trim_type, "_")[[1]][2] == 'insert'){
             form = update(form, ~ . + get(paste0(gene_type1)) + get(paste0(gene_type2)))
         } else {
             form = update(form, ~ . + get(paste0(gene_type)))
         }
-    }
+    } 
 
     # REGRESSION!
     # remove warning messages (about singularity)
@@ -67,11 +67,8 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     if (slope != 'NA'){
         # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
         boot_screen = bootstrap_screen(regression)
-        if (boot_screen[2]< (bonferroni*10)){
+        if (bootstrap_repetitions != 0 & boot_screen[2]< (bonferroni)){
             bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int, weighting, bootstrap_repetitions)
-            #if (bootstrap_results[2]<bonferroni){
-            #    bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int, weighting, repetitions=500)
-            #} 
         } else {
             bootstrap_results = boot_screen
         }
@@ -86,12 +83,12 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 }
 
 
-generate_file_name <- function(snp_id_list, trim_type, productivity, gene_conditioning, weighting, condensing){
+generate_file_name <- function(snp_id_list, trim_type, productivity, gene_conditioning, weighting, condensing, repetitions){
     prod = ifelse(productivity == 'True', 'productive', 'NOT_productive')
     gene = ifelse(gene_conditioning == 'True', 'with_gene', '')
     weight = ifelse(weighting == 'True', '_with_weighting', '')
 
-    name = paste0('regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '.tsv') 
+    name = paste0('regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 
 
     return(name)
 }

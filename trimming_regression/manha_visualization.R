@@ -7,7 +7,8 @@ library(RColorBrewer)
 source('trimming_regression_functions.R')
 
 
-compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, productivity, varying_int, trim_type, chromosome, correlate_snps, gene_conditioning, weighting){
+compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, productivity, varying_int, trim_type, chromosome, correlate_snps, gene_conditioning, weighting, gene_region){
+    gene_region = gene_region
     bonferroni = 0.05/35481497
 
     # sort the snp meta data from phil (i.e. assign common column names)
@@ -32,7 +33,7 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
 
     # load regression / pvalue results
     if (varying_int == "True"){
-        assign('regression_snp_list', as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = productivity_status, gene_conditioning, weighting), header = TRUE)))
+        assign('regression_snp_list', as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = productivity_status, gene_conditioning, weighting, condensing = 'by_gene'), header = TRUE)))
         gene_cond = ifelse(gene_conditioning == 'True', '_gene_conditioning', '')
         weight_cond = ifelse(weighting == 'True', '_weight', '')
         regression_type = paste0('lmer', gene_cond, weight_cond)
@@ -66,7 +67,7 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
     # load regression / pvalue results
     if (varying_int == "True"){
         product = ifelse(prod == 'productive', 'True', 'False')
-        assign('regression_snp_list_other', as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = product, gene_conditioning, weighting), header = TRUE))[,c(1, 5)])
+        assign('regression_snp_list_other', as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = product, gene_conditioning, weighting, condensing = 'by_gene'), header = TRUE))[,c(1, 5)])
     } else {
         regression_snp_list_other = as.data.table(read.table(paste0("regression_bootstrap_results/", prod, "/", trim_type, "/", trim_type, "_", prod, "_snplist_", snp_id_list[1], "-",snp_id_list[length(snp_id_list)], "_snps_simple.tsv"), header = TRUE))[,c(1, 5)]
     }
@@ -96,7 +97,7 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
             xlimit = c(min(together_not_correlated$hg19_pos)-1000, max(together_not_correlated$hg19_pos)+1000)
             ylimit = c(0, max(-1*log(together_not_correlated$pvalue, base =10))+5)
         }
-        plot(as.numeric(together_not_correlated$hg19_pos), as.numeric(-1*log(together_not_correlated$pvalue, base =10)), bg = alpha("black", 0.4), col = alpha("black", 0.9), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs on ch", chromosome, "\n", correlated_snps, "\n", regression_type), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 21, cex = 1.5, xlim = xlimit, ylim = ylimit)
+        plot(as.numeric(together_not_correlated$hg19_pos), as.numeric(-1*log(together_not_correlated$pvalue, base =10)), bg = alpha("black", 0.4), col = alpha("black", 0.9), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs on chr", chromosome, "\n", gene_region), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 21, cex = 1.5, xlim = xlimit, ylim = ylimit)
 
         palette(brewer.pal(n = length(unique(together_correlated$cluster)), name = 'Set2'))
         col = setNames(palette(), levels(as.factor(together_correlated$cluster)))
@@ -112,30 +113,53 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
         palette(brewer.pal(n = length(unique(together_correlated$cluster)), name = 'Set2'))
         col = setNames(palette(), levels(as.factor(together_correlated$cluster)))
 
-        plot(together_correlated$hg19_pos, -1*log(together_correlated$pvalue, base =10), bg = alpha(col[together_correlated$cluster], 0.8), col = alpha("black", 0.9), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs on ch", chromosome, "\n", correlated_snps, "\n", regression_type), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 21, cex = 1.5, xlim = c(min(together_not_correlated$hg19_pos, together_correlated$hg19_pos)-1000, max(together_not_correlated$hg19_pos, together_correlated$hg19_pos)+1000), ylim = c(0, max(-1*log(together_not_correlated$pvalue, base =10), -1*log(together_correlated$pvalue, base =10))+5))
+        plot(together_correlated$hg19_pos, -1*log(together_correlated$pvalue, base =10), bg = alpha(col[together_correlated$cluster], 0.8), col = alpha("black", 0.9), xlab = paste0('Chromosome ', chromosome,' position'), ylab = '-log10(p value)', main = paste0('P-value of SNP effect on ', trim_type, ' for ', productivity, " TCRs on ch", chromosome, "\n", gene_region), panel.first = grid(), cex.main=1.5, cex.lab=1.5, cex.axis=1, pch = 21, cex = 1.5, xlim = c(min(together_not_correlated$hg19_pos, together_correlated$hg19_pos)-1000, max(together_not_correlated$hg19_pos, together_correlated$hg19_pos)+1000), ylim = c(0, max(-1*log(together_not_correlated$pvalue, base =10), -1*log(together_correlated$pvalue, base =10))+5))
 
         points(as.numeric(together_other$hg19_pos), -1*log(together_other$pvalue, base =10), col = alpha("red", 0.9), pch=1, cex = 1.5)
     }
 
-    abline(h = -1*log(bonferroni, base = 10), col = "red", lwd = 4, lty = 2)
+    abline(h = -1*log(bonferroni, base = 10), col = "chartreuse3", lwd = 4, lty = 2)
     if (correlate_snps == 'True'){
-        legend("topleft", box.lty=0, legend=c("-log10(bonferroni)", paste0("significant for ", prod, " TCRs"), "not in a cluster", rep("cluster", length(unique(together_correlated$cluster)))), col=c("red", alpha("red", 0.9), alpha("black", 0.4), alpha(col, 0.8)), lty=c(2, NA, NA, rep(NA, length(unique(together_correlated$cluster)))), lwd = c(3, NA, NA,rep(NA, length(unique(together_correlated$cluster)))), pch = c(NA, 1, 19,rep(19, length(unique(together_correlated$cluster)))), cex = 1.5)
+        legend("topleft", box.lty=0, legend=c("-log10(bonferroni)", paste0("significant for ", prod, " TCRs"), "not in a cluster", rep("cluster", length(unique(together_correlated$cluster)))), col=c("chartreuse3", alpha("red", 0.9), alpha("black", 0.4), alpha(col, 0.8)), lty=c(2, NA, NA, rep(NA, length(unique(together_correlated$cluster)))), lwd = c(3, NA, NA,rep(NA, length(unique(together_correlated$cluster)))), pch = c(NA, 1, 19,rep(19, length(unique(together_correlated$cluster)))), cex = 1.5)
     } else {
-        legend("topleft", box.lty=0, legend=c("-log10(bonferroni)", paste0("significant for ", prod, " TCRs")), col=c("red", alpha("red", 0.9)), lty=c(2, NA), lwd = c(3, NA), pch = c(NA, 1), cex = 1.5)
+        legend("topleft", box.lty=0, legend=c("-log10(bonferroni)", paste0("significant for ", prod, " TCRs")), col=c("chartreuse3", alpha("red", 0.9)), lty=c(2, NA), lwd = c(3, NA), pch = c(NA, 1), cex = 1.5)
     }
 }
+
+combine_trimming_regression_dfs <- function(pre_regression_snp_list, condensing, trimming_type_list){
+    pre_regression_snp_list_final = pre_regression_snp_list
+    pre_regression_snp_list_final$snpid = paste0("snp", pre_regression_snp_list_final$snpid)
+    snp_id_list = unique(pre_regression_snp_list$snpid)
+    post_regression_snp_list = data.table()
+    for (trim in trimming_type_list){
+        productive_test =  as.data.table(read.table(paste0('regression_bootstrap_results/productive/', trim, '/', trim, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_with_gene_with_weighting_condensing_', condensing, '.tsv') , sep = "\t", fill=TRUE, header = TRUE))
+    
+        not_productive_test =  as.data.table(read.table(paste0('regression_bootstrap_results/NOT_productive/', trim, '/', trim, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_lmer_with_gene_with_weighting_condensing_', condensing, '.tsv'), sep = "\t", fill=TRUE, header = TRUE))
+        
+
+        if (nrow(productive_test) != 0){
+            post_regression_snp_list = rbind(merge(pre_regression_snp_list_final[feature == paste0(trim, "_IF")], productive_test, by.x = "snpid", by.y = "snp"), post_regression_snp_list)
+        } 
+        
+        if (nrow(not_productive_test) != 0){
+            post_regression_snp_list = rbind(merge(pre_regression_snp_list_final[feature == paste0(trim, "_OF")], not_productive_test, by.x = "snpid", by.y = "snp"), post_regression_snp_list)
+        }
+    }
+    return(post_regression_snp_list)
+}
+
 
 
 compare_phil <- function(phil_p_vals, snp_id_list, productivity, varying_int, trim_type, gene_conditioning, weighting){
     # load regression / pvalue results
     if (varying_int == "True"){
-        regression_snp_list = as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting), header = TRUE))
+        regression_snp_list = as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting, condensing), header = TRUE))
         regression_type = 'lmer regression: conditioning on gene'
     } else {
         regression_snp_list = as.data.table(read.table(paste0("regression_bootstrap_results/", productivity, "/", trim_type, "/", trim_type, "_", productivity, "_snplist_", snp_id_list[1], "-",snp_id_list[length(snp_id_list)], "_snps_simple.tsv"), header = TRUE))
         regression_type = 'Simple regression: no conditioning on gene'
     }
-
+    
     # Filter phil's p-values to include only those that correspond to the same trimming region as this analysis
     if (productivity == "productive"){
         productivity_frame = "IF"
@@ -157,49 +181,17 @@ compare_phil <- function(phil_p_vals, snp_id_list, productivity, varying_int, tr
     abline(a = 0, b = 1, lty = 2, lwd = 4)
 }
 
-
-compare_phil_ALL <- function(phil_p_vals, snp_id_list, productivity, varying_int, trim_type){
-    # Filter phil's p-values to include only those that correspond to the same trimming region as this analysis
-    if (productivity == 'productive'){
-        productivity_frame = "IF"
-        productivity_status = "True"
-    } else if (productivity == 'NOT_productive'){
-        productivity_frame = "OF"
-        productivity_status = "False"
-    }
-
-    # load regression / pvalue results
-    regression_snp_list_all = data.table()
-    for (gene in c('True', 'False')){
-        for (weight in c('True', 'False')){
-            assign("data_temp", as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = productivity_status, gene_conditioning = gene, weighting = weight), header = TRUE, col.names = c('snp', 'intercept', 'slope', 'standard_error', 'pvalue')))[,c(1,5)])
-            gene_cond = ifelse(gene == 'True', '_gene_conditioning', '')
-            weight_cond = ifelse(weight == 'True', '_weight', '')
-            data_temp$regression_type = paste0('lmer', gene_cond, weight_cond)
-            regression_snp_list_all = rbind(regression_snp_list_all, data_temp)
-        }
-    }
-
-    simple_regression_snp_list = as.data.table(read.table(paste0("regression_bootstrap_results/", productivity, "/", trim_type, "/", trim_type, "_", productivity, "_snplist_", snp_id_list[1], "-",snp_id_list[length(snp_id_list)], "_snps_simple.tsv"), header = TRUE))[,c(1,5)]
-    simple_regression_snp_list$regression_type = 'glm'
-
-    regression_snp_list_all = rbind(regression_snp_list_all, simple_regression_snp_list)
-
-    phil_p_vals$snpid = paste0("snp", phil_p_vals$snpid)
-    trimming_feature = paste0(trim_type, "_", productivity_frame)
-    phil_p_vals_filtered = phil_p_vals[feature == trimming_feature][,-c(1:3)]
-    phil_meta_data = unique(phil_p_vals[,-c(2,4)])
-
-    together = merge(regression_snp_list_all, phil_p_vals_filtered, by.x = "snp", by.y = "snpid", all.x = TRUE)
-
+compare_phil_regression_list <- function(regression_list){
     
-    together[is.na(linreg_pval)]$linreg_pval<-1
-    together[is.na(pvalue)]$pvalue<-1
+    regression_list[is.na(linreg_pval)]$linreg_pval<-1
+    regression_list[is.na(pvalue)]$pvalue<-1
 
-    palette(brewer.pal(n = length(unique(together$regression_type)), name = 'Set2'))
-    col = setNames(palette(), levels(as.factor(together$regression_type)))
+    palette(brewer.pal(n = length(unique(regression_list$feature)), name = 'Set2'))
+    col = setNames(palette(), levels(as.factor(regression_list$feature)))
 
-    plot(jitter(-1*log(together$linreg_pval, base =10), 0.5), -1*log(together$pvalue, base =10), xlim = c(0, 90), ylim = c(0, 90), col = alpha(col[together$regression_type], 0.6), pch=19, cex = 1.5, ylab = paste0('P values from lmer'), xlab = 'P values from Phils Analysis', main = paste0('P value comparison for ', trim_type, ' for ', productivity, " TCRs"), cex.main=1.5, cex.lab=1.5, cex.axis=1, panel.first = grid())
+    plot(-1*log(regression_list$linreg_pval, base =10), -1*log(regression_list$pvalue, base =10), xlim = c(0, 55), ylim = c(0, 55), col = as.factor(regression_list$feature), pch=19, cex = 1.5, ylab = paste0('P values from lmer: gene conditioning, weighting'), xlab = 'P values from Phils Analysis', main = paste0('P value comparison'), cex.main=1.5, cex.lab=1.5, cex.axis=1, panel.first = grid())
     abline(a = 0, b = 1, lty = 2, lwd = 4)
-    legend("bottomright", box.lty=0, legend=levels(as.factor(together$regression_type)), col= alpha(col, 0.6), pch = c(rep(19, 4)), cex = 1.5)
+
+    legend("topleft", box.lty=0, legend=levels(as.factor(regression_list$feature)), col=col, pch = c(rep(19, length(unique(regression_list$feature)))), cex = 1.5)
 }
+
