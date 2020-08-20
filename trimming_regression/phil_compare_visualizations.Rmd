@@ -1,5 +1,5 @@
 ---
-title: "VDJ trimming/insertion regression by SNP visualizations"
+title: "VDJ trimming/insertion regression by SNP--P value comparisons"
 output:
   html_document:
     fig_crop: no
@@ -7,6 +7,8 @@ output:
     toc_depth: 2
     dev: 'svg'
 ---
+
+Here, we are plotting the top 100 p-values from Phil's regression analysis (no gene conditioning, using one trimming value per subject per trimming type) on the x-axis. On the y-axis are the p-values from my latest protocol where we are conditioning on the gene, by subject, and weighting the regression accordingly. In theory, this new protocol should get at the actual effect of the snp on trimming (without the potential influence of the snp effect on gene choice).
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(knitr)
@@ -31,21 +33,6 @@ rag = snp_file(chromosome = 11, position1= 36010709, position2= 37093156)
 
 
 ```{r echo=TRUE, warning=FALSE}
-productive = c("productive", "NOT_productive")
-gene_region = c("artemis", "tdt", "rag", "mhc")
-
-#correlated_snps_list = correlate_snps_ld(chromosome, artemis, cutoff = 0.85)
-
-for (gene in gene_region){
-    if (gene == 'mhc'){
-        trimming_types = c("d0_trim", "d1_trim", "j_trim")
-    } else {
-        trimming_types = c("v_trim", "d0_trim", "d1_trim", "j_trim")
-    }
-    for (trim in trimming_types) {
-        for (product in productive) {
-            compile_data_manhattan(snp_meta_data = get(paste(gene)), snp_id_list = unique(get(gene)$snp), correlated_snps = 'False', productivity = product, varying_int = 'True', trim_type = trim, chromosome = unique(get(gene)$chr), correlate_snps = "False", gene_conditioning = 'True', weighting = 'True', gene_region = gene)
-        }
-    }
-}
+compare_phil_regression_list(phil_snp_list)
 ```
+
