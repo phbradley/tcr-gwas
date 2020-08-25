@@ -1,6 +1,6 @@
 
 source("run_bootstrap_regression_all_snps_functions.R")
-source("correlate_snps.R")
+source("find_correlated_snps.R")
 source("make_snp_file.R")
 
 args = commandArgs(trailingOnly=TRUE)

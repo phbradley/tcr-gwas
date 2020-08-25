@@ -1,0 +1,50 @@
+library("lme4")
+library("data.table")
+library('biglm')
+library(reticulate)
+use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
+
+source("bootstrap_functions.R")
+
+# fully condensed data (mean by patient)
+simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, repetitions, bonferroni, python_test){
+    # subset trimming data to include only productive or not productive entires
+    condensed_trimming_dataframe = filter_by_productivity(as.data.table(condensed_trimming_dataframe), productive)
+
+    colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vj_insert', 'dj_insert', 'vd_insert', 'total_tcr')
+ 
+    # For each snpID:
+    snpID=names(snps_dataframe)[-c(1)]
+    
+    # merge snp data and trimming data
+    sub = data.table(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
+    sub2 = merge(sub, condensed_trimming_dataframe, by = "localID")
+    
+    # set regression formula given 
+    form = formula(get(paste0(trim_type)) ~ snp )
+
+    # REGRESSION!
+    regression = glm(formula = form, data = sub2[snp != "NA"])
+        
+    # Calculate slope, intercept 
+    # Add the Intercept term with a mean of the gene specific intercept
+    intercept = summary(regression)$coefficients[,'Estimate']['(Intercept)']
+    slope = summary(regression)$coefficients[,'Estimate']['snp']
+    se = summary(regression)$coefficients[,'Std. Error']['snp']
+    pvalue = summary(regression)$coefficients[,'Pr(>|t|)']['snp']
+    bootstrap_results = data.frame(standard_error = se, pvalue = pvalue)
+
+
+    if (python_test == 'True'){
+        source_python('test_phil.py')
+        pval_py = linear_reg_phil(sub2[snp != "NA"]$snp, sub2[snp != "NA"][[paste0(trim_type)]])
+        bootstrap_results$pval_py = pval_py
+    }
+
+    together = cbind(data.table(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
+    return(together)
+}
+
+
+
+

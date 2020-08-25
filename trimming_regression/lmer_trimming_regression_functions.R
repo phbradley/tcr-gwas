@@ -1,24 +1,19 @@
 library("lme4")
 library("data.table")
 
-source("trimming_bootstrap_functions.R")
+source("bootstrap_functions.R")
 
 trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, bootstrap_repetitions, gene_conditioning, weighting){
-    # Indicate that we want to allow for varying intercepts (i.e. random effects by individual)
-    varying_int = "True"
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
     # subset trimming data to include only productive or not productive entires
-    if (productive == "True"){
-        condensed_trimming_dataframe = as.data.table(condensed_trimming_dataframe)[productive == "TRUE"]
-    } else if (productive == "False"){
-        condensed_trimming_dataframe = as.data.table(condensed_trimming_dataframe)[productive == "FALSE"]
-    }
+    condensed_trimming_dataframe = filter_by_productivity(as.data.table(condensed_trimming_dataframe), productive)
 
     # Indicate which snp we are regressing
     snpID = names(snps_dataframe)[-c(1)]
 
+    # define trim type and gene type
     if (trim_type =='d1_trim' | trim_type =='d0_trim'){
         weight = paste0("weighted_d_gene_count")
         gene_type = paste0("d_gene")
@@ -31,7 +26,7 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
         }
     }
 
-    colnames(snps_dataframe) = c('localID', 'snp')
+    colnames(snps_dataframe) = c('snp', 'localID')
     # merge snp data and trimming data
     snps_trimming_data = as.data.table(merge(snps_dataframe, condensed_trimming_dataframe, by = "localID"))
     snps_trimming_data = snps_trimming_data[snp != 'NA']
