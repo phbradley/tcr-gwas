@@ -17,7 +17,7 @@ snp_data = get(args[2])
 print(snp_data)
 
 # Run regression/bootstrap
-run_snps_trimming_snp_list(snp_id_list = unique(snp_data$snp), trim_type = args[1], condensing = 'by_gene', gene_conditioning = 'True', weighting = 'True', repetitions = 0, write_table = 'True')
+run_snps_trimming_snp_list(snp_id_list = unique(snp_data$snp), trim_type = args[1], condensing = 'by_patient', gene_conditioning = 'True', weighting = 'True', repetitions = 0, write_table = 'True')
 print(paste0("Finished regressions for ", args[1], " for ", args[2])
 #run_snps_trimming_snp_list(snp_id_list = unique(snp_list$snpid), trim_type = args[1], condensing = 'by_patient', gene_conditioning = 'False', weighting = 'False', repetitions = 100)
 

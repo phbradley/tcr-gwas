@@ -100,14 +100,15 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, condensing, gene_
         }
         print("finished bootstrap_regression_NOT_productive")
 
+        if (write_table == "True"){
+            # Write tables
+            write.table(boot_regression_results_productive, file= prod_name, quote=FALSE, sep='\t', col.names = NA)
+            write.table(boot_regression_results_NOT_productive, file= not_prod_name, quote=FALSE, sep='\t', col.names = NA)
+        } 
         print(paste0("finished bootstrap for snp data for ", i, " of ", length(snp_id_list), " for ", trim_type))
     } 
 
-    if (write_table == "True"){
-        # Write tables
-        write.table(boot_regression_results_productive, file= prod_name, quote=FALSE, sep='\t', col.names = NA)
-        write.table(boot_regression_results_NOT_productive, file= not_prod_name, quote=FALSE, sep='\t', col.names = NA)
-    } else {
+    if (write_table != "True"){
         boot_regression_results_productive$productivity_status = "productive"
         boot_regression_results_NOT_productive$productivity_status = "NOT_productive"
         results = rbind(boot_regression_results_productive, boot_regression_results_NOT_productive)

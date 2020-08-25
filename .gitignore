@@ -8,6 +8,7 @@ old_scripts/
 *.html
 *.key
 *.pdf
+*.nsf*
 
 # History files
 .Rhistory
