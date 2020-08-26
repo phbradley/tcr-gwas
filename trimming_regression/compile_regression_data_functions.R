@@ -9,11 +9,11 @@ library("GWASTools")
 
 compile_genotype_data <- function(snps_gds_file, snp_id){
     # get snp genotype
-    genotype = snpgdsGetGeno(snps_gds, snp.id=snp, with.id = TRUE)
+    genotype = snpgdsGetGeno(snps_gds_file, snp.id=snp_id, with.id = TRUE)
     
     # combine genotype, sample ids
     genotypes_dt = data.table(as.numeric(as.character(genotype$sample.id)), genotype$genotype)
-    colnames(genotypes_dt) = c("scanID", paste0("snp",snp))
+    colnames(genotypes_dt) = c("scanID", paste0("snp",snp_id))
     # Convert subject names : 
     subject_id_mapping = as.data.table(read.table('../_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
     snps_genotypes = merge(genotypes_dt, subject_id_mapping, by = "scanID")
@@ -28,4 +28,19 @@ filter_by_productivity <- function(condensed_trimming_dataframe, productive){
         condensed_trimming_dataframe = condensed_trimming_dataframe[productive == "FALSE"]
     } 
     return(condensed_trimming_dataframe)
+}
+
+compile_trimming_data_cross <- function(){
+    trimming_data_by_gene_all = data.table()
+    for (trim in c('v_trim', 'd0_trim', 'j_trim')){
+        assign(paste0(trim, '_trimming_data'), as.data.table(read.table(paste0("../_ignore/condensed_", trim, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        setnames(get(paste0(trim, '_trimming_data')), "patient_id", "localID")
+        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene'), "gene")
+        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene_count'), "gene_count")
+        setnames(get(paste0(trim, '_trimming_data')), paste0('weighted_', substring(trim, 1, 1), '_gene_count'), "weighted_gene_count")
+        gene_type = data.table(gene_class = rep(paste0(substr(trim, 1, 1), '_gene'), nrow(get(paste0(trim, '_trimming_data')))))
+        assign(paste0(trim, '_trimming_data'), cbind(get(paste0(trim, '_trimming_data')), gene_type))
+        trimming_data_by_gene_all = rbind(trimming_data_by_gene_all, get(paste0(trim, '_trimming_data')))
+    }
+    return(trimming_data_by_gene_all)
 }

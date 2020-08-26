@@ -12,7 +12,8 @@ run_snps_trimming_snp_list(snp_id_list = unique(snp_data$snp), trim_type = 'v_tr
 # for run_snps_trimming_snp_list:
 snp_id_list = unique(snp_data$snp)
 trim_type = 'v_trim'
-condensing = 'by_gene'
+condensing = 'gene_cross'
+gene_type = 'j_gene'
 gene_conditioning = 'True'
 weighting = 'True'
 repetitions = 0
@@ -24,3 +25,5 @@ snps_dataframe = snp_genotypes
 condensed_trimming_dataframe = trimming_data
 productive = "True"
 bootstrap_repetitions = repetitions
+
+run_snps_trimming_snp_list(snp_id_list = unique(snp_data$snp), trim_type = 'v_trim', gene_type = 'j_gene', condensing = 'gene_cross', gene_conditioning = 'True', weighting = 'True', repetitions = 0, write_table = 'False')

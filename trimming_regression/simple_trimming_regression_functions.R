@@ -7,14 +7,14 @@ use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 source("bootstrap_functions.R")
 
 # fully condensed data (mean by patient)
-simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, repetitions, bonferroni, python_test){
+simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, weighting, python_test){
     # subset trimming data to include only productive or not productive entires
     condensed_trimming_dataframe = filter_by_productivity(as.data.table(condensed_trimming_dataframe), productive)
 
     colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vj_insert', 'dj_insert', 'vd_insert', 'total_tcr')
  
     # For each snpID:
-    snpID=names(snps_dataframe)[-c(1)]
+    snpID=names(snps_dataframe)[-c(2)]
     
     # merge snp data and trimming data
     sub = data.table(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
@@ -24,7 +24,12 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
     form = formula(get(paste0(trim_type)) ~ snp )
 
     # REGRESSION!
-    regression = glm(formula = form, data = sub2[snp != "NA"])
+    if (weighting == 'True'){
+        regression = glm(formula = form, data = sub2[snp != "NA"], weights = sub2[snp != "NA"]$total_tcr)
+    } else {
+        regression = glm(formula = form, data = sub2[snp != "NA"])
+    }
+    
         
     # Calculate slope, intercept 
     # Add the Intercept term with a mean of the gene specific intercept

@@ -3,7 +3,7 @@ library("data.table")
 
 source("bootstrap_functions.R")
 
-trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, bootstrap_repetitions, gene_conditioning, weighting){
+trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, gene_conditioning, weighting){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
@@ -11,19 +11,14 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     condensed_trimming_dataframe = filter_by_productivity(as.data.table(condensed_trimming_dataframe), productive)
 
     # Indicate which snp we are regressing
-    snpID = names(snps_dataframe)[-c(1)]
+    snpID = names(snps_dataframe)[-c(2)]
 
     # define trim type and gene type
-    if (trim_type =='d1_trim' | trim_type =='d0_trim'){
-        weight = paste0("weighted_d_gene_count")
-        gene_type = paste0("d_gene")
-    } else {
-        weight = paste0("weighted_", str_split(trim_type, "_")[[1]][1], "_gene_count")
-        gene_type = paste0(str_split(trim_type, "_")[[1]][1], "_gene")
-        if (str_split(trim_type, "_")[[1]][2] == 'insert'){
-            gene_type1 = paste0(substr(trim_type, 1, 1), '_gene')
-            gene_type2 = paste0(substr(trim_type, 2, 2), '_gene')
-        }
+    weight = paste0("weighted_", substr(gene_type, 1, 1), '_gene_count')
+    gene_type = paste0(gene_type)
+    if (str_split(trim_type, "_")[[1]][2] == 'insert'){
+        gene_type1 = paste0(substr(trim_type, 1, 1), '_gene')
+        gene_type2 = paste0(substr(trim_type, 2, 2), '_gene')
     }
 
     colnames(snps_dataframe) = c('snp', 'localID')
@@ -78,13 +73,15 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 }
 
 
-generate_file_name <- function(snp_id_list, trim_type, productivity, gene_conditioning, weighting, condensing, repetitions){
+generate_file_name <- function(snp_id_list, trim_type, gene_type, productivity, gene_conditioning, weighting, condensing, repetitions){
     prod = ifelse(productivity == 'True', 'productive', 'NOT_productive')
     gene = ifelse(gene_conditioning == 'True', 'with_gene', '')
     weight = ifelse(weighting == 'True', '_with_weighting', '')
-
-    name = paste0('regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 
-
+    if (substr(gene_type, 1, 1) == substr(trim_type, 1, 1)){
+        name = paste0('regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 
+    } else {
+        name = paste0('regression_bootstrap_results/', prod, '/crosses/', trim_type, '_', gene_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 
+    }
     return(name)
 }
         
