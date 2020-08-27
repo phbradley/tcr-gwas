@@ -16,7 +16,7 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8)
 knitr::opts_chunk$set(fig.path = "figures/subset/")
 
 source("manha_visualization.R")
-source("correlate_snps.R")
+source("find_correlated_snps.R")
 source("make_snp_file.R")
 
 pre_regression_snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pvals_for_maggie.tsv", sep = "\t", fill=TRUE, header = TRUE))[-c(1:4)]

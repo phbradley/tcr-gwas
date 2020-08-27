@@ -56,12 +56,13 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 
     if (slope != 'NA'){
         # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
-        boot_screen = bootstrap_screen(regression)
-        if (bootstrap_repetitions != 0 & boot_screen[2]< (bonferroni)){
-            bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int, weighting, bootstrap_repetitions)
-        } else {
-            bootstrap_results = boot_screen
-        }
+        bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int = 'True', weighting, repetitions = bootstrap_repetitions)
+        #boot_screen = bootstrap_screen(regression)
+        #if (bootstrap_repetitions != 0 & boot_screen[2]< (bonferroni)){
+        #    bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int, weighting, bootstrap_repetitions)
+        #} else {
+        #    bootstrap_results = boot_screen
+        #}
     } else {
         bootstrap_results = data.table()
     }
@@ -77,7 +78,7 @@ generate_file_name <- function(snp_id_list, trim_type, gene_type, productivity, 
     prod = ifelse(productivity == 'True', 'productive', 'NOT_productive')
     gene = ifelse(gene_conditioning == 'True', 'with_gene', '')
     weight = ifelse(weighting == 'True', '_with_weighting', '')
-    if (substr(gene_type, 1, 1) == substr(trim_type, 1, 1)){
+    if ((substr(gene_type, 1, 1) == substr(trim_type, 1, 1)) | (substr(trim_type, 4, 5) == 'in')){
         name = paste0('regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 
     } else {
         name = paste0('regression_bootstrap_results/', prod, '/crosses/', trim_type, '_', gene_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 

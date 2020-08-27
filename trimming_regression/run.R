@@ -12,12 +12,13 @@ artemis = snp_file(chromosome = 10, position1= 14397359, position2= 15454432)
 tdt = snp_file(chromosome = 10, position1= 95804409, position2= 96838564)
 mhc = snp_file(chromosome = 6, position1= 0, position2= 4050069)
 rag = snp_file(chromosome = 11, position1= 36010709, position2= 37093156)
+phil_d_gene_digging = artemis[hg19_pos == 14970715 | hg19_pos == 14971128]
 
 snp_data = get(args[3])
 print(snp_data)
 
 # Run regression/bootstrap
-run_snps_trimming_snp_list(snp_id_list = unique(snp_data$snp), trim_type = args[1], gene_type = args[2], condensing = 'by_patient', gene_conditioning = 'True', weighting = 'True', repetitions = 0, write_table = 'True')
+run_snps_trimming_snp_list(snp_id_list = unique(snp_data$snp), trim_type = args[1], gene_type = args[2], condensing = 'by_gene', gene_conditioning = 'True', weighting = 'True', repetitions = 100, write_table = 'True')
 print(paste0("Finished regressions for ", args[1], " for ", args[3])
 #run_snps_trimming_snp_list(snp_id_list = unique(snp_list$snpid), trim_type = args[1], condensing = 'by_patient', gene_conditioning = 'False', weighting = 'False', repetitions = 100)
 

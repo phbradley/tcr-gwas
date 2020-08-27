@@ -4,7 +4,7 @@ library(data.table)
 library(ggplot2)
 library(RColorBrewer)
 
-source('trimming_regression_functions.R')
+source('lmer_trimming_regression_functions.R')
 
 
 compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, paired_productive_snps, productivity, varying_int, trim_type, chromosome, correlate_snps, gene_conditioning, weighting, gene_region){
@@ -33,7 +33,7 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
 
     # load regression / pvalue results
     if (varying_int == "True"){
-        assign('regression_snp_list', as.data.table(read.table(generate_file_name_no_reps(snp_id_list, trim_type, productivity = productivity_status, gene_conditioning, weighting, condensing = 'by_gene'), header = TRUE)))
+        assign('regression_snp_list', as.data.table(read.table(generate_file_name(snp_id_list, trim_type, gene_type = paste0(substr(trim_type, 1, 1), '_gene'), productivity = productivity_status, gene_conditioning = gene_conditioning, weighting = weighting, condensing = 'by_gene', repetitions = 100), header = TRUE)))
         gene_cond = ifelse(gene_conditioning == 'True', '_gene_conditioning', '')
         weight_cond = ifelse(weighting == 'True', '_weight', '')
         regression_type = paste0('lmer', gene_cond, weight_cond)
@@ -67,7 +67,7 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
     # load regression / pvalue results
     if (varying_int == "True"){
         product = ifelse(prod == 'productive', 'True', 'False')
-        assign('regression_snp_list_other', as.data.table(read.table(generate_file_name_no_reps(snp_id_list, trim_type, productivity = product, gene_conditioning, weighting, condensing = 'by_gene'), header = TRUE))[,c(1, 5)])
+        assign('regression_snp_list_other', as.data.table(read.table(generate_file_name(snp_id_list, trim_type, gene_type = paste0(substr(trim_type, 1, 1), '_gene'), productivity = product, gene_conditioning, weighting, condensing = 'by_gene', repetitions = 100), header = TRUE))[,c(1, 5)])
     } else {
         regression_snp_list_other = as.data.table(read.table(paste0("regression_bootstrap_results/", prod, "/", trim_type, "/", trim_type, "_", prod, "_snplist_", snp_id_list[1], "-",snp_id_list[length(snp_id_list)], "_snps_simple_condensing_by_patient.tsv"), header = TRUE))[,c(1, 5)]
     }
@@ -130,15 +130,15 @@ compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, 
     } 
 }
 
-combine_trimming_regression_dfs <- function(pre_regression_snp_list, condensing, trimming_type_list){
+combine_trimming_regression_dfs <- function(pre_regression_snp_list, repetitions=100, condensing, trimming_type_list){
     pre_regression_snp_list_final = pre_regression_snp_list
     pre_regression_snp_list_final$snpid = paste0("snp", pre_regression_snp_list_final$snpid)
     snp_id_list = unique(pre_regression_snp_list$snpid)
     post_regression_snp_list = data.table()
     for (trim in trimming_type_list){
-        productive_test =  as.data.table(read.table(paste0('regression_bootstrap_results/productive/', trim, '/', trim, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_with_gene_with_weighting_condensing_', condensing, '.tsv') , sep = "\t", fill=TRUE, header = TRUE))
+        productive_test =  as.data.table(read.table(paste0('regression_bootstrap_results/productive/', trim, '/', trim, '_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_with_gene_with_weighting_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') , sep = "\t", fill=TRUE, header = TRUE))
     
-        not_productive_test =  as.data.table(read.table(paste0('regression_bootstrap_results/NOT_productive/', trim, '/', trim, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_lmer_with_gene_with_weighting_condensing_', condensing, '.tsv'), sep = "\t", fill=TRUE, header = TRUE))
+        not_productive_test =  as.data.table(read.table(paste0('regression_bootstrap_results/NOT_productive/', trim, '/', trim, '_NOT_productive_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)],'_snps_lmer_with_gene_with_weighting_condensing_', condensing, '_', repetitions, '_bootstraps.tsv'), sep = "\t", fill=TRUE, header = TRUE))
         
 
         if (nrow(productive_test) != 0){
@@ -157,7 +157,7 @@ combine_trimming_regression_dfs <- function(pre_regression_snp_list, condensing,
 compare_phil <- function(phil_p_vals, snp_id_list, productivity, varying_int, trim_type, gene_conditioning, weighting){
     # load regression / pvalue results
     if (varying_int == "True"){
-        regression_snp_list = as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting, condensing), header = TRUE))
+        regression_snp_list = as.data.table(read.table(generate_file_name(snp_id_list, trim_type, productivity = 'True', gene_conditioning, weighting, condensing, repetitions = 100), header = TRUE))
         regression_type = 'lmer regression: conditioning on gene'
     } else {
         regression_snp_list = as.data.table(read.table(paste0("regression_bootstrap_results/", productivity, "/", trim_type, "/", trim_type, "_", productivity, "_snplist_", snp_id_list[1], "-",snp_id_list[length(snp_id_list)], "_snps_simple.tsv"), header = TRUE))
@@ -199,3 +199,29 @@ compare_phil_regression_list <- function(regression_list){
     legend("topleft", box.lty=0, legend=levels(as.factor(regression_list$feature)), col=col, pch = c(rep(19, length(unique(regression_list$feature)))), cex = 1.5)
 }
 
+visualize_crosses <- function(cross_regression_list){
+    cross_regression_list = unique(cross_regression_list)
+    reshaped = data.table()
+    for (trim in c('v_trim', 'd0_trim', 'd1_trim', 'j_trim')){
+        for (gene in c('v_gene', 'j_gene', 'd_gene')){
+            for (prod in c('productive', 'NOT_productive')){
+                simple_regression = as.data.table(read.table(paste0("regression_bootstrap_results/", prod, "/", trim, "/", trim, '_',prod,  '_snplist_16814629-16814111_snps_simple_with_weighting_condensing_by_patient_0_bootstraps.tsv')), header = TRUE)[,c('snp', 'pvalue')]
+                desired_cols = c('snp', 'productivity_status', paste0('pvalue_', trim, '_', gene))
+                assign(paste0(trim, '_', gene,'_dt'), cross_regression_list[productivity_status == prod,..desired_cols])
+                new_name_column = rep(paste0(trim, '_', gene), nrow(get(paste0(trim, '_', gene,'_dt'))))
+                new_df = cbind(get(paste0(trim, '_', gene,'_dt')), type = new_name_column)
+                new_df_with_simple = merge(new_df, simple_regression)
+                colnames(new_df_with_simple) = c('snp', 'productivity_status', 'gene_conditioning_regression', 'type', 'simple_regression')
+                reshaped = rbind(reshaped, new_df_with_simple)
+            }   
+        }
+    }
+
+    palette(brewer.pal(n = length(unique(reshaped$type)), name = 'Set3'))
+    col = setNames(palette(), levels(as.factor(reshaped$type)))
+
+    plot(-1*log(reshaped$simple_regression, base =10), -1*log(reshaped$gene_conditioning_regression, base =10), col = as.factor(reshaped$type), pch=19, cex = 1.5, ylab = paste0('P values from gene conditioning regressions'), xlab = 'P values from simple regressions', main = paste0('P value comparison'), cex.main=1.5, cex.lab=1.5, cex.axis=1, panel.first = grid())
+    points(-1*log(reshaped[snp == 'snp20717772' | snp == 'snp20717781']$simple_regression, base= 10), -1*log(reshaped[snp == 'snp20717772' | snp == 'snp20717781']$gene_conditioning_regression, base =10), col = alpha("red", 0.9), pch=1, cex = 1.5)
+    abline(a = 0, b = 1, lty = 2, lwd = 4)
+    legend("bottomright", box.lty=0, legend=levels(as.factor(reshaped$type)), col=col, pch = c(rep(19, length(unique(reshaped$type)))), cex = 1.1)
+}

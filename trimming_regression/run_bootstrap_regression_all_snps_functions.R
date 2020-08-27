@@ -32,6 +32,8 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, gene_type, conden
         trimming_data = trimming_data[gene_class == gene_type]
         setnames(trimming_data, 'weighted_gene_count', paste0('weighted_', gene_type, '_count'))
         setnames(trimming_data, 'gene', paste0(gene_type))
+    } else if (condensing == 'phil'){
+        assign('trimming_data', as.data.table(read.table(paste0("../_ignore/by_patient_condensed_data_all_patients_phil.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
     } else {
         assign('trimming_data', as.data.table(read.table(paste0("../_ignore/condensed_", trim_type, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
         setnames(trimming_data, "patient_id", "localID")
@@ -58,7 +60,7 @@ run_snps_trimming_snp_list <- function(snp_id_list, trim_type, gene_type, conden
              # set path name
             prod_name = generate_file_name(snp_id_list, trim_type, gene_type, productivity = 'True', gene_conditioning, weighting, condensing, repetitions)
             not_prod_name = generate_file_name(snp_id_list, trim_type, gene_type, productivity = 'False', gene_conditioning, weighting, condensing, repetitions)
-        } else if (condensing == 'by_patient'){
+        } else if (condensing == 'by_patient'| condensing == 'phil'){
             regression_productive = simple_trimming_snp_regression(snp_genotypes, trimming_data, productive = "True", trim_type =trim_type, weighting, python_test = 'True')
             print("finished simple_regression_productive")
             regression_NOT_productive = simple_trimming_snp_regression(snp_genotypes, trimming_data, productive = "False", trim_type = trim_type, weighting, python_test = 'True')

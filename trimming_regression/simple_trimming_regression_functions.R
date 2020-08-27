@@ -11,8 +11,12 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
     # subset trimming data to include only productive or not productive entires
     condensed_trimming_dataframe = filter_by_productivity(as.data.table(condensed_trimming_dataframe), productive)
 
-    colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vj_insert', 'dj_insert', 'vd_insert', 'total_tcr')
- 
+    if (ncol(condensed_trimming_dataframe) == 10){
+        colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vj_insert', 'dj_insert', 'vd_insert', 'total_tcr')
+    } else if (ncol(condensed_trimming_dataframe) == 7){
+        colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'total_tcr')
+    } 
+    
     # For each snpID:
     snpID=names(snps_dataframe)[-c(2)]
     
