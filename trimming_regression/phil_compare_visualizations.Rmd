@@ -18,17 +18,19 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8)
 knitr::opts_chunk$set(fig.path = "figures/")
 
 source("manha_visualization.R")
-source("correlate_snps.R")
+source("find_correlated_snps.R")
 source("make_snp_file.R")
 
 pre_regression_snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pvals_for_maggie.tsv", sep = "\t", fill=TRUE, header = TRUE))[-c(1:4)]
 
-phil_snp_list = combine_trimming_regression_dfs(pre_regression_snp_list, condensing = 'by_gene', trimming_type_list = c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', "vd_insert", "vj_insert", "dj_insert"))
+phil_snp_list = combine_trimming_regression_dfs(pre_regression_snp_list, repetitions = 100, condensing = 'by_gene', trimming_type_list = c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', "vd_insert", "vj_insert", "dj_insert"))
 
 artemis = snp_file(chromosome = 10, position1= 14397359, position2= 15454432)
 tdt = snp_file(chromosome = 10, position1= 95804409, position2= 96838564)
 mhc = snp_file(chromosome = 6, position1= 0, position2= 4050069)
 rag = snp_file(chromosome = 11, position1= 36010709, position2= 37093156)
+
+gene_conditioning_crosses = as.data.table(read.table("regression_bootstrap_results/crosses/crossing_all_snplist_16814629-16814111_snps_lmer_with_gene_with_weighting_condensing_by_gene_0_bootstraps.tsv", header = TRUE))
 ```
 
 
@@ -36,3 +38,6 @@ rag = snp_file(chromosome = 11, position1= 36010709, position2= 37093156)
 compare_phil_regression_list(phil_snp_list)
 ```
 
+```{r echo=TRUE, warning=FALSE}
+visualize_crosses(gene_conditioning_crosses)
+```

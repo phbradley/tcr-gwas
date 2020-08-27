@@ -8,6 +8,8 @@ old_scripts/
 *.html
 *.key
 *.pdf
+*.nfs*
+trimming_regression/*.nfs*
 
 # History files
 .Rhistory
