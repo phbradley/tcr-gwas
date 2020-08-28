@@ -14,11 +14,15 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     snpID = names(snps_dataframe)[-c(2)]
 
     # define trim type and gene type
-    weight = paste0("weighted_", substr(gene_type, 1, 1), '_gene_count')
+    if (gene_type == 'same'){
+        gene_type = paste0(substr(trim_type, 1, 1), '_gene')
+        weight = paste0("weighted_", substr(trim_type, 1, 1), '_gene_count')
+    }
     gene_type = paste0(gene_type)
     if (str_split(trim_type, "_")[[1]][2] == 'insert'){
         gene_type1 = paste0(substr(trim_type, 1, 1), '_gene')
         gene_type2 = paste0(substr(trim_type, 2, 2), '_gene')
+        weight = paste0("weighted_", substr(trim_type, 1, 2), '_gene_count')
     }
 
     colnames(snps_dataframe) = c('snp', 'localID')

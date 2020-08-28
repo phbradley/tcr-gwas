@@ -1,5 +1,5 @@
 source("run_bootstrap_regression_all_snps_functions.R")
-
+source("run_bootstrap_regression_all_snps_functions_cluster.R")
 
 # Read in snp list
 snp_list = as.data.table(read.table("../_ignore/phil_sig_snps/top100_trimming_pvals_for_maggie.tsv", sep = "\t", fill=TRUE, header = TRUE))[-c(1:4)]
@@ -11,13 +11,14 @@ run_snps_trimming_snp_list(snp_id_list = unique(snp_data$snp), trim_type = 'v_tr
 
 # for run_snps_trimming_snp_list:
 snp_id_list = unique(snp_data$snp)
-trim_type = 'v_trim'
-condensing = 'gene_cross'
-gene_type = 'j_gene'
+trim_type = 'd0_trim'
+condensing = 'by_gene'
+gene_type = 'same'
 gene_conditioning = 'True'
 weighting = 'True'
-repetitions = 0
+repetitions = 10
 write_table = 'False'
+numCores = 4
 
 # for trimming_regression
 
@@ -62,3 +63,7 @@ gene_conditioning = 'True'
 weighting = 'True'
 gene_region = gene
 
+snp = snp_id_list
+regression_dataframe = data.table()
+
+args = c(500000, 'd0_trim')

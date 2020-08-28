@@ -24,3 +24,20 @@ snp_file <- function(chromosome, position1, position2){
     closefn.gds(snps_gds)
     return(snps_chromosome)
 }
+
+snp_file_by_snp_start <- function(snp_start, count){
+    snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    snp_id <- read.gdsn(index.gdsn(snps_gds, "snp.id"))
+
+    if ((snp_start+count) > length(snp_id)){
+        count = length(snp_id) - snp_start
+    }
+
+    snp_chrom <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"), start = snp_start, count=count)
+    snp_pos <- read.gdsn(index.gdsn(snps_gds, "snp.position"), start = snp_start, count=count)
+    
+    snps = data.table(snp = snp_id[snp_start:(snp_start+count-1)], chr = snp_chrom, hg19_pos = snp_pos)
+
+    closefn.gds(snps_gds)
+    return(snps)
+}

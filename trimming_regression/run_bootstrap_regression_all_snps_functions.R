@@ -10,6 +10,7 @@ source("simple_trimming_regression_functions.R")
 source("lmer_trimming_regression_functions.R")
 source("bootstrap_functions.R")
 source("compile_regression_data_functions.R")
+source("execute_regression_function.R")
 
 
 run_snps_trimming_snp_list <- function(snp_id_list, trim_type, gene_type, condensing, gene_conditioning, weighting, repetitions, write_table){

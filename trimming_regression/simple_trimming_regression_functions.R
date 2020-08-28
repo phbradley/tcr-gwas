@@ -1,7 +1,6 @@
 library("lme4")
 library("data.table")
-library('biglm')
-library(reticulate)
+library('reticulate')
 use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 
 source("bootstrap_functions.R")
