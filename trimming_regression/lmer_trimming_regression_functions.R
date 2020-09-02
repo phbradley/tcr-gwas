@@ -1,5 +1,4 @@
 library("lme4")
-library("data.table")
 
 source("bootstrap_functions.R")
 
@@ -8,10 +7,10 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     bonferroni = 0.05/35481497
 
     # subset trimming data to include only productive or not productive entires
-    condensed_trimming_dataframe = filter_by_productivity(as.data.table(condensed_trimming_dataframe), productive)
+    condensed_trimming_dataframe = filter_by_productivity(as.data.frame(condensed_trimming_dataframe), productive)
 
     # Indicate which snp we are regressing
-    snpID = names(snps_dataframe)[-c(2)]
+    snpID = names(snps_dataframe)[-c(1)]
 
     # define trim type and gene type
     if (gene_type == 'same'){
@@ -25,10 +24,10 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
         weight = paste0("weighted_", substr(trim_type, 1, 2), '_gene_count')
     }
 
-    colnames(snps_dataframe) = c('snp', 'localID')
+    colnames(snps_dataframe) = c('localID', 'snp')
     # merge snp data and trimming data
-    snps_trimming_data = as.data.table(merge(snps_dataframe, condensed_trimming_dataframe, by = "localID"))
-    snps_trimming_data = snps_trimming_data[snp != 'NA']
+    snps_trimming_data = merge(snps_dataframe, condensed_trimming_dataframe, by = "localID")
+    snps_trimming_data = snps_trimming_data %>% filter(!is.na(snp))
 
     # set regression formula
     # set base formula
@@ -45,12 +44,12 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 
     # REGRESSION!
     # remove warning messages (about singularity)
-    control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4))
+    control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4), calc.derivs = FALSE)
 
     if (weighting == 'True'){
-        regression = lmer(formula = form, data = snps_trimming_data[snp != "NA"], weights = get(weight), control=control)
+        regression = lmer(formula = form, data = snps_trimming_data, weights = get(weight), control=control)
     } else {
-        regression = lmer(formula = form, data = snps_trimming_data[snp != "NA"], control=control)
+        regression = lmer(formula = form, data = snps_trimming_data, control=control)
     }
 
     # Calculate slope, intercept 
@@ -60,7 +59,11 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 
     if (slope != 'NA'){
         # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
-        bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int = 'True', weighting, repetitions = bootstrap_repetitions)
+        if (bootstrap_repetitions != 0){
+            bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int = 'True', weighting, repetitions = bootstrap_repetitions)
+        } else {
+            bootstrap_results = bootstrap_screen(regression)
+        }
         #boot_screen = bootstrap_screen(regression)
         #if (bootstrap_repetitions != 0 & boot_screen[2]< (bonferroni)){
         #    bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data[snp != "NA"], cluster_variable = snps_trimming_data[snp != "NA"]$localID, trim_type, varying_int, weighting, bootstrap_repetitions)
@@ -68,11 +71,11 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
         #    bootstrap_results = boot_screen
         #}
     } else {
-        bootstrap_results = data.table()
+        bootstrap_results = data.frame()
     }
 
     # combine slope, intercept, and pvalue for the specified snp
-    regression_results = cbind(data.table(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
+    regression_results = cbind(data.frame(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
 
     return(regression_results)
 }

@@ -1,14 +1,13 @@
 library("lme4")
-library("data.table")
 library('reticulate')
 use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 
 source("bootstrap_functions.R")
 
 # fully condensed data (mean by patient)
-simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, weighting, python_test){
+simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, weighting, gene_conditioning, python_test){
     # subset trimming data to include only productive or not productive entires
-    condensed_trimming_dataframe = filter_by_productivity(as.data.table(condensed_trimming_dataframe), productive)
+    condensed_trimming_dataframe = filter_by_productivity(as.data.frame(condensed_trimming_dataframe), productive)
 
     if (ncol(condensed_trimming_dataframe) == 10){
         colnames(condensed_trimming_dataframe) = c('localID', 'productive', 'v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vj_insert', 'dj_insert', 'vd_insert', 'total_tcr')
@@ -17,20 +16,43 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
     } 
     
     # For each snpID:
-    snpID=names(snps_dataframe)[-c(2)]
+    snpID=names(snps_dataframe)[-c(1)]
     
     # merge snp data and trimming data
-    sub = data.table(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
+    sub = data.frame(localID = snps_dataframe$localID, snp = snps_dataframe[[snpID]])
     sub2 = merge(sub, condensed_trimming_dataframe, by = "localID")
-    
+    snps_trimming_data = sub2 %>% filter(!is.na(snp))
+
+    # define trim type and gene type
+    if (gene_type == 'same'){
+        gene_type = paste0(substr(trim_type, 1, 1), '_gene')
+        weight = paste0("weighted_", substr(trim_type, 1, 1), '_gene_count')
+    }
+    gene_type = paste0(gene_type)
+    if (str_split(trim_type, "_")[[1]][2] == 'insert'){
+        gene_type1 = paste0(substr(trim_type, 1, 1), '_gene')
+        gene_type2 = paste0(substr(trim_type, 2, 2), '_gene')
+        weight = paste0("weighted_", substr(trim_type, 1, 2), '_gene_count')
+    }
+
     # set regression formula given 
     form = formula(get(paste0(trim_type)) ~ snp )
 
+    if (gene_conditioning == 'True'){
+        if (str_split(trim_type, "_")[[1]][2] == 'insert'){
+            form = update(form, ~ . + get(paste0(gene_type1)) + get(paste0(gene_type2)))
+        } else {
+            form = update(form, ~ . + get(paste0(gene_type)))
+        }
+    } else {
+        weight = 'total_tcr'
+    }
+
     # REGRESSION!
     if (weighting == 'True'){
-        regression = glm(formula = form, data = sub2[snp != "NA"], weights = sub2[snp != "NA"]$total_tcr)
+        regression = lm(formula = form, data = snps_trimming_data, weights = get(weight))
     } else {
-        regression = glm(formula = form, data = sub2[snp != "NA"])
+        regression = lm(formula = form, data = snps_trimming_data)
     }
     
         
@@ -49,7 +71,7 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
         bootstrap_results$pval_py = pval_py
     }
 
-    together = cbind(data.table(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
+    together = cbind(data.frame(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
     return(together)
 }
 

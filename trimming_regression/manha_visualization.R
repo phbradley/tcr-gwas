@@ -3,6 +3,7 @@
 library(data.table)
 library(ggplot2)
 library(RColorBrewer)
+setDTthreads(threads = 1, restore_after_fork=FALSE)
 
 source('lmer_trimming_regression_functions.R')
 

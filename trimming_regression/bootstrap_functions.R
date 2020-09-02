@@ -1,4 +1,3 @@
-library("data.table")
 library("lme4")
 library("boot")
 library("ClusterBootstrap")

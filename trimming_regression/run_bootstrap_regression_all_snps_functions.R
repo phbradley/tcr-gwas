@@ -5,6 +5,7 @@ library("stringr")
 library("gdsfmt")
 library("SNPRelate")
 library("GWASTools")
+setDTthreads(threads = 1, restore_after_fork=FALSE)
 
 source("simple_trimming_regression_functions.R")
 source("lmer_trimming_regression_functions.R")
