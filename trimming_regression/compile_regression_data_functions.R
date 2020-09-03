@@ -39,3 +39,17 @@ compile_trimming_data_cross <- function(){
     }
     return(trimming_data_by_gene_all)
 }
+
+# remove snp_genotype columns that are either all NA, or only have one genotype (for everyone)
+remove_matrix_column_by_genotype <- function(genotype_matrix){
+    for (snp in colnames(genotype_matrix)){
+        genotypes = unique(genotype_matrix[,snp])
+        nonNA_genotypes = genotypes[genotypes != 3]
+        if (length(nonNA_genotypes) <= 1){
+            genotype_matrix = genotype_matrix[, colnames(genotype_matrix) != snp]
+        }
+    }
+    # replace 3 with NA
+    genotype_matrix[genotype_matrix == 3] <- NA
+    return(genotype_matrix)
+}

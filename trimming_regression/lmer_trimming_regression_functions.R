@@ -2,7 +2,7 @@ library("lme4")
 
 source("bootstrap_functions.R")
 
-trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, gene_conditioning, weighting){
+trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, gene_conditioning, weighting, snp_list){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
@@ -74,8 +74,10 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
         bootstrap_results = data.frame()
     }
 
+    snp_list$snp = paste0('snp', snp_list$snp)
+    results_temp = merge(snp_list, data.frame(snp = snpID, intercept = intercept, slope = slope), by = 'snp')
     # combine slope, intercept, and pvalue for the specified snp
-    regression_results = cbind(data.frame(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
+    regression_results = cbind(results_temp, bootstrap_results)
 
     return(regression_results)
 }

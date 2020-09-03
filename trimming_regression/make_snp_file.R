@@ -23,7 +23,7 @@ snp_file <- function(chromosome, position1, position2){
 }
 
 snp_file_by_snp_start <- function(snp_start, count){
-    snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    snps_gds = openfn.gds("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
     snp_id <- read.gdsn(index.gdsn(snps_gds, "snp.id"))
 
     if ((snp_start+count) > length(snp_id)){
@@ -47,7 +47,14 @@ compile_all_genotypes <- function(snp_start, count) {
     numrows <- min( count, bigsize-snp_start+1 )
     
     genotype_matrix <- read.gdsn(index.gdsn(gfile, "genotype"), start=c(1,snp_start), count=c(398, numrows))
+    sample_ids <- read.gdsn(index.gdsn(gfile, "sample.id"), start=1, count=398)
+    snp_ids <- read.gdsn(index.gdsn(gfile, "snp.id"), start=snp_start, count=numrows)
     closefn.gds(gfile)
+
+    subject_id_mapping = as.data.frame(read.table('../_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
+    sample_ids_converted = plyr::mapvalues(sample_ids, subject_id_mapping$scanID, subject_id_mapping$localID)
+    rownames(genotype_matrix) = sample_ids_converted
+    colnames(genotype_matrix) = snp_ids
     return(genotype_matrix)
 }
 

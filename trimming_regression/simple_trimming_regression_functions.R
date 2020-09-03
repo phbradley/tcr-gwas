@@ -5,7 +5,7 @@ use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 source("bootstrap_functions.R")
 
 # fully condensed data (mean by patient)
-simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, weighting, gene_conditioning, python_test){
+simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, weighting, gene_conditioning, python_test, snp_list){
     # subset trimming data to include only productive or not productive entires
     condensed_trimming_dataframe = filter_by_productivity(as.data.frame(condensed_trimming_dataframe), productive)
 
@@ -71,7 +71,10 @@ simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_da
         bootstrap_results$pval_py = pval_py
     }
 
-    together = cbind(data.frame(snp = snpID, intercept = intercept, slope = slope), bootstrap_results)
+    snp_list$snp = paste0('snp', snp_list$snp)
+    results_temp = merge(snp_list, data.frame(snp = snpID, intercept = intercept, slope = slope), by = 'snp')
+
+    together = cbind(results_temp, bootstrap_results)
     return(together)
 }
 

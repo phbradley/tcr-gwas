@@ -1,3 +1,4 @@
+library('plyr')
 library("tidyverse")
 library("gdsfmt")
 library("SNPRelate")
@@ -12,10 +13,7 @@ source("compile_regression_data_functions.R")
 source("execute_regression_function.R")
 
 
-run_snps_trimming_snp_list_cluster <- function(snp_id_list, trim_type, gene_type, condensing, gene_conditioning, weighting, random_effects, repetitions, write_table, ncpus){
-    # Get snp meta data
-    snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds", allow.fork=TRUE)
-    
+run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, gene_type, condensing, gene_conditioning, weighting, random_effects, repetitions, write_table, ncpus){
     regression_dataframe = data.frame()
 
     # import condensed trimming file
@@ -34,16 +32,15 @@ run_snps_trimming_snp_list_cluster <- function(snp_id_list, trim_type, gene_type
         names(trimming_data)[names(trimming_data) == "patient_id"] <- "localID"
     }
 
-    results = do.call(rbind, mclapply(snp_id_list, execute_regression, snps_gds, snp_id_list, trim_type, gene_type, condensing, trimming_data, repetitions, weighting, gene_conditioning, random_effects, regression_dataframe, mc.cores = ncpus))
+    results = do.call(rbind, mclapply(as.numeric(colnames(genotype_list)), execute_regression, snp_list, genotype_list, trim_type, gene_type, condensing, trimming_data, repetitions, weighting, gene_conditioning, random_effects, regression_dataframe, mc.cores = ncpus))
     
     
     if (random_effects == 'True'){
-         file_name = paste0('cluster_job_results/',trim_type, '/', trim_type, '_',snp_id_list[1], '-', snp_id_list[length(snp_id_list)],'_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', repetitions, '_bootstraps.tsv')
+         file_name = paste0('cluster_job_results/',trim_type, '/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', repetitions, '_bootstraps.tsv')
     } else {
-         file_name = paste0('cluster_job_results/',trim_type, '/', trim_type, '_',snp_id_list[1], '-', snp_id_list[length(snp_id_list)],'_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', repetitions, '_bootstraps.tsv')
+         file_name = paste0('cluster_job_results/',trim_type, '/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', repetitions, '_bootstraps.tsv')
     }
             
-    closefn.gds(snps_gds)
     if (write_table == "True"){
         # Write tables
         write.table(as.data.frame(results), file= file_name, quote=FALSE, sep='\t', col.names = NA)
