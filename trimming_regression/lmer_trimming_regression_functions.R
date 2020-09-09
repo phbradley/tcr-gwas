@@ -1,6 +1,6 @@
 library("lme4")
 
-source("bootstrap_functions.R")
+source("/home/mrussel2/tcr-gwas/trimming_regression/bootstrap_functions.R")
 
 trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, gene_conditioning, weighting, snp_list){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)

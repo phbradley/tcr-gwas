@@ -10,7 +10,7 @@ compile_genotype_data <- function(snps_gds_file, snp_id){
     genotypes_dt = data.frame(as.numeric(as.character(genotype$sample.id)), genotype$genotype)
     colnames(genotypes_dt) = c("scanID", paste0("snp",snp_id))
     # Convert subject names : 
-    subject_id_mapping = as.data.frame(read.table('../_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
+    subject_id_mapping = as.data.frame(read.table('/home/mrussel2/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
     snps_genotypes = merge(genotypes_dt, subject_id_mapping, by = "scanID")
     return(snps_genotypes[,c('localID', paste0("snp",snp_id))])
 }
@@ -28,7 +28,7 @@ filter_by_productivity <- function(condensed_trimming_dataframe, productive){
 compile_trimming_data_cross <- function(){
     trimming_data_by_gene_all = data.frame()
     for (trim in c('v_trim', 'd0_trim', 'j_trim')){
-        assign(paste0(trim, '_trimming_data'), as.data.frame(read.table(paste0("../_ignore/condensed_", trim, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        assign(paste0(trim, '_trimming_data'), as.data.frame(read.table(paste0("/home/mrussel2/tcr-gwas/_ignore/condensed_", trim, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
         setnames(get(paste0(trim, '_trimming_data')), "patient_id", "localID")
         setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene'), "gene")
         setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene_count'), "gene_count")

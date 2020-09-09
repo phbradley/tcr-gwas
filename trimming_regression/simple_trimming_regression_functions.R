@@ -2,7 +2,7 @@ library("lme4")
 library('reticulate')
 use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 
-source("bootstrap_functions.R")
+source("/home/mrussel2/tcr-gwas/trimming_regression/bootstrap_functions.R")
 
 # fully condensed data (mean by patient)
 simple_trimming_snp_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, weighting, gene_conditioning, python_test, snp_list){

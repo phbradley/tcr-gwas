@@ -4,7 +4,7 @@ library("SNPRelate")
 library("GWASTools")
 
 snp_file <- function(chromosome, position1, position2){
-    snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    snps_gds = snpgdsOpen("/home/mrussel2/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
     snp_chrom <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"))
 
     chr_index_start = match(chromosome,snp_chrom)
@@ -23,7 +23,7 @@ snp_file <- function(chromosome, position1, position2){
 }
 
 snp_file_by_snp_start <- function(snp_start, count){
-    snps_gds = openfn.gds("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    snps_gds = openfn.gds("/home/mrussel2/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
     snp_id <- read.gdsn(index.gdsn(snps_gds, "snp.id"))
 
     if ((snp_start+count) > length(snp_id)){
@@ -41,7 +41,7 @@ snp_file_by_snp_start <- function(snp_start, count){
 
 
 compile_all_genotypes <- function(snp_start, count) {
-    gfile = openfn.gds("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    gfile = openfn.gds("/home/mrussel2/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
     bigsize <- 35481497
     #start <- (i-1)*sz + 1
     numrows <- min( count, bigsize-snp_start+1 )
@@ -51,7 +51,7 @@ compile_all_genotypes <- function(snp_start, count) {
     snp_ids <- read.gdsn(index.gdsn(gfile, "snp.id"), start=snp_start, count=numrows)
     closefn.gds(gfile)
 
-    subject_id_mapping = as.data.frame(read.table('../_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
+    subject_id_mapping = as.data.frame(read.table('/home/mrussel2/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
     sample_ids_converted = plyr::mapvalues(sample_ids, subject_id_mapping$scanID, subject_id_mapping$localID)
     rownames(genotype_matrix) = sample_ids_converted
     colnames(genotype_matrix) = snp_ids
@@ -59,7 +59,7 @@ compile_all_genotypes <- function(snp_start, count) {
 }
 
 compile_subjects <- function() {
-    gfile = openfn.gds("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    gfile = openfn.gds("/home/mrussel2/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
     subjects <- read.gdsn(index.gdsn(gfile, "sample.id"))
     closefn.gds(gfile)
     return(subjects)
