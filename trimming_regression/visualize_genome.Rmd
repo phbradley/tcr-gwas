@@ -1,0 +1,26 @@
+---
+title: "VDJ trimming/insertion regression by SNPs across the genome"
+output:
+  html_document:
+    fig_crop: no
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(Cairo)
+knitr::opts_chunk$set(dev="CairoPNG")
+knitr::opts_chunk$set(fig.width=12, fig.height=8) 
+knitr::opts_chunk$set(fig.path = "figures/genome/")
+
+source("manha_visualization.R")
+```
+
+
+```{r echo=TRUE, warning=FALSE}
+for (trim in c('d0_trim', 'd1_trim', 'j_trim', 'v_trim')){
+    compile_all_data_manhattan_from_cluster(trim_type = 'd0_trim', random_effects = 'True', bootstrap_count = 0)
+}   
+```
