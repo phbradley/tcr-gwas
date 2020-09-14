@@ -5,6 +5,7 @@ figures/
 old_scripts/
 cluster_job_directories/
 cluster_job_results/
+random_effects_cluster_job_directory/
 
 # Custom
 *.html

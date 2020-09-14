@@ -1,4 +1,7 @@
 library("lme4")
+library('RhpcBLASctl')
+omp_set_num_threads(1)
+blas_set_num_threads(1)
 
 source("/home/mrussel2/tcr-gwas/trimming_regression/bootstrap_functions.R")
 
@@ -54,8 +57,10 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 
     # Calculate slope, intercept 
     # Add the Intercept term with a mean of the gene specific intercept
-    intercept = summary(regression)$coefficients[,'Estimate']['(Intercept)'] + mean(summary(regression)$coefficients[,'Estimate'][-c(1,2)])
-    slope = summary(regression)$coefficients[,'Estimate']['snp']
+    #intercept = summary(regression)$coefficients[,'Estimate']['(Intercept)'] + mean(summary(regression)$coefficients[,'Estimate'][-c(1,2)])
+    #slope = summary(regression)$coefficients[,'Estimate']['snp']
+    slope = fixef(regression)['snp']
+    intercept = fixef(regression)['(Intercept)'] + mean(fixef(regression)[-c(1,2)]) #need to add random effects here....
 
     if (slope != 'NA'){
         # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)

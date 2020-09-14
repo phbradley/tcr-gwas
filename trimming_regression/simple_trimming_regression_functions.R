@@ -1,4 +1,7 @@
 library("lme4")
+library('RhpcBLASctl')
+omp_set_num_threads(1)
+blas_set_num_threads(1)
 library('reticulate')
 use_python('/home/mrussel2/miniconda3/envs/py/bin/python')
 

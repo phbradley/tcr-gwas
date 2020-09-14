@@ -1,4 +1,7 @@
 
+library('RhpcBLASctl')
+omp_set_num_threads(1)
+blas_set_num_threads(1)
 
 execute_regression <- function(snp, snp_list, genotype_list, trim_type, gene_type, condensing, trimming_data, repetitions, weighting, gene_conditioning, random_effects, regression_dataframe){
     genotypes_temp = as.data.frame(genotype_list[, as.character(snp)])

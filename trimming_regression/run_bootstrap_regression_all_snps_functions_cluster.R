@@ -1,9 +1,10 @@
 library('plyr')
 library("tidyverse")
-library("gdsfmt")
-library("SNPRelate")
-library("GWASTools")
-library("parallel")
+library('foreach')
+library('doParallel')
+library('RhpcBLASctl')
+omp_set_num_threads(1)
+blas_set_num_threads(1)
 
 
 source("/home/mrussel2/tcr-gwas/trimming_regression/simple_trimming_regression_functions.R")
@@ -32,8 +33,13 @@ run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_typ
         names(trimming_data)[names(trimming_data) == "patient_id"] <- "localID"
     }
 
-    results = do.call(rbind, mclapply(as.numeric(colnames(genotype_list)), execute_regression, snp_list, genotype_list, trim_type, gene_type, condensing, trimming_data, repetitions, weighting, gene_conditioning, random_effects, regression_dataframe, mc.cores = ncpus))
-    
+    #results = do.call(rbind, mclapply(as.numeric(colnames(genotype_list)), execute_regression, snp_list, genotype_list, trim_type, gene_type, condensing, trimming_data, repetitions, weighting, gene_conditioning, random_effects, regression_dataframe, mc.cores = ncpus))
+    registerDoParallel(cores=ncpus)
+    results = foreach(snp=as.numeric(colnames(genotype_list)), .combine='rbind') %dopar% {
+        RcppParallel::setThreadOptions(1L) 
+        execute_regression(snp = snp, snp_list, genotype_list, trim_type, gene_type, condensing, trimming_data, repetitions, weighting, gene_conditioning, random_effects, regression_dataframe)
+        }
+    stopImplicitCluster()
     
     if (random_effects == 'True'){
          file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/',trim_type, '/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', repetitions, '_bootstraps.tsv')

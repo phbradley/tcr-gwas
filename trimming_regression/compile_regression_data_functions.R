@@ -1,19 +1,19 @@
 library("tidyverse")
-library("SNPRelate")
+#library("SNPRelate")
 
 
-compile_genotype_data <- function(snps_gds_file, snp_id){
-    # get snp genotype
-    genotype = snpgdsGetGeno(snps_gds_file, snp.id=snp_id, with.id = TRUE)
-    
-    # combine genotype, sample ids
-    genotypes_dt = data.frame(as.numeric(as.character(genotype$sample.id)), genotype$genotype)
-    colnames(genotypes_dt) = c("scanID", paste0("snp",snp_id))
-    # Convert subject names : 
-    subject_id_mapping = as.data.frame(read.table('/home/mrussel2/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
-    snps_genotypes = merge(genotypes_dt, subject_id_mapping, by = "scanID")
-    return(snps_genotypes[,c('localID', paste0("snp",snp_id))])
-}
+#compile_genotype_data <- function(snps_gds_file, snp_id){
+#    # get snp genotype
+#    genotype = snpgdsGetGeno(snps_gds_file, snp.id=snp_id, with.id = TRUE)
+#    
+#    # combine genotype, sample ids
+#    genotypes_dt = data.frame(as.numeric(as.character(genotype$sample.id)), genotype$genotype)
+#    colnames(genotypes_dt) = c("scanID", paste0("snp",snp_id))
+#    # Convert subject names : 
+#    subject_id_mapping = as.data.frame(read.table('/home/mrussel2/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
+#    snps_genotypes = merge(genotypes_dt, subject_id_mapping, by = "scanID")
+#    return(snps_genotypes[,c('localID', paste0("snp",snp_id))])
+#}
 
 filter_by_productivity <- function(condensed_trimming_dataframe, productive){
     # subset trimming data to include only productive or not productive entires
