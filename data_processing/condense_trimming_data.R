@@ -66,7 +66,7 @@ infer_d_gene <- function(patient_trimming_table){
     return(inferred)
 }
 
-condense_trim_data <- function(trim_types){
+condense_trim_data <- function(trim_types, infer_d){
     for (trim in trim_types){
         assign(paste0('condensed_', trim, '_data'), data.table())
     }
@@ -79,13 +79,19 @@ condense_trim_data <- function(trim_types){
         temp_file_condensed = data.table()
         temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
         temp_file = as.data.table(temp_file)
-        file_name = str_split(file, "/")[[1]][5]
+        file_name = str_split(file, "/")[[1]][7]
         file_root_name = str_split(file_name, ".tsv")[[1]][1]
         patient_id = str_split(file_root_name, "_")[[1]][3]
         temp_file$patient_id = patient_id
 
         # Infer d genes (when d gene is missing)
-        temp_file = infer_d_gene(temp_file)
+        if (infer_d == 'True'){
+            temp_file = infer_d_gene(temp_file)
+            filename = paste0('../condensed_', trim,'_data_all_patients.tsv')
+        } else {
+            filename = paste0('../condensed_', trim,'_data_all_patients_NO_d_gene_infer.tsv')
+        }
+        
         for (trim in trim_types){
             together = data.table()
 
@@ -117,7 +123,7 @@ condense_trim_data <- function(trim_types){
     print(paste0("finished processing!"))
 
     for (trim in trim_types){
-        write.table(get(paste0('condensed_', trim, '_data')), file=paste0('../condensed_', trim,'_data_all_patients.tsv'), quote=FALSE, sep='\t', col.names = NA)
+        write.table(get(paste0('condensed_', trim, '_data')), file=filename, quote=FALSE, sep='\t', col.names = NA)
     }
 }
 
@@ -180,6 +186,9 @@ compile_trim_data_condense_by_patient <- function(){
 
 #condense_trim_data(trim_types = c("v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert"))
 
+condense_trim_data(trim_types = c("d0_trim", "d1_trim"), infer_d = 'False')
+
 #compile_trim_data_no_condense()
 
-compile_trim_data_condense_by_patient()
+#compile_trim_data_condense_by_patient()
+

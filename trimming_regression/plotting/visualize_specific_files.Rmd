@@ -1,0 +1,82 @@
+---
+title: "Specific d trimming regions with and without d gene inference, bootstraps"
+output:
+  html_document:
+    fig_crop: no
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
+fig_width: 26
+fig_height: 10 
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(Cairo)
+knitr::opts_chunk$set(dev="CairoPNG")
+knitr::opts_chunk$set(fig.width=26, fig.height=10) 
+knitr::opts_chunk$set(fig.path = "figures/genome/")
+
+source("manha_visualization.R")
+```
+This Rmarkdown is a deeper analysis of d trimming at specific regions, Artemis and TCRB. 
+
+We were wondering whether my d gene inference protocol had much of an affect on the regressions at these loci. For the most part, there only seem to be minor differences in pvalues with this protocol. 
+We were also interested in how much the pvalues change with and without bootstrapping. It seems as though the pvalues change quite a lot with the bootstrapping, however, without bootstrapping, the risk seems to be the potential for false negatives since bootstrapping will affect the standard error. 
+
+d0 trimming regressions for artemis (without d gene inference):
+```{r d0_trimming_artemis_plot_no_infer, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/d0_trim/d0_trim_20716858-20718265_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps_NO_d_infer.tsv', trim_type = 'd0_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+d0 trimming regressions for artemis (WITH d gene inference):
+```{r d0_trimming_artemis_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d0_trim/d0_trim_20716858-20718265_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps.tsv', trim_type = 'd0_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+d0 trimming regressions for artemis (WITH d gene inference) and 200 bootstraps:
+```{r d0_trimming_artemis_plot_200, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d0_trim/d0_trim_20716858-20718265_snps_regression_with_weighting_condensing_by_gene_with_random_effects_200_bootstraps.tsv', trim_type = 'd0_trim', add_gene_annotations = 'False', maf_cutoff = 0.05, bootstrap_count = 200)
+```
+
+d0 trimming regressions for tcrb (without d gene inference):
+```{r d0_trimming_tcrb_plot_no_infer, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/d0_trim/d0_trim_16808600-16814969_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps_NO_d_infer.tsv', trim_type = 'd0_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+
+d0 trimming regressions for tcrb (WITH d gene inference):
+```{r d0_trimming_tcrb_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d0_trim/d0_trim_16808600-16814969_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps.tsv', trim_type = 'd0_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+d0 trimming regressions for tcrb (WITH d gene inference) and 200 bootstraps:
+```{r d0_trimming_tcrb_plot_200, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d0_trim/d0_trim_16808600-16814969_snps_regression_with_weighting_condensing_by_gene_with_random_effects_200_bootstraps.tsv', trim_type = 'd0_trim', add_gene_annotations = 'False', maf_cutoff = 0.05, bootstrap_count = 200)
+```
+
+d1 trimming regressions for artemis (without d gene inference):
+```{r d1_trimming_artemis_plot_no_infer, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/d1_trim/d1_trim_20716858-20718265_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps_NO_d_infer.tsv', trim_type = 'd1_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+
+d1 trimming regressions for artemis (WITH d gene inference):
+```{r d1_trimming_artemis_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d1_trim/d1_trim_20716858-20718265_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps.tsv', trim_type = 'd1_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+
+d1 trimming regressions for artemis (WITH d gene inference) and 200 bootstraps:
+```{r d1_trimming_artemis_plot_200, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d1_trim/d1_trim_20716858-20718265_snps_regression_with_weighting_condensing_by_gene_with_random_effects_200_bootstraps.tsv', trim_type = 'd1_trim', add_gene_annotations = 'False', maf_cutoff = 0.05, bootstrap_count = 200)
+```
+
+d1 trimming regressions for tcrb (without d gene inference):
+```{r d1_trimming_tcrb_plot_no_infer, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/d1_trim/d1_trim_16808600-16814969_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps_NO_d_infer.tsv', trim_type = 'd1_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+
+d1 trimming regressions for tcrb (WITH d gene inference):
+```{r d1_trimming_tcrb_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d1_trim/d1_trim_16808600-16814969_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps.tsv', trim_type = 'd1_trim', add_gene_annotations = 'False', maf_cutoff = 'False', bootstrap_count = 0)
+```
+
+d1 trimming regressions for tcrb (WITH d gene inference) and 200 bootstraps:
+```{r d1_trimming_tcrb_plot_200, echo=TRUE, warning=FALSE}
+manhattan_plot_specific_file(filename = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/d1_trim/d1_trim_16808600-16814969_snps_regression_with_weighting_condensing_by_gene_with_random_effects_200_bootstraps.tsv', trim_type = 'd1_trim', add_gene_annotations = 'False', maf_cutoff = 0.05, bootstrap_count = 200)
+```
