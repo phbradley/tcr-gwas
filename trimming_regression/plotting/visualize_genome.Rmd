@@ -1,0 +1,43 @@
+---
+title: "VDJ trimming/insertion regression by SNPs across the genome"
+output:
+  html_document:
+    fig_crop: no
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
+fig_width: 26
+fig_height: 10 
+---
+
+This file shows regressions across the entire genome. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(Cairo)
+knitr::opts_chunk$set(dev="CairoPNG")
+knitr::opts_chunk$set(fig.width=26, fig.height=10) 
+knitr::opts_chunk$set(fig.path = "/home/mrussel2/tcr-gwas/trimming_regression/figures/genome/")
+
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/manha_visualization.R")
+```
+
+j trimming regressions:
+```{r j_trimming_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'j_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100)
+```
+
+v trimming regressions:
+```{r v_trimming_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'v_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100)
+```
+
+d0 trimming regressions:
+```{r d0_trimming_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'd0_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100)
+```
+
+d1 trimming regressions:
+```{r d1_trimming_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'd1_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 'False')
+```

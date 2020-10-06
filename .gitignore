@@ -3,6 +3,9 @@ _ignore/
 regression_bootstrap_results/
 figures/
 old_scripts/
+cluster_job_directories/
+cluster_job_results/
+random_effects_cluster_job*/
 
 # Custom
 *.html

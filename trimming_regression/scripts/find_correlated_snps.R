@@ -1,15 +1,14 @@
-library("data.table")
 library("COMBAT")
-library("plyr")
-library("readr")
-library("stringr")
+library("tidyverse")
 library("gdsfmt")
 library("SNPRelate")
 library("GWASTools")
 
+setDTthreads(threads = 1, restore_after_fork=FALSE)
+
 
 correlate_snps_ld <- function(chrom, snp_list, cutoff){
-    snps_gds = snpgdsOpen("../_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+    snps_gds = snpgdsOpen("/home/mrussel2/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
     snp_chrom <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"))
     sampleid <- read.gdsn(index.gdsn(snps_gds, "sample.id"))
 

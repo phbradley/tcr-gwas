@@ -1,13 +1,15 @@
-library("data.table")
 library("lme4")
-library("boot")
-library("ClusterBootstrap")
+library('RhpcBLASctl')
+omp_set_num_threads(1)
+blas_set_num_threads(1)
 
+# This file houses functions related to the boostrapping protocol. 
+
+# This function calculates the bootstrap-free p-value (so the pvalue from the initial regression is calculated using the variance, covariance matrix from the regression)
 bootstrap_screen <- function(regression){
     # extract standard error from regression object for snp slope
-    se = summary(regression)$coefficients[,'Std. Error']['snp']
-    slope = summary(regression)$coefficients[,'Estimate']['snp']
-
+    se = sqrt(diag(vcov(regression)))[2]
+    slope = fixef(regression)['snp']
     # zscore calculation
     zscore = slope/se
     # calculate two sided pvalue
@@ -47,6 +49,9 @@ clusboot_lmer <- function(regression, data, cluster_variable, trim_type, varying
                 bootdat <- rbind(bootdat, data_subset)
             }
         }
+        if (length(unique(bootdat$snp)) <= 1){
+            next
+        }
         # Repeat regression for this data subset, calculate standard errors
         formula = formula(regression) 
         if (varying_int == 'True'){
@@ -60,25 +65,28 @@ clusboot_lmer <- function(regression, data, cluster_variable, trim_type, varying
                 regression_temp =lmer(formula, bootdat, control = control)
                 standard_errors[i,] <- c(colMeans(coef(regression_temp)$localID[1]), colMeans(coef(regression_temp)$localID[2]))
             }
-            # combine results into output
-            # Note...the standard error of the intercept does NOT include variation by gene choice...but the snp standard error is CORRECT
-            coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(standard_errors,2,sd))
-            colnames(coefficients_se) <- c("Estimate","Std. Error")
         } else {
-            standard_errors[i,] <- c(coef(glm(formula = formula, data = bootdat))[1], coef(glm(formula = formula, data = bootdat))[2])
-            coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(standard_errors,2,sd))
-            colnames(coefficients_se) <- c("Estimate","Std. Error")
+            standard_errors[i,] <- c(coef(glm(formula = formula, data = bootdat))[1], coef(glm(formula = formula, data = bootdat))[2])   
         }
+    }
+    if (varying_int == 'True'){
+        # combine results into output
+        # Note...the standard error of the intercept does NOT include variation by gene choice...but the snp standard error is CORRECT
+        coefficients_se <- cbind(c(fixef(regression)['(Intercept)'], fixef(regression)['snp']),apply(na.omit(standard_errors),2,sd))
+        colnames(coefficients_se) <- c("Estimate","Std. Error")
+    } else {
+        coefficients_se <- cbind(c(coef(summary(regression))[1], coef(summary(regression))[2]),apply(na.omit(standard_errors),2,sd))
+        colnames(coefficients_se) <- c("Estimate","Std. Error")
     }
     return(coefficients_se)
 }
 
-
+# calculates pvalue from bootstrap
 calculate_pvalue <- function(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions){
     # cluster bootstrap (clustered by individual)
     se = clusboot_lmer(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions)[2,2]
     if (varying_int == 'True'){
-        slope = mean(as.numeric(as.character(unlist(coefficients(regression)[[1]][2]))))
+        slope = fixef(regression)['snp']
     } else {
         slope = coefficients(regression)['snp']
     }
