@@ -6,6 +6,12 @@ library("GWASTools")
 
 setDTthreads(threads = 1, restore_after_fork=FALSE)
 
+# Script goal: We can find whether snps are correlated with one another by looking at their correlation coefficients based on linkage disequilibrium.
+# If snps are adjacent with on another, and their correlation coefficients are
+# above some cutoff which we define (for the whole block of snps in the
+# proposed snp group), then we define this group to be a correlated cluster of
+# snps
+
 
 correlate_snps_ld <- function(chrom, snp_list, cutoff){
     snps_gds = snpgdsOpen("/home/mrussel2/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
