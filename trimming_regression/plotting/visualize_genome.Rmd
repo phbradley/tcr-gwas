@@ -24,20 +24,20 @@ source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/manha_visualization.
 
 j trimming regressions:
 ```{r j_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'j_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100)
+manhattan_plot_cluster(trim_type = 'j_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, genomic_control = 'True')
 ```
 
 v trimming regressions:
 ```{r v_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'v_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100)
+manhattan_plot_cluster(trim_type = 'v_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, genomic_control = 'True')
 ```
 
 d0 trimming regressions:
 ```{r d0_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'd0_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100)
+manhattan_plot_cluster(trim_type = 'd0_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, genomic_control = 'True')
 ```
 
 d1 trimming regressions:
 ```{r d1_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'd1_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 'False')
+manhattan_plot_cluster(trim_type = 'd1_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 'False', genomic_control = 'True')
 ```

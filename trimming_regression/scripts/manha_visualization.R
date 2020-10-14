@@ -5,8 +5,12 @@ library(ggplot2)
 library(RColorBrewer)
 library(GWASTools)
 library(tidyverse)
+#omp_set_num_threads(1)
+#blas_set_num_threads(1)
+setDTthreads(threads = 1)
 
 source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/lmer_trimming_regression_functions.R')
+source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/genomic_control_calculations.R')
 
 # This script makes a manhattan plot for a specific region
 compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, paired_productive_snps, productivity, varying_int, trim_type, chromosome, correlate_snps, gene_conditioning, weighting, gene_region){
@@ -210,7 +214,7 @@ compile_all_maf_data <- function(){
 
 # This script makes a manhattan plot for the entire genome!
 
-manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count){
+manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, genomic_control){
     bonferroni = 0.05/35481497
     if (random_effects == 'True'){
          file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_count, '_bootstraps.tsv')
@@ -252,6 +256,12 @@ manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, p
         title = paste0(trim_type, ' plot with ', maf_cutoff, ' MAF cutoff')
     } else {
         title = paste0(trim_type, ' plot')
+    }
+
+    if (genomic_control == 'True'){
+        data = genomic_control_calculation(data)
+        data$pvalue = data$pvalue_genomic_control_correction
+        title = paste0(title, ' with genomic control pvalue correction')
     }
 
     if (plotting_cutoff != 'False'){
