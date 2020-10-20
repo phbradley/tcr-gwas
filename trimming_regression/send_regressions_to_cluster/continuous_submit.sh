@@ -2,7 +2,7 @@
 
 set -eu
 
-TOTAL_COUNT=$(ls /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/$1/100_bootstraps | wc -l)
+TOTAL_COUNT=$(ls /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/$1/100_bootstraps/ | wc -l)
 while (( $TOTAL_COUNT < 35482 ))
 do
     JOB_COUNT=$(squeue -u $USER -p campus-new,matsen_e | wc -l)
@@ -36,6 +36,6 @@ do
     done
     echo "There are currently $JOB_COUNT jobs submitted to the normal cluster and $TOTAL_COUNT jobs completed overall for $1"
     sleep 10m
-    TOTAL_COUNT=$(ls /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/$1/100_bootstraps | wc -l)
+    TOTAL_COUNT=$(ls /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/$1/100_bootstraps/ | wc -l)
 done
 echo "ALL DONE!!!"

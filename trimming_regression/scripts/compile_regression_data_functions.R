@@ -40,3 +40,14 @@ remove_matrix_column_by_genotype <- function(genotype_matrix){
     genotype_matrix[genotype_matrix == 3] <- NA
     return(genotype_matrix)
 }
+
+read_genotype_pca <- function(){
+    subject_id_conversion = read.table('/home/mrussel2/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE)
+    
+    pca = read.table('/home/mrussel2/tcr-gwas/_ignore/snp_data/population_structure_pca_by_LD_snps.tsv', sep = '\t', fill = TRUE, header = TRUE)
+
+    together = merge(subject_id_conversion, pca, by.x = 'scanID', by.y = 'sample_id')[,-c(1,3)]
+    return(together)
+}
+    
+

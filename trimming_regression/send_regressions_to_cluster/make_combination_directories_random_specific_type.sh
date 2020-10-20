@@ -1,6 +1,8 @@
 #!/bin/zsh
 
 type=$1
+mkdir random_effects_cluster_job_directory_100_boots_subset
+mkdir random_effects_cluster_job_directory_100_boots_subset/${type}
 
 for number in {01..$2..1}; do
   mkdir random_effects_cluster_job_directory_100_boots_subset/${type}/${type}_${number}
