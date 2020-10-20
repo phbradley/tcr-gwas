@@ -6,6 +6,7 @@ old_scripts/
 cluster_job_directories/
 cluster_job_results/
 random_effects_cluster_job*/
+scripts_10_19_2020/
 
 # Custom
 *.html
@@ -13,6 +14,7 @@ random_effects_cluster_job*/
 *.pdf
 *.nfs*
 trimming_regression/*.nfs*
+slurm*
 
 # History files
 .Rhistory

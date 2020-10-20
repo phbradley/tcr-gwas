@@ -4,10 +4,11 @@ omp_set_num_threads(1)
 blas_set_num_threads(1)
 
 source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/bootstrap_functions.R")
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_regression_data_functions.R")
 
 # this script does a lmer regression including fixed and random effects to condition out the effects mediated by gene choice
 
-trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, gene_conditioning, weighting, snp_list){
+trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, snp_list){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
@@ -34,6 +35,9 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     snps_trimming_data = merge(snps_dataframe, condensed_trimming_dataframe, by = "localID")
     snps_trimming_data = snps_trimming_data %>% filter(!is.na(snp))
 
+    genotype_pca = read_genotype_pca()
+    snps_trimming_data = merge(snps_trimming_data, genotype_pca)
+
     # set regression formula
     # set base formula
     form = formula(get(paste0(trim_type)) ~ snp + (1|localID))
@@ -45,6 +49,10 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
         } else {
             form = update(form, ~ . + get(paste0(gene_type)))
         }
+    }
+
+    if (pca_structure_correction == 'True'){
+       form = update(form, ~ . + EV1 + EV2 + EV3 + EV4 + EV5 + EV6 + EV7 + EV8 + EV9 + EV10)
     } 
 
     # REGRESSION!
