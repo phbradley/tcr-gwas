@@ -25,25 +25,46 @@ setDTthreads(1)
 
 j trimming regressions:
 ```{r j_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'j_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+manhattan_plot_cluster(trim_type = 'j_trim', random_effects = 'True', condensing = 'by_gene', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
 ```
 
 v trimming regressions:
 ```{r v_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'v_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+manhattan_plot_cluster(trim_type = 'v_trim', random_effects = 'True', condensing = 'by_gene', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
 ```
 
 d0 trimming regressions:
 ```{r d0_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'd0_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100,pca_structure_correction = 'True')
+manhattan_plot_cluster(trim_type = 'd0_trim', random_effects = 'True', condensing = 'by_gene', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100,pca_structure_correction = 'True')
 ```
 
 d1 trimming regressions:
 ```{r d1_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'd1_trim', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+manhattan_plot_cluster(trim_type = 'd1_trim', random_effects = 'True', condensing = 'by_gene', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+```
+
+vd insertion regressions:
+```{r vd_insert_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'vd_insert', random_effects = 'False', condensing = 'by_patient', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+```
+
+dj insertion regressions:
+```{r dj_insert_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'dj_insert', random_effects = 'False', condensing = 'by_patient', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+```
+
+vj insertion regressions:
+```{r vj_insert_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'vj_insert', random_effects = 'False', condensing = 'by_patient', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
 ```
 
 All trimming regressions:
 ```{r ALL_trimming_plot, echo=TRUE, warning=FALSE}
-manhattan_plot_cluster(trim_type = 'ALL', random_effects = 'True', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+manhattan_plot_cluster(trim_type = 'all_trim', random_effects = 'True', condensing = 'by_gene', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
 ```
+
+All insertion regressions:
+```{r ALL_insertion_plot, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_insert', random_effects = 'False', condensing = 'by_patient', bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = 100, pca_structure_correction = 'True')
+```
+
