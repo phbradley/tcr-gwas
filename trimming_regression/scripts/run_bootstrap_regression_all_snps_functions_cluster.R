@@ -10,19 +10,22 @@ omp_set_num_threads(1)
 blas_set_num_threads(1)
 
 
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/simple_trimming_regression_functions.R")
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/lmer_trimming_regression_functions.R")
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions.R")
 source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/bootstrap_functions.R")
 source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_regression_data_functions.R")
 source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/execute_regression_function.R")
 
 # This function runs regressions on the cluster
-run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, gene_type, condensing, gene_conditioning, weighting, random_effects, repetitions, pca_structure_correction, write_table, ncpus, d_infer, maf_cutoff){
+run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, gene_type, condensing, gene_conditioning, weighting, random_effects, repetitions, pca_structure_correction, write_table, ncpus, d_infer, maf_cutoff, data_file_path){
     regression_dataframe = data.frame()
 
     # import condensed trimming file
     if (condensing == 'by_patient'){
-        assign('trimming_data', as.data.frame(read.table(paste0("/home/mrussel2/tcr-gwas/_ignore/by_patient_condensed_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        if (d_infer == 'False'){
+            assign('trimming_data', as.data.frame(read.table(paste0("/home/mrussel2/tcr-gwas/_ignore/by_patient_condensed_data_all_patients_NO_d_infer.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        } else {
+            assign('trimming_data', as.data.frame(read.table(paste0("/home/mrussel2/tcr-gwas/_ignore/by_patient_condensed_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        }
         names(trimming_data)[names(trimming_data) == "patient_id"] <- "localID"
     } else if (condensing == 'gene_cross'){
         trimming_data = compile_trimming_data_cross()
@@ -63,13 +66,13 @@ run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_typ
     
     if (random_effects == 'True'){
         if (d_infer == 'False') {
-            file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/',trim_type, '/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', repetitions, '_bootstraps_NO_d_infer')
+            file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/',trim_type, '/', repetitions, '_bootstraps', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', repetitions, '_bootstraps_NO_d_infer')
         } else {
             file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/',trim_type, '/', repetitions, '_bootstraps/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', repetitions, '_bootstraps')
         }
     } else {
         if (d_infer == 'False') {
-            file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/',trim_type, '/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', repetitions, '_bootstraps_NO_d_infer')
+            file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/',trim_type, '/', repetitions, '_bootstraps/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', repetitions, '_bootstraps_NO_d_infer')
         } else {
             file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/',trim_type, '/', repetitions, '_bootstraps/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', repetitions, '_bootstraps')
         }

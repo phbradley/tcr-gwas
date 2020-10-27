@@ -81,11 +81,11 @@ find_snp_start_by_position <- function(chromosome, position1, position2){
 }
 
 # This function finds a regression file (from cluster) and subsets based on signficance cutoff (for use in bootstraps)
-open_regressed_file_and_subset_by_pval <- function(significance_cutoff, trim_type, random_effects, maf_cutoff){
+open_regressed_file_and_subset_by_pval <- function(significance_cutoff, trim_type, random_effects, condensing, maf_cutoff){
     if (random_effects == 'True'){
-         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_0_bootstraps.tsv')
+         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_0_bootstraps.tsv')
     } else {
-         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_0_bootstraps.tsv')
+         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_0_bootstraps.tsv')
     }
     productive_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive', file_name), sep = "\t", fill=TRUE, header = TRUE)
     not_productive_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/NOT_productive', file_name), sep = "\t", fill=TRUE, header = TRUE)

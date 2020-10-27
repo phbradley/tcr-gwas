@@ -9,70 +9,9 @@ library(tidyverse)
 #blas_set_num_threads(1)
 setDTthreads(threads = 1)
 
-source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/lmer_trimming_regression_functions.R')
+source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions.R')
 
 # This script compiles all regression data from cluster across the entire genome
-
-compile_all_data_from_cluster <- function(trim_type, random_effects, bootstrap_count, pca_structure_correction){
-    bonferroni = 0.05/35481497
-
-    if (random_effects == 'True'){
-         file_pattern = paste0('*_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_count, '_bootstraps')
-    } else {
-         file_pattern = paste0('no_random/*_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_count, '_bootstraps')
-    }
-    if (pca_structure_correction == 'True'){
-        file_pattern = paste0(file_pattern, '_WITH_pca_structure_correction.tsv')
-    } else{
-        file_pattern = paste0(file_pattern, '.tsv')
-    }
-        
-
-    data_files = list.files(path=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type, '/', bootstrap_count, '_bootstraps'), pattern=file_pattern, full.names=TRUE)   
-    #chrom_sizes = as.data.frame(read.table('/home/mrussel2/tcr-gwas/_ignore/chrom_sizes_hg19.tsv', sep = "\t", header = FALSE))
-    #colnames(chrom_sizes) = c('chr', 'length')
-
-    print(paste0('compile file list for ', trim_type))
-    assign(paste0('together_list_', trim_type), NULL)
-    count = 0
-    for (file in data_files){
-        # read file...
-        if (file.size(file) == 1 | file.size(file) == 0){
-            next
-        }
-        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
-        #together = rbind(together, temp_file)
-        if (ncol(temp_file) > 2){
-            assign(paste0('together_list_', trim_type), rbindlist(list(get(paste0('together_list_', trim_type)), temp_file)))
-        }
-        count = count + 1
-        print(paste0(count, ' of ', length(data_files), ' completed for ', trim_type))
-    }
-    assign('together', get(paste0('together_list_', trim_type)))
-    together = together[order(together$chr, together$hg19_pos),]
-    assign(paste0('together_productive_', trim_type), together %>% filter(productivity == 'productive'))
-    assign(paste0('together_NOT_productive_', trim_type), together %>% filter(productivity == 'NOT_productive'))
-    print(paste0('processed data for ', trim_type))
-
-    together_productive = get(paste0('together_productive_', trim_type))
-    together_NOT_productive = get(paste0('together_NOT_productive_', trim_type))
-
-    if (random_effects == 'True'){
-         file_name = paste0(trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_count, '_bootstraps')
-    } else {
-         file_name = paste0(trim_type, '_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_count, '_bootstraps')
-    }
-
-    if (pca_structure_correction == 'True'){
-        file_name = paste0(file_name, '_WITH_pca_structure_correction.tsv')
-    } else{
-        file_name = paste0(file_name, '.tsv')
-    }
-        
-
-    write.table(together_productive, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive_', file_name), quote=FALSE, sep='\t', col.names = NA)
-    write.table(together_NOT_productive, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/NOT_productive_', file_name), quote=FALSE, sep='\t', col.names = NA)
-}
 
 # This script compiles all minor allele fraction data (to be used in plotting cutoff)
 compile_all_maf_data <- function(){
@@ -100,13 +39,13 @@ compile_all_maf_data <- function(){
     write.table(together, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/', file_name), quote=FALSE, sep='\t', col.names = NA)
 }
 
-compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
+compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
     if (random_effects == 'True'){
-         first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_count, '_bootstraps.tsv')
-         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_rerun_count, '_bootstraps')
+         first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_count, '_bootstraps.tsv')
+         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_rerun_count, '_bootstraps')
     } else {
-         first_pass_file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_count, '_bootstraps.tsv')
-         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_rerun_count, '_bootstraps')
+         first_pass_file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_count, '_bootstraps.tsv')
+         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_rerun_count, '_bootstraps')
     }
     
     productive_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive', first_pass_file_name), sep = "\t", fill=TRUE, header = TRUE)
@@ -154,17 +93,22 @@ compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, boo
 
 # This script makes a manhattan plot for the entire genome!
 
-manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
+manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, condensing, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
     bonferroni = 0.05/35481497
     maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
 
-    if (trim_type == 'ALL'){
+    if (trim_type == 'all_trim'){
         data = data.frame()
         for (trim in c('v_trim', 'd0_trim', 'd1_trim', 'j_trim')){
-            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+        }
+    } else if (trim_type == 'all_insert'){
+        data = data.frame()
+        for (trim in c('vj_insert', 'vd_insert', 'dj_insert')){
+            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
         }
     } else {
-        data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
+        data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
     }
 
     if (maf_cutoff != 'False'){

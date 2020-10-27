@@ -3,12 +3,9 @@ library('RhpcBLASctl')
 omp_set_num_threads(1)
 blas_set_num_threads(1)
 
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/bootstrap_functions.R")
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_regression_data_functions.R")
-
 # this script does a lmer regression including fixed and random effects to condition out the effects mediated by gene choice
 
-trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, snp_list){
+trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, random_effects, snp_list){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
@@ -40,8 +37,11 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 
     # set regression formula
     # set base formula
-    form = formula(get(paste0(trim_type)) ~ snp + (1|localID))
-    
+    if (random_effects == 'True'){
+        form = formula(get(paste0(trim_type)) ~ snp + (1|localID))
+    } else {
+        form = formula(get(paste0(trim_type)) ~ snp)
+    }
     
     if (gene_conditioning == 'True'){
         if (str_split(trim_type, "_")[[1]][2] == 'insert'){
@@ -49,6 +49,8 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
         } else {
             form = update(form, ~ . + get(paste0(gene_type)))
         }
+    } else {
+        weight = 'tcr_count'
     }
 
     if (pca_structure_correction == 'True'){
@@ -60,21 +62,34 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4), calc.derivs = FALSE)
 
     if (weighting == 'True'){
-        regression = lmer(formula = form, data = snps_trimming_data, weights = get(weight), control=control)
+        if (random_effects == 'True'){
+            regression = lmer(formula = form, data = snps_trimming_data, weights = get(weight), control=control)
+        } else {
+            regression = lm(formula = form, data = snps_trimming_data, weights = get(weight))
+        }
     } else {
-        regression = lmer(formula = form, data = snps_trimming_data, control=control)
+        if (random_effects == 'True'){
+            regression = lmer(formula = form, data = snps_trimming_data, control=control)
+        } else {
+            regression = lm(formula = form, data = snps_trimming_data)
+        }
     }
 
     # Calculate slope, intercept 
-    slope = fixef(regression)['snp']
-    intercept = fixef(regression)['(Intercept)'] + mean(fixef(regression)[-c(1,2)]) #need to add random effects here....
+    if (random_effects == 'True'){
+        slope = fixef(regression)['snp']
+        intercept = fixef(regression)['(Intercept)'] + mean(fixef(regression)[-c(1,2)]) #need to add random effects here...
+    } else {
+        slope = coef(regression)['snp']
+        intercept = coef(regression)['(Intercept)']
+    }
 
     if (slope != 'NA'){
         # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
         if (bootstrap_repetitions != 0){
-            bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data, cluster_variable = snps_trimming_data$localID, trim_type, varying_int = 'True', weighting, repetitions = bootstrap_repetitions)
+            bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data, cluster_variable = snps_trimming_data$localID, trim_type, varying_int = random_effects, gene_conditioning, weighting, repetitions = bootstrap_repetitions)
         } else {
-            bootstrap_results = bootstrap_screen(regression)
+            bootstrap_results = bootstrap_screen(regression, random_effects)
         }
     } else {
         bootstrap_results = data.frame()
@@ -88,29 +103,4 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     regression_results = cbind(results_temp, bootstrap_results)
 
     return(regression_results)
-}
-
-
-generate_file_name <- function(snp_id_list, trim_type, gene_type, productivity, gene_conditioning, weighting, condensing, repetitions){
-    prod = ifelse(productivity == 'True', 'productive', 'NOT_productive')
-    gene = ifelse(gene_conditioning == 'True', 'with_gene', '')
-    weight = ifelse(weighting == 'True', '_with_weighting', '')
-    if ((substr(gene_type, 1, 1) == substr(trim_type, 1, 1)) | (substr(trim_type, 4, 5) == 'in')){
-        name = paste0('/home/mrussel2/tcr-gwas/trimming_regression/regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 
-    } else {
-        name = paste0('/home/mrussel2/tcr-gwas/trimming_regression/regression_bootstrap_results/', prod, '/crosses/', trim_type, '_', gene_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '_', repetitions, '_bootstraps.tsv') 
-    }
-    return(name)
-}
-        
-    
-    
-generate_file_name_no_reps <- function(snp_id_list, trim_type, productivity, gene_conditioning, weighting, condensing){
-    prod = ifelse(productivity == 'True', 'productive', 'NOT_productive')
-    gene = ifelse(gene_conditioning == 'True', 'with_gene', '')
-    weight = ifelse(weighting == 'True', '_with_weighting', '')
-
-    name = paste0('/home/mrussel2/tcr-gwas/trimming_regression/regression_bootstrap_results/', prod, '/', trim_type, '/', trim_type, '_', prod, '_snplist_', snp_id_list[1], "-",snp_id_list[length(snp_id_list)], '_snps_lmer_', gene, weight, '_condensing_', condensing, '.tsv') 
-
-    return(name)
 }
