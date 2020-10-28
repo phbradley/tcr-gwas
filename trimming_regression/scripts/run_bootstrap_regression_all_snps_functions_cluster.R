@@ -28,8 +28,6 @@ run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_typ
         }
         names(trimming_data)[names(trimming_data) == "patient_id"] <- "localID"
     } else if (condensing == 'gene_cross'){
-        trimming_data = compile_trimming_data_cross()
-        trimming_data = trimming_data %>% filter(gene_class == gene_type)
         names(trimming_data)[names(trimming_data) == 'weighted_gene_count'] <- paste0('weighted_', gene_type, '_count')
         names(trimming_data)[names(trimming_data) == 'gene'] <- paste0(gene_type)
     } else {

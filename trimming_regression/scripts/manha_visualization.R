@@ -39,13 +39,20 @@ compile_all_maf_data <- function(){
     write.table(together, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/', file_name), quote=FALSE, sep='\t', col.names = NA)
 }
 
-compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
+compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
     if (random_effects == 'True'){
-         first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_count, '_bootstraps.tsv')
+         first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_count, '_bootstraps')
          file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_rerun_count, '_bootstraps')
     } else {
-         first_pass_file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_count, '_bootstraps.tsv')
+         first_pass_file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_count, '_bootstraps')
          file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_rerun_count, '_bootstraps')
+    }
+    
+    if (d_infer == 'False'){
+        file_name = paste0(file_name, '_NO_d_infer')
+        first_pass_file_name = paste0(first_pass_file_name, '_NO_d_infer.tsv')
+    } else {
+        first_pass_file_name = paste0(first_pass_file_name, '.tsv')
     }
     
     productive_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive', first_pass_file_name), sep = "\t", fill=TRUE, header = TRUE)
@@ -93,28 +100,28 @@ compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, con
 
 # This script makes a manhattan plot for the entire genome!
 
-manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, condensing, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
+manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, condensing, d_infer, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
     bonferroni = 0.05/35481497
     maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
 
     if (trim_type == 'all_trim'){
         data = data.frame()
         for (trim in c('v_trim', 'd0_trim', 'd1_trim', 'j_trim')){
-            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
         }
     } else if (trim_type == 'all_insert'){
         data = data.frame()
         for (trim in c('vj_insert', 'vd_insert', 'dj_insert')){
-            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
         }
     } else {
-        data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
+        data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
     }
 
     if (maf_cutoff != 'False'){
-        title = paste0(trim_type, ' plot with ', bootstrap_count, ' bootstraps and ', maf_cutoff, ' MAF cutoff')
+        title = paste0(trim_type, ' plot with ', maf_cutoff, ' MAF cutoff')
     } else {
-        title = paste0(trim_type, ' plot with ', bootstrap_count, ' bootstraps')
+        title = paste0(trim_type, ' plot')
     }
 
     if (pca_structure_correction == 'True'){
