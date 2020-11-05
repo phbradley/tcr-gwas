@@ -23,13 +23,14 @@ condensing = ifelse(type == 'insert', 'by_patient', 'by_gene')
 gene_conditioning = ifelse(type == 'insert', 'False', 'True')
 random_effects = ifelse(type == 'insert', 'False', 'True')
 d_infer = ifelse(type == 'insert', 'False', 'True')
+pca_structure_correction = ifelse(args[5] == 'PCA', 'True', 'False')
 
 condensing = ifelse(type == 'insert', 'by_patient', 'by_patient')
 gene_conditioning = ifelse(type == 'insert', 'False', 'False')
 random_effects = ifelse(type == 'insert', 'False', 'False')
 d_infer = ifelse(type == 'insert', 'False', 'False')
 
-all_snps = open_regressed_file_and_subset_by_pval(significance_cutoff = 5e-5, trim_type = args[2], random_effects, condensing, maf_cutoff = 0.05)
+all_snps = open_regressed_file_and_subset_by_pval(significance_cutoff = 5e-5, trim_type = args[2], random_effects, condensing, d_infer, maf_cutoff = 0.05)
 
 snp_subset = make_snp_file_subset_by_count_and_index(all_snps, count = count, index = as.numeric(args[1]))
 
@@ -40,7 +41,7 @@ if (nrow(snp_subset) != 0){
     print(paste0('finished compiling data for index ', args[1], " of ", nrow(all_snps)/count))
 
     # Run regression/bootstrap
-    run_snps_trimming_snp_list_cluster(snp_list = snp_subset, genotype_list = genotype_subset, trim_type = args[2], gene_type = 'same', condensing, gene_conditioning, weighting = 'True', random_effects, repetitions = as.numeric(args[4]), pca_structure_correction = 'True', write_table = 'True', ncpus = as.numeric(args[3]), d_infer, maf_cutoff = 'False')
+    run_snps_trimming_snp_list_cluster(snp_list = snp_subset, genotype_list = genotype_subset, trim_type = args[2], gene_type = 'same', condensing, gene_conditioning, weighting = 'True', random_effects, repetitions = as.numeric(args[4]), pca_structure_correction, write_table = 'True', ncpus = as.numeric(args[3]), d_infer, maf_cutoff = 'False')
     print(paste0("Finished regressions for index ", args[1], " of ", nrow(all_snps)/as.numeric(args[1])))
 } else {
     print('finished--no regressions necessary')

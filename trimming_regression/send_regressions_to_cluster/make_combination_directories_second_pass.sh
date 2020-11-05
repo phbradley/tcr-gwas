@@ -14,7 +14,7 @@ for number in {01..$2..1}; do
   source /home/mrussel2/miniconda3/etc/profile.d/conda.sh
   conda activate r
   set -eu
-  Rscript /home/mrussel2/tcr-gwas/trimming_regression/scripts/run_cluster_second_pass.R ${number} ${type} $(echo '$1') 100
+  Rscript /home/mrussel2/tcr-gwas/trimming_regression/scripts/run_cluster_second_pass.R ${number} ${type} $(echo '$1') 100 PCA
   echo "done" > run.sentinel
   rm slurm*.out" > run_script_on_cluster.sh
   chmod +x run_script_on_cluster.sh

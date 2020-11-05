@@ -5,6 +5,7 @@ library(ggplot2)
 library(RColorBrewer)
 library(GWASTools)
 library(tidyverse)
+#extrafont::loadfonts()
 #omp_set_num_threads(1)
 #blas_set_num_threads(1)
 setDTthreads(threads = 1)
@@ -100,7 +101,7 @@ compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, con
 
 # This script makes a manhattan plot for the entire genome!
 
-manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, condensing, d_infer, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
+manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, condensing, d_infer, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction, subset = 'False'){
     bonferroni = 0.05/35481497
     maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
 
@@ -117,12 +118,19 @@ manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, c
     } else {
         data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
     }
-
-    if (maf_cutoff != 'False'){
-        title = paste0(trim_type, ' plot with ', maf_cutoff, ' MAF cutoff')
+    if (trim_type == 'all_trim'){
+        title = 'All trimming types'
+    } else if (trim_type == 'all_insert'){
+        title = 'All insertion types'
     } else {
-        title = paste0(trim_type, ' plot')
+        title = paste0(trim_type)
     }
+
+    #if (maf_cutoff != 'False'){
+    #    title = paste0(title, ' with ', maf_cutoff, ' MAF cutoff')
+    #} else {
+    #    title = paste0(title, ' plot')
+    #}
 
     if (pca_structure_correction == 'True'){
          title = paste0(title, ' with population structure PCA correction')
@@ -141,11 +149,43 @@ manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, c
     pos2 = c(14996431, 33290793, 98098321, 36593156, 142510972, 23021075)
 
     gene_annotations = data.frame(genes = genes, chr = chr, pos1 = pos1, pos2 = pos2)
+    
+    stopifnot(subset %in% c('False', 'artemis', 'mhc', 'dntt', 'rag', 'tcrb', 'tcra'))
+    if (subset != 'False'){
+        subset_gene = gene_annotations %>% filter(genes == subset)
+        gene_annotations = subset_gene
+        data = data %>% filter(chr == subset_gene$chr) %>% filter(hg19_pos < subset_gene$pos2 + 100000) %>% filter(hg19_pos > subset_gene$pos1 - 100000)
+        point_size = 5
+        alpha_gene = 0.1
+    } else {
+        point_size = 4 
+        alpha_gene = 0.5
+    }
 
     if (gene_annotations == 'False'){
-        ggplot(data) + geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = 3) + facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + theme_classic() + theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ labs(y="-log10(p-value)", x="Chromosome Position") + geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + ggtitle(title) + scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8))
+        ggplot(data) + 
+            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = point_size) + 
+            facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + 
+            theme_classic() + 
+            theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ 
+            labs(y="-log10(p-value)", x="Chromosome Position") + 
+            geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + 
+            ggtitle(title) + 
+            scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) +
+            guides(color = 'legend', shape = 'none')
     } else {
-        ggplot(data) + geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = 3) + geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = 0.5) + facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + theme_classic() + theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ labs(y="-log10(p-value)", x="Chromosome Position") + geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + ggtitle(title) + scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8))
+        ggplot(data) + 
+            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = point_size) + 
+            geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = alpha_gene) + 
+            facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + 
+            theme_classic() + 
+            #theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.title=element_text(size=25), legend.text=element_text(size=20), axis.text.x = element_text(size = 14, angle = 90), axis.text.y = element_text(size= 20))+
+            theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_text(size = 12, angle = 90))+ 
+            labs(y="-log10(p-value)", x="Chromosome Position") + 
+            geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + 
+            ggtitle(title) + 
+            scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) +
+            guides(color = 'legend', shape = 'none', fill = 'legend')
     }
 }
 

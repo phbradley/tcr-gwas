@@ -8,7 +8,7 @@ blas_set_num_threads(1)
 
 args = commandArgs(trailingOnly=TRUE)
 
-all_snps = open_regressed_file_and_subset_by_pval(significance_cutoff = 5e-5, trim_type = args[1], random_effects = 'False', condensing = 'by_patient', maf_cutoff = 0.05)
+all_snps = open_regressed_file_and_subset_by_pval(significance_cutoff = 5e-5, trim_type = args[1], random_effects = 'False', condensing = 'by_patient', d_infer = 'False', maf_cutoff = 0.05)
 count = 10
 
 index_count = ifelse(nrow(all_snps)/count < 1, 1, nrow(all_snps)/count)

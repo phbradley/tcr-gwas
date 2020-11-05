@@ -2,7 +2,7 @@
 
 set -eu
 
-TOTAL_COUNT=$(find /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/$1/100_bootstraps/ -name '*pca*' -mtime -1 | wc -l)
+TOTAL_COUNT=$(find /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/$1/100_bootstraps/ -name '*100_bootstraps_NO_d_infer_WITH_pca_structure_correction.tsv' -mtime -1 | wc -l)
 while (( $TOTAL_COUNT < $(ls /home/mrussel2/tcr-gwas/trimming_regression/send_regressions_to_cluster/$3/$1 | wc -l )))
 do
     JOB_COUNT=$(squeue -u $USER -p campus-new,matsen_e | wc -l)
@@ -36,6 +36,6 @@ do
     done
     echo "There are currently $JOB_COUNT jobs submitted to the normal cluster and $TOTAL_COUNT jobs completed overall for $1"
     sleep 5m
-    TOTAL_COUNT=$(find /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/$1/100_bootstraps/ -name '*pca*' -mtime -1 | wc -l)
+    TOTAL_COUNT=$(find /fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/$1/100_bootstraps/ -name '*100_bootstraps_NO_d_infer_WITH_pca_structure_correction.tsv' -mtime -1 | wc -l)
 done
 echo "ALL DONE!!!"
