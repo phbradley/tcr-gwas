@@ -6,10 +6,14 @@ blas_set_num_threads(1)
 # This file houses functions related to the boostrapping protocol. 
 
 # This function calculates the bootstrap-free p-value (so the pvalue from the initial regression is calculated using the variance, covariance matrix from the regression)
-bootstrap_screen <- function(regression){
+bootstrap_screen <- function(regression, random_effects){
     # extract standard error from regression object for snp slope
     se = sqrt(diag(vcov(regression)))[2]
-    slope = fixef(regression)['snp']
+    if (random_effects == 'True'){
+        slope = fixef(regression)['snp']
+    } else {
+        slope = coef(regression)['snp']
+    }
     # zscore calculation
     zscore = slope/se
     # calculate two sided pvalue
@@ -18,17 +22,20 @@ bootstrap_screen <- function(regression){
 }
 
 # This one definitely does clustering (which is what we want I think)--this incorporates fixed and random effects!
-clusboot_lmer <- function(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions){
+clusboot_lmer <- function(regression, data, cluster_variable, trim_type, varying_int, gene_conditioning, weighting, repetitions){
     # forms cluster variable (here, extract patient names)
     clusters <- names(table(cluster_variable))
     # Set empty matrix to hold results
     standard_errors <- matrix(NA, nrow=repetitions, ncol=2)
 
-    # set regression weights
-    if (trim_type =='d1_trim' | trim_type =='d0_trim'){
-        weight = paste0("weighted_d_gene_count")
+   # set regression weights 
+    if (gene_conditioning == 'True'){
+        weight = paste0("weighted_", substr(trim_type, 1, 1), '_gene_count')
+        if (str_split(trim_type, "_")[[1]][2] == 'insert'){
+            weight = paste0("weighted_", substr(trim_type, 1, 2), '_gene_count')
+        }
     } else {
-        weight = paste0("weighted_", str_split(trim_type, "_")[[1]][1], "_gene_count")
+         weight = 'tcr_count'
     }
 
     for(i in 1:repetitions){
@@ -66,7 +73,13 @@ clusboot_lmer <- function(regression, data, cluster_variable, trim_type, varying
                 standard_errors[i,] <- c(colMeans(coef(regression_temp)$localID[1]), colMeans(coef(regression_temp)$localID[2]))
             }
         } else {
-            standard_errors[i,] <- c(coef(glm(formula = formula, data = bootdat))[1], coef(glm(formula = formula, data = bootdat))[2])   
+            if (weighting == 'True'){
+                regression_temp = lm(formula = formula, data = bootdat, weights = get(weight))
+                standard_errors[i,] <- c(coef(regression_temp)[1], coef(regression_temp)[2])
+            } else {
+                regression_temp = lm(formula = formula, data = bootdat)   
+                standard_errors[i,] <- c(coef(regression_temp)[1], coef(regression_temp)[2])
+            }
         }
     }
     if (varying_int == 'True'){
@@ -82,9 +95,9 @@ clusboot_lmer <- function(regression, data, cluster_variable, trim_type, varying
 }
 
 # calculates pvalue from bootstrap
-calculate_pvalue <- function(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions){
+calculate_pvalue <- function(regression, data, cluster_variable, trim_type, varying_int, gene_conditioning, weighting, repetitions){
     # cluster bootstrap (clustered by individual)
-    se = clusboot_lmer(regression, data, cluster_variable, trim_type, varying_int, weighting, repetitions)[2,2]
+    se = clusboot_lmer(regression, data, cluster_variable, trim_type, varying_int, gene_conditioning, weighting, repetitions)[2,2]
     if (varying_int == 'True'){
         slope = fixef(regression)['snp']
     } else {

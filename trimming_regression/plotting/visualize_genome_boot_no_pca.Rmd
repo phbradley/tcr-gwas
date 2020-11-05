@@ -1,0 +1,85 @@
+---
+title: "VDJ trimming/insertion regression by SNPs across the genome"
+output:
+  html_document:
+    fig_crop: no
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
+fig_width: 26
+fig_height: 10 
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(Cairo)
+knitr::opts_chunk$set(dev="CairoPNG")
+knitr::opts_chunk$set(fig.width=26, fig.height=10, dpi = 300) 
+knitr::opts_chunk$set(fig.path = "/home/mrussel2/tcr-gwas/trimming_regression/figures/genome/")
+
+# Set bootstrap rerun count and pca structure correction variables globally
+d_infer_trim = 'True'
+d_infer_insert = 'False'
+boot = 100
+pca = 'False'
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/manha_visualization.R")
+setDTthreads(1)
+```
+This file shows regressions across the entire genome. For these plots, the
+second pass regressions are computing p values using:
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+print(paste0('Bootstraps: ', boot))
+print(paste0('PCA structure correction: ', pca))
+```
+
+#j trimming regressions:
+#```{r j_trimming_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+#manhattan_plot_cluster(trim_type = 'j_trim', random_effects = 'True', condensing = 'by_gene', d_infer = d_infer_trim, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+#```
+#
+#v trimming regressions:
+#```{r v_trimming_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+#manhattan_plot_cluster(trim_type = 'v_trim', random_effects = 'True', condensing = 'by_gene', d_infer = d_infer_trim, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+#```
+#
+#d0 trimming regressions:
+#```{r d0_trimming_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+#manhattan_plot_cluster(trim_type = 'd0_trim', random_effects = 'True', condensing = 'by_gene', d_infer = d_infer_trim, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot,pca_structure_correction = pca)
+#```
+#
+#d1 trimming regressions:
+#```{r d1_trimming_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+#manhattan_plot_cluster(trim_type = 'd1_trim', random_effects = 'True', condensing = 'by_gene', d_infer = d_infer_trim, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+#```
+#
+#vd insertion regressions:
+#```{r vd_insert_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+#manhattan_plot_cluster(trim_type = 'vd_insert', random_effects = 'False', condensing = 'by_patient', d_infer = d_infer_insert, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+#```
+#
+#dj insertion regressions:
+#```{r dj_insert_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+#manhattan_plot_cluster(trim_type = 'dj_insert', random_effects = 'False', condensing = 'by_patient', d_infer = d_infer_insert, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+#```
+#
+#vj insertion regressions:
+#```{r vj_insert_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+#manhattan_plot_cluster(trim_type = 'vj_insert', random_effects = 'False', condensing = 'by_patient', d_infer = d_infer_insert, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+#```
+#
+All trimming regressions:
+```{r ALL_trimming_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_trim', random_effects = 'True', condensing = 'by_gene', d_infer = d_infer_trim, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+```
+
+All insertion regressions:
+```{r ALL_insertion_plot_boot_no_pca, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_insert', random_effects = 'False', condensing = 'by_patient', d_infer = d_infer_insert, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca)
+```
+
+All trimming regressions for artemis:
+```{r ALL_trimming_plot_boot_no_pca_ARTEMIS, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_trim', random_effects = 'True', condensing = 'by_gene', d_infer = d_infer_trim, bootstrap_count = 0, plotting_cutoff = 4, gene_annotations = 'True', maf_cutoff = 0.05, bootstrap_rerun_count = boot, pca_structure_correction = pca, subset = 'artemis')
+```
+
+

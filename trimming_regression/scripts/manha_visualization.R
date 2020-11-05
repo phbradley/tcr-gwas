@@ -5,74 +5,14 @@ library(ggplot2)
 library(RColorBrewer)
 library(GWASTools)
 library(tidyverse)
+#extrafont::loadfonts()
 #omp_set_num_threads(1)
 #blas_set_num_threads(1)
 setDTthreads(threads = 1)
 
-source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/lmer_trimming_regression_functions.R')
+source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions.R')
 
 # This script compiles all regression data from cluster across the entire genome
-
-compile_all_data_from_cluster <- function(trim_type, random_effects, bootstrap_count, pca_structure_correction){
-    bonferroni = 0.05/35481497
-
-    if (random_effects == 'True'){
-         file_pattern = paste0('*_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_count, '_bootstraps')
-    } else {
-         file_pattern = paste0('no_random/*_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_count, '_bootstraps')
-    }
-    if (pca_structure_correction == 'True'){
-        file_pattern = paste0(file_pattern, '_WITH_pca_structure_correction.tsv')
-    } else{
-        file_pattern = paste0(file_pattern, '.tsv')
-    }
-        
-
-    data_files = list.files(path=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type, '/', bootstrap_count, '_bootstraps'), pattern=file_pattern, full.names=TRUE)   
-    #chrom_sizes = as.data.frame(read.table('/home/mrussel2/tcr-gwas/_ignore/chrom_sizes_hg19.tsv', sep = "\t", header = FALSE))
-    #colnames(chrom_sizes) = c('chr', 'length')
-
-    print(paste0('compile file list for ', trim_type))
-    assign(paste0('together_list_', trim_type), NULL)
-    count = 0
-    for (file in data_files){
-        # read file...
-        if (file.size(file) == 1 | file.size(file) == 0){
-            next
-        }
-        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
-        #together = rbind(together, temp_file)
-        if (ncol(temp_file) > 2){
-            assign(paste0('together_list_', trim_type), rbindlist(list(get(paste0('together_list_', trim_type)), temp_file)))
-        }
-        count = count + 1
-        print(paste0(count, ' of ', length(data_files), ' completed for ', trim_type))
-    }
-    assign('together', get(paste0('together_list_', trim_type)))
-    together = together[order(together$chr, together$hg19_pos),]
-    assign(paste0('together_productive_', trim_type), together %>% filter(productivity == 'productive'))
-    assign(paste0('together_NOT_productive_', trim_type), together %>% filter(productivity == 'NOT_productive'))
-    print(paste0('processed data for ', trim_type))
-
-    together_productive = get(paste0('together_productive_', trim_type))
-    together_NOT_productive = get(paste0('together_NOT_productive_', trim_type))
-
-    if (random_effects == 'True'){
-         file_name = paste0(trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_count, '_bootstraps')
-    } else {
-         file_name = paste0(trim_type, '_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_count, '_bootstraps')
-    }
-
-    if (pca_structure_correction == 'True'){
-        file_name = paste0(file_name, '_WITH_pca_structure_correction.tsv')
-    } else{
-        file_name = paste0(file_name, '.tsv')
-    }
-        
-
-    write.table(together_productive, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive_', file_name), quote=FALSE, sep='\t', col.names = NA)
-    write.table(together_NOT_productive, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/NOT_productive_', file_name), quote=FALSE, sep='\t', col.names = NA)
-}
 
 # This script compiles all minor allele fraction data (to be used in plotting cutoff)
 compile_all_maf_data <- function(){
@@ -100,13 +40,20 @@ compile_all_maf_data <- function(){
     write.table(together, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/', file_name), quote=FALSE, sep='\t', col.names = NA)
 }
 
-compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
+compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
     if (random_effects == 'True'){
-         first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_count, '_bootstraps.tsv')
-         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_by_gene_with_random_effects_', bootstrap_rerun_count, '_bootstraps')
+         first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_count, '_bootstraps')
+         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_rerun_count, '_bootstraps')
     } else {
-         first_pass_file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_count, '_bootstraps.tsv')
-         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_by_gene_NO_random_effects_', bootstrap_rerun_count, '_bootstraps')
+         first_pass_file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_count, '_bootstraps')
+         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_rerun_count, '_bootstraps')
+    }
+    
+    if (d_infer == 'False'){
+        file_name = paste0(file_name, '_NO_d_infer')
+        first_pass_file_name = paste0(first_pass_file_name, '_NO_d_infer.tsv')
+    } else {
+        first_pass_file_name = paste0(first_pass_file_name, '.tsv')
     }
     
     productive_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive', first_pass_file_name), sep = "\t", fill=TRUE, header = TRUE)
@@ -154,24 +101,36 @@ compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, boo
 
 # This script makes a manhattan plot for the entire genome!
 
-manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
+manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, condensing, d_infer, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction, subset = 'False'){
     bonferroni = 0.05/35481497
     maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
 
-    if (trim_type == 'ALL'){
+    if (trim_type == 'all_trim'){
         data = data.frame()
         for (trim in c('v_trim', 'd0_trim', 'd1_trim', 'j_trim')){
-            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+        }
+    } else if (trim_type == 'all_insert'){
+        data = data.frame()
+        for (trim in c('vj_insert', 'vd_insert', 'dj_insert')){
+            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
         }
     } else {
-        data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
+        data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
+    }
+    if (trim_type == 'all_trim'){
+        title = 'All trimming types'
+    } else if (trim_type == 'all_insert'){
+        title = 'All insertion types'
+    } else {
+        title = paste0(trim_type)
     }
 
-    if (maf_cutoff != 'False'){
-        title = paste0(trim_type, ' plot with ', bootstrap_count, ' bootstraps and ', maf_cutoff, ' MAF cutoff')
-    } else {
-        title = paste0(trim_type, ' plot with ', bootstrap_count, ' bootstraps')
-    }
+    #if (maf_cutoff != 'False'){
+    #    title = paste0(title, ' with ', maf_cutoff, ' MAF cutoff')
+    #} else {
+    #    title = paste0(title, ' plot')
+    #}
 
     if (pca_structure_correction == 'True'){
          title = paste0(title, ' with population structure PCA correction')
@@ -190,11 +149,43 @@ manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, p
     pos2 = c(14996431, 33290793, 98098321, 36593156, 142510972, 23021075)
 
     gene_annotations = data.frame(genes = genes, chr = chr, pos1 = pos1, pos2 = pos2)
+    
+    stopifnot(subset %in% c('False', 'artemis', 'mhc', 'dntt', 'rag', 'tcrb', 'tcra'))
+    if (subset != 'False'){
+        subset_gene = gene_annotations %>% filter(genes == subset)
+        gene_annotations = subset_gene
+        data = data %>% filter(chr == subset_gene$chr) %>% filter(hg19_pos < subset_gene$pos2 + 100000) %>% filter(hg19_pos > subset_gene$pos1 - 100000)
+        point_size = 5
+        alpha_gene = 0.1
+    } else {
+        point_size = 4 
+        alpha_gene = 0.5
+    }
 
     if (gene_annotations == 'False'){
-        ggplot(data) + geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = 3) + facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + theme_classic() + theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ labs(y="-log10(p-value)", x="Chromosome Position") + geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + ggtitle(title) + scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8))
+        ggplot(data) + 
+            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = point_size) + 
+            facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + 
+            theme_classic() + 
+            theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ 
+            labs(y="-log10(p-value)", x="Chromosome Position") + 
+            geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + 
+            ggtitle(title) + 
+            scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) +
+            guides(color = 'legend', shape = 'none')
     } else {
-        ggplot(data) + geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = 3) + geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = 0.5) + facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + theme_classic() + theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ labs(y="-log10(p-value)", x="Chromosome Position") + geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + ggtitle(title) + scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8))
+        ggplot(data) + 
+            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = point_size) + 
+            geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = alpha_gene) + 
+            facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + 
+            theme_classic() + 
+            #theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.title=element_text(size=25), legend.text=element_text(size=20), axis.text.x = element_text(size = 14, angle = 90), axis.text.y = element_text(size= 20))+
+            theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_text(size = 12, angle = 90))+ 
+            labs(y="-log10(p-value)", x="Chromosome Position") + 
+            geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + 
+            ggtitle(title) + 
+            scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) +
+            guides(color = 'legend', shape = 'none', fill = 'legend')
     }
 }
 

@@ -1,4 +1,3 @@
-
 library('RhpcBLASctl')
 omp_set_num_threads(1)
 blas_set_num_threads(1)
@@ -22,20 +21,9 @@ execute_regression <- function(snp, list_of_snps, snp_list, genotype_list, trim_
             print(paste0("no regression needed for snp data for ", index, " of ", ncol(genotype_list), " for ", trim_type))
         } else {
             # do regression, bootstrap
-            if (condensing == "by_gene" | condensing == 'gene_cross'){
-                if (random_effects == 'True'){
-                    regression_productive = suppressMessages(trimming_regression(snps_dataframe = snp_genotypes, condensed_trimming_dataframe = trimming_data, productive = "True",trim_type = trim_type,   gene_type = gene_type, bootstrap_repetitions = repetitions,pca_structure_correction, gene_conditioning,  weighting, snp_list))
-                    regression_NOT_productive = suppressMessages(trimming_regression(snps_dataframe = snp_genotypes, condensed_trimming_dataframe = trimming_data, productive = "False", trim_type = trim_type,     gene_type = gene_type, bootstrap_repetitions = repetitions,pca_structure_correction,  gene_conditioning, weighting, snp_list))
-                } else {
-                    regression_productive = simple_trimming_snp_regression(snp_genotypes, trimming_data, productive = "True", trim_type =trim_type, gene_type = gene_type, weighting, gene_conditioning,    python_test = 'False', snp_list)
-                    regression_NOT_productive = simple_trimming_snp_regression(snp_genotypes, trimming_data, productive = "False", trim_type = trim_type, gene_type = gene_type, weighting, gene_conditioning,  python_test = 'False', snp_list)
-                }  
-            } else if (condensing == 'by_patient'| condensing == 'phil'){
-                regression_productive = simple_trimming_snp_regression(snp_genotypes, trimming_data, productive = "True", trim_type =trim_type, weighting, gene_conditioning, python_test = 'True', snp_list)
-                regression_NOT_productive = simple_trimming_snp_regression(snp_genotypes, trimming_data, productive = "False", trim_type = trim_type, weighting, gene_conditioning, python_test = 'True',   snp_list)
-            } 
-
-            # if regression, bootstrap conducted, add them to the results tables
+            regression_productive = suppressMessages(trimming_regression(snps_dataframe = snp_genotypes, condensed_trimming_dataframe = trimming_data, productive = "True", trim_type = trim_type, gene_type = gene_type, bootstrap_repetitions = repetitions, pca_structure_correction, gene_conditioning, weighting, random_effects, snp_list))
+            regression_NOT_productive = suppressMessages(trimming_regression(snps_dataframe = snp_genotypes, condensed_trimming_dataframe = trimming_data, productive = "False", trim_type = trim_type, gene_type = gene_type, bootstrap_repetitions = repetitions,pca_structure_correction, gene_conditioning, weighting, random_effects, snp_list))
+            
             if (nrow(regression_productive) != 0){
                 regression_productive$productivity = 'productive'
                 regression_dataframe = rbind(regression_dataframe, regression_productive)
