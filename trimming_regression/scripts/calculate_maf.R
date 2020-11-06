@@ -1,6 +1,4 @@
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/make_snp_file.R")
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_regression_data_functions.R")
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/manha_visualization.R")
+source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/compile_data_functions.R"))
 
 library('RhpcBLASctl')
 library('data.table')
@@ -10,6 +8,8 @@ blas_set_num_threads(1)
 
 library('foreach')
 library('doParallel')
+
+args = commandArgs(trailingOnly=TRUE)
 
 # This file creates MAF file
 
@@ -36,7 +36,8 @@ calculate_maf_by_snp_file <- function(genotype_data_filtered, complete_dt){
     return(gt_stats[,c('snp', 'maf')])
 }
 
-registerDoParallel(cores=20)
+print('Calculating MAF values genome-wide')
+registerDoParallel(cores=as.numeric(args[1]))
 foreach(snp_start = seq(1, 35481497, count)) %dopar% {
         RcppParallel::setThreadOptions(1L) 
         snp_data = snp_file_by_snp_start(snp_start = snp_start, count)
@@ -44,7 +45,7 @@ foreach(snp_start = seq(1, 35481497, count)) %dopar% {
         genotype_data_filtered = remove_matrix_column_by_genotype(genotype_data)
         print(paste0('starting calculation for snps starting at ', snp_start))
         results = calculate_maf_by_snp_file(genotype_data_filtered)
-        write.table(results, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_results/maf_snps_starting_', snp_start, '.tsv'), quote=FALSE, sep='\t', col.names = NA)
+        write.table(results, file=paste0(output_path, '/maf_results/maf_snps_starting_', snp_start, '.tsv'), quote=FALSE, sep='\t', col.names = NA)
         }
 stopImplicitCluster()
 

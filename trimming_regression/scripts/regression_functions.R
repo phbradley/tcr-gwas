@@ -5,7 +5,7 @@ blas_set_num_threads(1)
 
 # this script does a lmer regression including fixed and random effects to condition out the effects mediated by gene choice
 
-trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, productive, trim_type, gene_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, random_effects, snp_list){
+trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, condensing, productive, trim_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, random_effects, pvalue_boot_threshold, snp_list){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
@@ -16,11 +16,9 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
     snpID = names(snps_dataframe)[-c(1)]
 
     # define trim type and gene type
-    if (gene_type == 'same'){
-        gene_type = paste0(substr(trim_type, 1, 1), '_gene')
-        weight = paste0("weighted_", substr(trim_type, 1, 1), '_gene_count')
-    }
-    gene_type = paste0(gene_type)
+    gene_type = paste0(substr(trim_type, 1, 1), '_gene')
+    weight = paste0("weighted_", substr(trim_type, 1, 1), '_gene_count')
+    
     if (str_split(trim_type, "_")[[1]][2] == 'insert'){
         gene_type1 = paste0(substr(trim_type, 1, 1), '_gene')
         gene_type2 = paste0(substr(trim_type, 2, 2), '_gene')
@@ -86,8 +84,11 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, pr
 
     if (slope != 'NA'){
         # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
-        if (bootstrap_repetitions != 0){
-            bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data, cluster_variable = snps_trimming_data$localID, trim_type, varying_int = random_effects, gene_conditioning, weighting, repetitions = bootstrap_repetitions)
+        if (condensing == 'by_gene'){
+            bootstrap_results = bootstrap_screen(regression, random_effects)
+            if (bootstrap_results$pvalue < pvalue_boot_threshold){
+                bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data, cluster_variable = snps_trimming_data$localID, trim_type, varying_int = random_effects, gene_conditioning, weighting, repetitions = bootstrap_repetitions)
+            }
         } else {
             bootstrap_results = bootstrap_screen(regression, random_effects)
         }

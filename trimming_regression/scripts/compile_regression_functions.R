@@ -12,29 +12,9 @@ source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/manha_visualization.
 
 
 find_files <- function(trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction){
-    if (random_effects == 'True'){
-        if (d_infer == 'False') {
-            path_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/',trim_type, '/', repetitions, '_bootstraps')
-            file_pattern = paste0('*_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', repetitions, '_bootstraps_NO_d_infer')
-        } else {
-            path_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/',trim_type, '/', repetitions, '_bootstraps')
-            file_pattern = paste0('*_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', repetitions, '_bootstraps')
-        }
-    } else {
-        if (d_infer == 'False') {
-            path_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/NO_d_infer/',trim_type, '/', repetitions, '_bootstraps')
-            file_pattern = paste0('*_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', repetitions, '_bootstraps_NO_d_infer')
-        } else {
-            path_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/',trim_type, '/', repetitions, '_bootstraps')
-            file_pattern = paste0('*_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', repetitions, '_bootstraps')
-        }
-    }
-
-    if (pca_structure_correction == 'True'){
-        file_pattern = paste0(file_pattern, '_WITH_pca_structure_correction.tsv')
-    } else{
-        file_pattern = paste0(file_pattern, '.tsv')
-    }
+    file_name = make_regression_file_name(snp_list, trim_type, condensing, random_effects, d_infer, repetitions, pca_structure_correction)
+    path_name = paste(strsplit(file_name, '/')[[1]][-c(1,12)], collapse = '/')
+    file_pattern = paste0('*_', paste(strsplit(strsplit(file_name, '/')[[1]][12], '_')[[1]][-c(1:3)], collapse = '_'))
         
     data_files = list.files(path=path_name, pattern=file_pattern, full.names=TRUE)   
     return(data_files)
@@ -42,9 +22,19 @@ find_files <- function(trim_type, random_effects, condensing, d_infer, repetitio
 
 
 # This script compiles all regression data from cluster across the entire genome
-compile_all_data_from_cluster_sequential <- function(trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction){
+compile_all_data_from_cluster_sequential <- function(trim_type, pca_structure_correction){
     bonferroni = 0.05/35481497
 
+    # parse type (either 'insert' or 'trim')
+    stopifnot(args[2] %in% c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vd_insert', 'dj_insert', 'vj_insert'))
+    type = strsplit(args[2], '_')[[1]][2]
+ 
+    # Set regression parameters
+    condensing = ifelse(type == 'insert', 'by_patient', 'by_gene')
+    random_effects = ifelse(type == 'insert', 'False', 'True')
+    d_infer = ifelse(type == 'insert', 'False', 'True')
+    repetitions = ifelse(type == 'insert', 0, 100)
+ 
     data_files = find_files(trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction)
   
     print(paste0('compile file list for ', trim_type))
