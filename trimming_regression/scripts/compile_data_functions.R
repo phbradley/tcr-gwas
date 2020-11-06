@@ -5,6 +5,34 @@ library("GWASTools")
 library(data.table)
 setDTthreads(threads = 1)
 
+source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/condense_trimming_data.R')
+
+compile_condensed_trimming_data <- function(trim_type, d_infer, condensing){
+    # import condensed trimming file
+    if (condensing == 'by_patient'){
+        if (d_infer == 'False'){
+            filename = "/home/mrussel2/tcr-gwas/_ignore/by_patient_condensed_data_all_patients_NO_d_infer.tsv"
+        } else {
+            filename = "/home/mrussel2/tcr-gwas/_ignore/by_patient_condensed_data_all_patients.tsv"
+        }
+    } else {
+        if (d_infer == 'False'){
+            filename = "/home/mrussel2/tcr-gwas/_ignore/condensed_", trim_type, "_data_all_patients_NO_d_gene_infer.tsv"
+        } else {
+            filename = "/home/mrussel2/tcr-gwas/_ignore/condensed_", trim_type, "_data_all_patients.tsv"
+        }
+    }
+
+    if (!file.exists(filename)){
+        condense_trim_data(trim_types = trim_type, infer_d = d_infer, condensing)
+    } 
+
+    assign('trimming_data', as.data.frame(read.table(filename, sep = "\t", fill=TRUE, header = TRUE)[-1]))
+    names(trimming_data)[names(trimming_data) == "patient_id"] <- "localID"
+
+    return(trimming_data)
+}
+
 # This function makes a snp file from chromosme and position data using the gds file
 snp_file <- function(chromosome, position1, position2){
     snps_gds = snpgdsOpen("/home/mrussel2/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
@@ -136,3 +164,81 @@ make_genotype_file_given_random_snps <- function(snp_file){
     return(genotype_list)
 }
 
+
+# This function filters trimming data based on productivity status
+filter_by_productivity <- function(condensed_trimming_dataframe, productive){
+    # subset trimming data to include only productive or not productive entires
+    if (productive == "True"){
+        condensed_trimming_dataframe = condensed_trimming_dataframe %>% filter(productive == "TRUE")
+    } else if (productive == "False"){
+        condensed_trimming_dataframe = condensed_trimming_dataframe %>% filter(productive == "FALSE")
+    } 
+    return(condensed_trimming_dataframe)
+}
+
+# This function compiles trimming data crosses
+compile_trimming_data_cross <- function(){
+    trimming_data_by_gene_all = data.frame()
+    for (trim in c('v_trim', 'd0_trim', 'j_trim')){
+        assign(paste0(trim, '_trimming_data'), as.data.frame(read.table(paste0("/home/mrussel2/tcr-gwas/_ignore/condensed_", trim, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        setnames(get(paste0(trim, '_trimming_data')), "patient_id", "localID")
+        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene'), "gene")
+        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene_count'), "gene_count")
+        setnames(get(paste0(trim, '_trimming_data')), paste0('weighted_', substring(trim, 1, 1), '_gene_count'), "weighted_gene_count")
+        gene_type = data.frame(gene_class = rep(paste0(substr(trim, 1, 1), '_gene'), nrow(get(paste0(trim, '_trimming_data')))))
+        assign(paste0(trim, '_trimming_data'), cbind(get(paste0(trim, '_trimming_data')), gene_type))
+        trimming_data_by_gene_all = rbind(trimming_data_by_gene_all, get(paste0(trim, '_trimming_data')))
+    }
+    return(trimming_data_by_gene_all)
+}
+
+# remove snp_genotype columns that are either all NA, or only have one genotype (for everyone)
+remove_matrix_column_by_genotype <- function(genotype_matrix){
+    for (snp in colnames(genotype_matrix)){
+        genotypes = unique(genotype_matrix[,snp])
+        nonNA_genotypes = genotypes[genotypes != 3]
+        if (length(nonNA_genotypes) <= 1){
+            genotype_matrix = genotype_matrix[, colnames(genotype_matrix) != snp]
+        }
+    }
+    # replace 3 with NA
+    genotype_matrix[genotype_matrix == 3] <- NA
+    return(genotype_matrix)
+}
+
+read_genotype_pca <- function(){
+    subject_id_conversion = read.table('/home/mrussel2/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv', sep = "\t", fill=TRUE, header = TRUE)
+    
+    pca_file_name = '/home/mrussel2/tcr-gwas/_ignore/snp_data/population_structure_pca_by_LD_snps.tsv'
+    if (!file.exists(pca_file_name)){
+         system(command = paste0("Rscript /home/mrussel2/tcr-gwas/trimming_regression/scripts/population_structure_pca.R "))
+    }
+
+    pca = read.table(pca_file_name, sep = '\t', fill = TRUE, header = TRUE)
+
+    together = merge(subject_id_conversion, pca, by.x = 'scanID', by.y = 'sample_id')[,-c(1,3)]
+    return(together)
+}
+    
+make_regression_file_name <- function(snp_list, trim_type, condensing, random_effects, d_infer, repetitions, pca_structure_correction){
+    random_effects_name = ifelse(random_effects == 'True', 'random_effects', 'no_random_effects')
+    d_infer_name = ifelse(d_infer == 'True', '_d_infer', '_no_d_infer')
+    pca_name = ifelse(pca_structure_correction == 'True', '_pca_correction', '_no_pca_correction')
+    boots = paste0('_', repetitions, '_bootstraps')
+
+    file_name = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', condensing, '/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '.tsv')
+
+    if (!dir.exists(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type))){
+        system(paste0('mkdir ', '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type))
+    }
+    
+    if (!dir.exists(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots))){
+        system(paste0('mkdir ', '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots))
+    }
+
+    if (!dir.exists(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', condensing))){
+        system(paste0('mkdir ', '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', condensing))
+    }
+
+    return(file_name)
+}

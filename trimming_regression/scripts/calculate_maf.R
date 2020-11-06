@@ -11,6 +11,8 @@ blas_set_num_threads(1)
 library('foreach')
 library('doParallel')
 
+args = commandArgs(trailingOnly=TRUE)
+
 # This file creates MAF file
 
 count = 10000
@@ -36,7 +38,7 @@ calculate_maf_by_snp_file <- function(genotype_data_filtered, complete_dt){
     return(gt_stats[,c('snp', 'maf')])
 }
 
-registerDoParallel(cores=20)
+registerDoParallel(cores=as.numeric(args[1]))
 foreach(snp_start = seq(1, 35481497, count)) %dopar% {
         RcppParallel::setThreadOptions(1L) 
         snp_data = snp_file_by_snp_start(snp_start = snp_start, count)
