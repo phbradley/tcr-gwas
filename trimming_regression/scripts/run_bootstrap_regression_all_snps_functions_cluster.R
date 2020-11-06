@@ -10,10 +10,10 @@ omp_set_num_threads(1)
 blas_set_num_threads(1)
 
 
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions.R")
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/bootstrap_functions.R")
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_data_functions.R")
-source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/execute_regression_function.R")
+source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/regression_functions.R"))
+source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/bootstrap_functions.R"))
+source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/compile_data_functions.R"))
+source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/execute_regression_function.R"))
 
 # This function runs regressions on the cluster
 run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, pca_structure_correction, pvalue_boot_threshold, write_table, ncpus, maf_cutoff, data_file_path){
@@ -39,15 +39,17 @@ run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_typ
     if (maf_cutoff == "False"){
         list_of_snps = as.numeric(colnames(genotype_list)[colnames(genotype_list) != 'localID'])
     } else {
-        maf_file_name = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'
+        maf_file_name = paste0(output_path, '/maf_all_snps.tsv')
         if (!file.exists(maf_file_name)){
-            system(command = paste0("Rscript /home/mrussel2/tcr-gwas/trimming_regression/scripts/calculate_maf.R ", ncpus))
+            system(command = paste0("Rscript ", project_path, "/tcr-gwas/trimming_regression/scripts/calculate_maf.R ", ncpus))
         }
-        maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
+        maf_data = fread(maf_file_name, sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
         maf_data_filtered = maf_data %>% filter(maf >= maf_cutoff)
         maf_data_snps = gsub('snp', '', maf_data_filtered$snp)
         list_of_snps = as.numeric(intersect(colnames(genotype_list), maf_data_snps))
     }
+    
+    print('All data compiled. Starting regressions.')
 
     count = 0
     registerDoParallel(cores=ncpus)

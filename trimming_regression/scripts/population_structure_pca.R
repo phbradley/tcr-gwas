@@ -3,7 +3,8 @@ library("SNPRelate")
 library(data.table)
 setDTthreads(threads = 1)
 
-snps_gds = snpgdsOpen("/fh/fast/matsen_e/shared/tcr-gwas/snp_data/HSCT_comb_geno_combined_v03_tcr.gds")
+print('Computing ancestry PCA')
+snps_gds = snpgdsOpen(paste0(project_path, "/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds"))
 
 # Before running PCA, we use LD pruning to select a set of independent SNPs for analysis
 ld_pruned_snps = snpgdsLDpruning(snps_gds)
@@ -21,5 +22,5 @@ pca_dt = data.table(sample_id = pca$sample.id, EV1 = pca$eigenvect[,1], EV2 = pc
 
 snpgdsClose(snps_gds)
 
-write.table(pca_dt, file='/home/mrussel2/tcr-gwas/_ignore/snp_data/population_structure_pca_by_LD_snps.tsv', quote=FALSE, sep='\t', col.names = NA)
+write.table(pca_dt, file=paste0(project_path, '/tcr-gwas/_ignore/snp_data/population_structure_pca_by_LD_snps.tsv', quote=FALSE, sep='\t', col.names = NA)
 

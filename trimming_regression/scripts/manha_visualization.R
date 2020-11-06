@@ -14,32 +14,6 @@ source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions
 
 # This script compiles all regression data from cluster across the entire genome
 
-# This script compiles all minor allele fraction data (to be used in plotting cutoff)
-compile_all_maf_data <- function(){
-    data_files = list.files(path=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_results/'), pattern='*', full.names=TRUE)   
-
-    print(paste0('compile file list'))
-    assign(paste0('together'), NULL)
-    count = 0
-    for (file in data_files){
-        # read file...
-        if (file.size(file) == 1 | file.size(file) == 0){
-            next
-        }
-        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
-        #together = rbind(together, temp_file)
-        if (ncol(temp_file) > 2){
-            assign(paste0('together'), rbindlist(list(get(paste0('together')), temp_file)))
-        }
-        count = count + 1
-        print(paste0(count, ' of ', length(data_files), ' completed'))
-    }
-    
-    file_name = paste0('maf_all_snps.tsv')
-
-    write.table(together, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/', file_name), quote=FALSE, sep='\t', col.names = NA)
-}
-
 compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
     if (random_effects == 'True'){
          first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_count, '_bootstraps')

@@ -4,11 +4,7 @@ library("plyr")
 library("readr")
 library("stringr")
 
-args = commandArgs(trailingOnly=TRUE)
-
-setwd("../_ignore/emerson_stats/")
-dir = getwd()
-files = list.files(path=dir, pattern="*.tsv", full.names=TRUE)
+#args = commandArgs(trailingOnly=TRUE)
 
 infer_d_gene <- function(patient_trimming_table){
     # filter between entries that have missing d_gene and those that do not have a missing dgene
@@ -67,6 +63,9 @@ infer_d_gene <- function(patient_trimming_table){
 }
 
 condense_trim_data <- function(trim_types, infer_d, condensing){
+    dir = paste0(project_path, '/tcr-gwas/_ignore/emerson_stats/')
+    files = list.files(path=dir, pattern="*.tsv", full.names=TRUE)
+    
     for (trim in trim_types){
         assign(paste0('condensed_', trim, '_data'), data.table())
     }
@@ -89,10 +88,8 @@ condense_trim_data <- function(trim_types, infer_d, condensing){
         # Infer d genes (when d gene is missing)
         if (infer_d == 'True'){
             temp_file = infer_d_gene(temp_file)
-            filename = paste0('../condensed_', trim,'_data_all_patients.tsv')
         } else {
             temp_file = temp_file[d_gene != '-']
-            filename = paste0('../condensed_', trim,'_data_all_patients_NO_d_gene_infer.tsv')
         }
         if (condensing == 'by_gene'){        
             for (trim in trim_types){
@@ -122,12 +119,12 @@ condense_trim_data <- function(trim_types, infer_d, condensing){
                 assign(paste0('condensed_', trim, '_data'), rbind(get(paste0('condensed_', trim, '_data')), together))
                 print(paste0(count," of ", length(files), " processed for ", trim))
             
-                filename = ifelse(infer_d == 'True', paste0('../condensed_', trim,'_data_all_patients.tsv'), paste0('../condensed_', trim,'_data_all_patients_NO_d_gene_infer.tsv'))
+                filename = ifelse(infer_d == 'True', paste0(project_path, '/tcr-gwas/_ignore/condensed_', trim,'_data_all_patients.tsv'), paste0(project_path, '/tcr-gwas/_ignore/condensed_', trim,'_data_all_patients_NO_d_gene_infer.tsv'))
         
                 write.table(get(paste0('condensed_', trim, '_data')), file=filename, quote=FALSE, sep='\t', col.names = NA)
             }
         } else if (condensing == 'by_patient'){
-            filename = ifelse(infer_d == 'True', paste0('../by_patient_condensed_data_all_patients.tsv'), paste0('../by_patient_condensed_data_all_patients_NO_d_infer.tsv'))
+            filename = ifelse(infer_d == 'True', paste0(project_path, '/tcr-gwas/_ignore/by_patient_condensed_data_all_patients.tsv'), paste0(project_path, '/tcr-gwas/_ignore/by_patient_condensed_data_all_patients_NO_d_infer.tsv'))
 	    
             together = temp_file[,.(mean(v_trim), mean(d0_trim), mean(d1_trim), mean(j_trim), mean(vj_insert), mean(dj_insert), mean(vd_insert), .N), by = .(patient_id, productive)]
 
