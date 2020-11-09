@@ -248,6 +248,33 @@ make_regression_file_name <- function(snp_list, trim_type, condensing, random_ef
     return(file_name)
 }
 
+make_regression_file_path <- function(trim_type, condensing, random_effects, d_infer, repetitions, pca_structure_correction, output_path){
+    random_effects_name = ifelse(random_effects == 'True', 'random_effects', 'no_random_effects')
+    d_infer_name = ifelse(d_infer == 'True', '_d_infer', '_no_d_infer')
+    pca_name = ifelse(pca_structure_correction == 'True', '_pca_correction', '_no_pca_correction')
+    boots = paste0('_', repetitions, '_bootstraps')
+
+    path_name = paste0(output_path, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', condensing)
+    if (!dir.exists(paste0(output_path, '/cluster_job_results'))){
+        system(paste0('mkdir ', output_path, '/cluster_job_results'))
+    }
+ 
+    if (!dir.exists(paste0(output_path, '/cluster_job_results/', trim_type))){
+        system(paste0('mkdir ', output_path, '/cluster_job_results/', trim_type))
+    }
+    
+    if (!dir.exists(paste0(output_path, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots))){
+        system(paste0('mkdir ', output_path, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots))
+    }
+
+    if (!dir.exists(paste0(output_path, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', condensing))){
+        system(paste0('mkdir ', output_path, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', condensing))
+    }
+
+    cat(path_name)
+}
+
+
 # This script compiles all minor allele fraction data (to be used in plotting cutoff)
 compile_all_maf_data <- function(){
     data_files = list.files(path=paste0(output_path, '/maf_results/'), pattern='*', full.names=TRUE)   

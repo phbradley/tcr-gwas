@@ -4,9 +4,10 @@ args = commandArgs(trailingOnly=TRUE)
 
 start = args[1]
 trimming_type = args[2]
-ncpu = args[3]
-project_path = args[4]
-output_path = args[5]
+pca = args[3]
+ncpu = args[4]
+project_path = args[5]
+output_path = args[6]
 
 # import functions
 source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/run_bootstrap_regression_all_snps_functions_cluster.R"))
@@ -26,10 +27,9 @@ genotype_data = compile_all_genotypes(snp_start = as.numeric(start), count)
 genotype_data_filtered = remove_matrix_column_by_genotype(genotype_data)
 
 pvalue_boot_threshold = 5e-5
-pca_structure_correction = 'True'
 
 # Run regression/bootstrap
-run_snps_trimming_snp_list_cluster(snp_list = snp_data, genotype_list = genotype_data_filtered, trim_type = trimming_type, pca_structure_correction, pvalue_boot_threshold, write_table = 'False', ncpus = as.numeric(ncpu), maf_cutoff = 0.05)
+run_snps_trimming_snp_list_cluster(snp_list = snp_data, genotype_list = genotype_data_filtered, trim_type = trimming_type, pca_structure_correction = pca, pvalue_boot_threshold, write_table = 'True', ncpus = as.numeric(ncpu), maf_cutoff = 0.05)
 
 
 print(paste0("Finished regressions for ", trimming_type, " for snps ", start, '-', as.character(as.numeric(start)+count)))

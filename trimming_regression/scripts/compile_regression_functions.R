@@ -8,12 +8,14 @@ library(tidyverse)
 setDTthreads(threads = 1)
 
 source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions.R')
-source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/manha_visualization.R')
+source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_data_functions.R')
 
 
 find_files <- function(trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction){
+    #make arbitrary snp list
+    snp_list = data.frame(snp = seq(1,100))
     file_name = make_regression_file_name(snp_list, trim_type, condensing, random_effects, d_infer, repetitions, pca_structure_correction)
-    path_name = paste(strsplit(file_name, '/')[[1]][-c(1,12)], collapse = '/')
+    path_name = paste0('/', paste(strsplit(file_name, '/')[[1]][-c(1,12)], collapse = '/'))
     file_pattern = paste0('*_', paste(strsplit(strsplit(file_name, '/')[[1]][12], '_')[[1]][-c(1:3)], collapse = '_'))
         
     data_files = list.files(path=path_name, pattern=file_pattern, full.names=TRUE)   
@@ -26,8 +28,8 @@ compile_all_data_from_cluster_sequential <- function(trim_type, pca_structure_co
     bonferroni = 0.05/35481497
 
     # parse type (either 'insert' or 'trim')
-    stopifnot(args[2] %in% c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vd_insert', 'dj_insert', 'vj_insert'))
-    type = strsplit(args[2], '_')[[1]][2]
+    stopifnot(trim_type %in% c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vd_insert', 'dj_insert', 'vj_insert'))
+    type = strsplit(trim_type, '_')[[1]][2]
  
     # Set regression parameters
     condensing = ifelse(type == 'insert', 'by_patient', 'by_gene')
