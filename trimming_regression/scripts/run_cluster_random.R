@@ -26,10 +26,8 @@ snp_data = snp_file_by_snp_start(snp_start = as.numeric(start), count)
 genotype_data = compile_all_genotypes(snp_start = as.numeric(start), count)
 genotype_data_filtered = remove_matrix_column_by_genotype(genotype_data)
 
-pvalue_boot_threshold = 5e-5
-
 # Run regression/bootstrap
-run_snps_trimming_snp_list_cluster(snp_list = snp_data, genotype_list = genotype_data_filtered, trim_type = trimming_type, pca_structure_correction = pca, pvalue_boot_threshold, write_table = 'True', ncpus = as.numeric(ncpu), maf_cutoff = 0.05)
+run_snps_trimming_snp_list_cluster(snp_list = snp_data, genotype_list = genotype_data_filtered, trim_type = trimming_type, pca_structure_correction = pca, write_table = 'True', ncpus = as.numeric(ncpu), maf_cutoff = 0.05)
 
 
 print(paste0("Finished regressions for ", trimming_type, " for snps ", start, '-', as.character(as.numeric(start)+count)))

@@ -18,7 +18,7 @@ bootstrap_screen <- function(regression, random_effects){
     zscore = slope/se
     # calculate two sided pvalue
     pvalue = 2*pnorm(-abs(zscore))
-    return(data.frame(standard_error = se, pvalue = pvalue))
+    return(data.frame(standard_error = se, pvalue = pvalue, bootstraps = 0))
 }
 
 # This one definitely does clustering (which is what we want I think)--this incorporates fixed and random effects!
@@ -107,7 +107,7 @@ calculate_pvalue <- function(regression, data, cluster_variable, trim_type, vary
     zscore = slope/se
     # calculate two sided pvalue
     pvalue = 2*pnorm(-abs(zscore))
-    return(data.frame(standard_error = se, pvalue = pvalue))
+    return(data.frame(standard_error = se, pvalue = pvalue, bootstraps = repetitions))
 }
 
 

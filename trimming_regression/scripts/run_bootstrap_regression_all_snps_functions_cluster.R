@@ -16,7 +16,7 @@ source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/compile_data_
 source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/execute_regression_function.R"))
 
 # This function runs regressions on the cluster
-run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, pca_structure_correction, pvalue_boot_threshold, write_table, ncpus, maf_cutoff, data_file_path){
+run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, pca_structure_correction, write_table, ncpus, maf_cutoff, data_file_path){
  
     # parse type (either 'insert' or 'trim')
     stopifnot(args[2] %in% c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vd_insert', 'dj_insert', 'vj_insert'))
@@ -55,7 +55,7 @@ run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_typ
     registerDoParallel(cores=ncpus)
     results = foreach(snp=list_of_snps, .combine='rbind') %dopar% {
         RcppParallel::setThreadOptions(1L) 
-        execute_regression(snp, list_of_snps, snp_list, genotype_list, trim_type, condensing, trimming_data, repetitions,pca_structure_correction, weighting, gene_conditioning, random_effects, pvalue_boot_threshold, regression_dataframe)
+        execute_regression(snp, list_of_snps, snp_list, genotype_list, trim_type, condensing, trimming_data, repetitions,pca_structure_correction, weighting, gene_conditioning, random_effects, regression_dataframe)
         }
     stopImplicitCluster()
     

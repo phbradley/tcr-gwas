@@ -5,7 +5,7 @@ blas_set_num_threads(1)
 
 # this script does a lmer regression including fixed and random effects to condition out the effects mediated by gene choice
 
-trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, condensing, productive, trim_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, random_effects, pvalue_boot_threshold, snp_list){
+trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, condensing, productive, trim_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, random_effects, snp_list){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
@@ -85,10 +85,7 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, co
     if (slope != 'NA'){
         # Pvalue screen before doing bootstrap (so that we only bootstrap things that may be significant)
         if (condensing == 'by_gene'){
-            bootstrap_results = bootstrap_screen(regression, random_effects)
-            if (bootstrap_results$pvalue < pvalue_boot_threshold){
-                bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data, cluster_variable = snps_trimming_data$localID, trim_type, varying_int = random_effects, gene_conditioning, weighting, repetitions = bootstrap_repetitions)
-            }
+            bootstrap_results = calculate_pvalue(regression, data = snps_trimming_data, cluster_variable = snps_trimming_data$localID, trim_type, varying_int = random_effects, gene_conditioning, weighting, repetitions = bootstrap_repetitions)
         } else {
             bootstrap_results = bootstrap_screen(regression, random_effects)
         }
