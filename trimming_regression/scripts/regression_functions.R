@@ -5,7 +5,7 @@ blas_set_num_threads(1)
 
 # this script does a lmer regression including fixed and random effects to condition out the effects mediated by gene choice
 
-trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, condensing, productive, trim_type, bootstrap_repetitions, pca_structure_correction, gene_conditioning, weighting, random_effects, snp_list){
+trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, condensing, productive, trim_type, bootstrap_repetitions, pca_structure_correction, pca_type, gene_conditioning, weighting, random_effects, snp_list){
     # set bonferroni correction to us the full group of snps from the gwas (regardless of how many we want to analyze)
     bonferroni = 0.05/35481497
 
@@ -30,7 +30,7 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, co
     snps_trimming_data = merge(snps_dataframe, condensed_trimming_dataframe, by = "localID")
     snps_trimming_data = snps_trimming_data %>% filter(!is.na(snp))
 
-    genotype_pca = read_genotype_pca()
+    genotype_pca = read_genotype_pca(type = pca_type)
     snps_trimming_data = merge(snps_trimming_data, genotype_pca)
 
     # set regression formula
@@ -52,7 +52,7 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, co
     }
 
     if (pca_structure_correction == 'True'){
-       form = update(form, ~ . + EV1 + EV2 + EV3 + EV4 + EV5 + EV6 + EV7 + EV8 + EV9 + EV10)
+       form = update(form, ~ . + EV1)
     } 
 
     # REGRESSION!

@@ -35,6 +35,14 @@ compile_condensed_trimming_data <- function(trim_type, d_infer, condensing){
     return(trimming_data)
 }
 
+remove_small_repertoire_observations <- function(condensed_trimming_data, productive_log10_count_cutoff, NOT_productive_log10_count_cutoff, trim_type, d_infer){
+    tcr_count_dt = as.data.table(compile_condensed_trimming_data(trim_type, d_infer, condensing = 'by_patient'))[,c('localID', 'productive', 'tcr_count')]
+    condensed_trim_dt = as.data.table(condensed_trimming_data)    
+    condensed_trim_dt = merge(condensed_trim_dt, tcr_count_dt)
+    condensed_trim_dt_filtered = condensed_trim_dt[(productive == 'TRUE' & log10(tcr_count)>productive_log10_count_cutoff) | (productive == 'FALSE' & log10(tcr_count)>NOT_productive_log10_count_cutoff)]
+    return(condensed_trim_dt_filtered)
+}
+
 # This function makes a snp file from chromosme and position data using the gds file
 snp_file <- function(chromosome, position1, position2){
     snps_gds = snpgdsOpen(paste0(project_path, "/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds"))
@@ -110,31 +118,6 @@ find_snp_start_by_position <- function(chromosome, position1, position2){
     return(c(filtered_ordered$snpindex[1], filtered_ordered$snpindex[nrow(filtered_ordered)]-filtered_ordered$snpindex[1]))
 }
 
-# This function finds a regression file (from cluster) and subsets based on signficance cutoff (for use in bootstraps)
-open_regressed_file_and_subset_by_pval <- function(significance_cutoff, trim_type, random_effects, condensing, d_infer, maf_cutoff){
-    if (random_effects == 'True'){
-         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_0_bootstraps')
-    } else {
-         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_0_bootstraps')
-    }
-
-    if (d_infer == 'False'){
-        file_name = paste0(file_name, '_NO_d_infer.tsv')
-    } else {
-        file_name = paste0(file_name, '.tsv')
-    }
-
-    productive_data = fread(paste0(output_path, '/results/productive', file_name), sep = "\t", fill=TRUE, header = TRUE)
-    not_productive_data = fread(paste0(output_path, '/results/NOT_productive', file_name), sep = "\t", fill=TRUE, header = TRUE)
-    maf_data = fread(paste0(output_path, '/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
-
-    data = rbind(productive_data, not_productive_data)[,-c(1,2)]
-    data = merge(data, maf_data, by = 'snp')
-    data = data[maf > maf_cutoff]
-    data = data[pvalue < significance_cutoff]
-    return(data[,c(1:3)])
-}
-
 # This function takes a snps dataframe and makes a coninciding snp file (with chromosome and position columns)
 make_snp_file_subset_by_count_and_index <- function(snp_dataframe, count, index){
     total = nrow(snp_dataframe)
@@ -148,24 +131,6 @@ make_snp_file_subset_by_count_and_index <- function(snp_dataframe, count, index)
     }  
 }
 
-# This function makes a genotype file given a random snp file
-make_genotype_file_given_random_snps <- function(snp_file){
-    snps_gds = snpgdsOpen(paste0(project_path, "/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds"))
-    snp_id_list = as.numeric(gsub('snp', '', snp_file$snp))
-    subject_id_mapping = as.data.frame(read.table(paste0(project_path, '/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv'), sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
-    genotype_list = data.frame(localID = subject_id_mapping$localID)
-    for (snp in snp_id_list){
-        genotype = snpgdsGetGeno(snps_gds, snp.id=snp, with.id = TRUE)
-        genotype_matrix = data.frame(genotype$genotype, scanID = as.numeric(as.character(genotype$sample.id)))
-        subject_id_HIP_genotypes = merge( genotype_matrix, subject_id_mapping, by = "scanID")
-        colnames(subject_id_HIP_genotypes) = c('scanID', paste(snp), 'localID')
-        genotype_list = merge(genotype_list, subject_id_HIP_genotypes[,c('localID', paste(snp))], by = 'localID')
-    }
-    rownames(genotype_list) = genotype_list$localID
-    closefn.gds(snps_gds)
-    return(genotype_list)
-}
-
 
 # This function filters trimming data based on productivity status
 filter_by_productivity <- function(condensed_trimming_dataframe, productive){
@@ -176,22 +141,6 @@ filter_by_productivity <- function(condensed_trimming_dataframe, productive){
         condensed_trimming_dataframe = condensed_trimming_dataframe %>% filter(productive == "FALSE")
     } 
     return(condensed_trimming_dataframe)
-}
-
-# This function compiles trimming data crosses
-compile_trimming_data_cross <- function(){
-    trimming_data_by_gene_all = data.frame()
-    for (trim in c('v_trim', 'd0_trim', 'j_trim')){
-        assign(paste0(trim, '_trimming_data'), as.data.frame(read.table(paste0(project_path, "/tcr-gwas/_ignore/condensed_", trim, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
-        setnames(get(paste0(trim, '_trimming_data')), "patient_id", "localID")
-        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene'), "gene")
-        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene_count'), "gene_count")
-        setnames(get(paste0(trim, '_trimming_data')), paste0('weighted_', substring(trim, 1, 1), '_gene_count'), "weighted_gene_count")
-        gene_type = data.frame(gene_class = rep(paste0(substr(trim, 1, 1), '_gene'), nrow(get(paste0(trim, '_trimming_data')))))
-        assign(paste0(trim, '_trimming_data'), cbind(get(paste0(trim, '_trimming_data')), gene_type))
-        trimming_data_by_gene_all = rbind(trimming_data_by_gene_all, get(paste0(trim, '_trimming_data')))
-    }
-    return(trimming_data_by_gene_all)
 }
 
 # remove snp_genotype columns that are either all NA, or only have one genotype (for everyone)
@@ -208,25 +157,35 @@ remove_matrix_column_by_genotype <- function(genotype_matrix){
     return(genotype_matrix)
 }
 
-read_genotype_pca <- function(){
+read_genotype_pca <- function(type){
+    stopifnot(type %in% c('none', 'pc_air', 'pc_fixed_maggie', 'pc_fixed_dave'))
     subject_id_conversion = read.table(paste0(project_path, '/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv'), sep = "\t", fill=TRUE, header = TRUE)
-    
-    pca_file_name = paste0(project_path, '/tcr-gwas/_ignore/snp_data/population_structure_pca_by_LD_snps.tsv')
-    if (!file.exists(pca_file_name)){
-         system(command = paste0("Rscript ", project_path, "/tcr-gwas/trimming_regression/scripts/population_structure_pca.R "))
+    if (type == 'pc_fixed_maggie'){
+        pca_file_name = paste0(project_path, '/tcr-gwas/_ignore/snp_data/population_structure_pca_by_LD_snps.tsv')
+        if (!file.exists(pca_file_name)){
+            system(command = paste0("Rscript ", project_path, "/tcr-gwas/trimming_regression/scripts/population_structure_pca.R "))
+        }
+    } else if (type == 'pc_fixed_dave'){
+        pca_file_name = paste0(project_path, '/tcr-gwas/_ignore/snp_data/pc_fixed_08Nov2020.txt')
+    } else if (type == 'pc_air'){
+        pca_file_name = paste0(project_path, '/tcr-gwas/_ignore/snp_data/pc_pcair_08Nov2020.txt')
+    } 
+    if (type != 'none'){
+        pca = read.table(pca_file_name, sep = '\t', fill = TRUE, header = TRUE)
+        if ('sample_id' %in% colnames(pca)){
+            pca = merge(subject_id_conversion, pca, by.x = 'scanID', by.y = 'sample_id')[,-c(1,3)]
+        }
+    } else {
+        pca = NULL
     }
-
-    pca = read.table(pca_file_name, sep = '\t', fill = TRUE, header = TRUE)
-
-    together = merge(subject_id_conversion, pca, by.x = 'scanID', by.y = 'sample_id')[,-c(1,3)]
-    return(together)
+    return(pca)
 }
     
 make_regression_file_name <- function(snp_list, trim_type, condensing, random_effects, d_infer, repetitions, pca_structure_correction){
     random_effects_name = ifelse(random_effects == 'True', 'random_effects', 'no_random_effects')
     d_infer_name = ifelse(d_infer == 'True', '_d_infer', '_no_d_infer')
     pca_name = ifelse(pca_structure_correction == 'True', '_pca_correction', '_no_pca_correction')
-    boots = paste0('_', repetitions, '_bootstraps')
+   boots = paste0('_', repetitions, '_bootstraps')
 
     file_name = paste0(output_path, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', condensing, '/', trim_type, '_',snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)],'_snps_regression_with_weighting_condensing_', condensing, '.tsv')
     if (!dir.exists(paste0(output_path, '/cluster_job_results'))){

@@ -15,10 +15,10 @@ while [ $TOTAL_COUNT -lt $EXPECTED_TOTAL ]; do
     JOB_COUNT=$(squeue -u $USER -p $PARTITION | wc -l)
     echo "There are currently $JOB_COUNT jobs submitted to the normal cluster for $TRIM_TYPE"
     while [ $JOB_COUNT -le 1000 ]; do
-        if [ $TOTAL_COUNT -eq $EXPECTED_TOTAL ]; then
+        if [[ "$TOTAL_COUNT" == "$EXPECTED_TOTAL" ]]; then
             break
         fi
-        for CONFIG in $(find $PROJECT_PATH/tcr-gwas/trimming_regression/send_regressions_to_cluster/cluster_directories/$TRIM_TYPE/ -name "run_script_on_cluster.sh" -exec ls {} + ); do
+        for CONFIG in $(find $PROJECT_PATH/tcr-gwas/trimming_regression/send_regressions_to_cluster/cluster_directories/${TRIM_TYPE}_${PCA}/ -name "run_script_on_cluster.sh" -exec ls {} + ); do
             cd $(dirname $CONFIG)
             if test -n "$(find . -maxdepth 1 -name '*sentinel' -print -quit)"
             then
@@ -33,7 +33,7 @@ while [ $TOTAL_COUNT -lt $EXPECTED_TOTAL ]; do
             	    continue
     	        fi
             fi
-            COMMAND="sbatch -c $CPU_COUNT $CONFIG $CPU_COUNT $PCA"
+            COMMAND="sbatch -c $CPU_COUNT -p $PARTITION -q $PARTITION $CONFIG $CPU_COUNT"
             $COMMAND > job_id_running
             echo "Running \`$COMMAND\`"
             JOB_COUNT=$(squeue -u $USER -p $PARTITION | wc -l)

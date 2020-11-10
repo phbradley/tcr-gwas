@@ -16,24 +16,26 @@ source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/compile_data_
 source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/execute_regression_function.R"))
 
 # This function runs regressions on the cluster
-run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, pca_structure_correction, write_table, ncpus, maf_cutoff, data_file_path){
+run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_type, pca_structure_correction, pca_type, write_table, ncpus, maf_cutoff, random_effects){
  
     # parse type (either 'insert' or 'trim')
     stopifnot(args[2] %in% c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vd_insert', 'dj_insert', 'vj_insert'))
     type = strsplit(args[2], '_')[[1]][2]
  
     # Set regression parameters
-    weighting = 'True'
+    weighting = ifelse(type == 'insert', 'False', 'True')
     condensing = ifelse(type == 'insert', 'by_patient', 'by_gene')
     gene_conditioning = ifelse(type == 'insert', 'False', 'True')
-    random_effects = ifelse(type == 'insert', 'False', 'True')
+#    random_effects = ifelse(type == 'insert', 'False', 'True')
     d_infer = ifelse(type == 'insert', 'False', 'True')
     repetitions = ifelse(type == 'insert', 0, 100)
     
     regression_dataframe = data.frame()
 
     # import condensed trimming file
-    trimming_data = compile_condensed_trimming_data(trim_type, d_infer, condensing)
+    condensed_trimming_data = compile_condensed_trimming_data(trim_type, d_infer, condensing)
+    # filter out small repertoires
+    trimming_data = remove_small_repertoire_observations(condensed_trimming_data, productive_log10_count_cutoff= 4.25, NOT_productive_log10_count_cutoff=3.5, trim_type, d_infer)
 
     #filter out snps with maf below cutoff
     if (maf_cutoff == "False"){
@@ -55,7 +57,7 @@ run_snps_trimming_snp_list_cluster <- function(snp_list, genotype_list, trim_typ
     registerDoParallel(cores=ncpus)
     results = foreach(snp=list_of_snps, .combine='rbind') %dopar% {
         RcppParallel::setThreadOptions(1L) 
-        execute_regression(snp, list_of_snps, snp_list, genotype_list, trim_type, condensing, trimming_data, repetitions,pca_structure_correction, weighting, gene_conditioning, random_effects, regression_dataframe)
+        execute_regression(snp, list_of_snps, snp_list, genotype_list, trim_type, condensing, trimming_data, repetitions,pca_structure_correction, pca_type, weighting, gene_conditioning, random_effects, regression_dataframe)
         }
     stopImplicitCluster()
     
