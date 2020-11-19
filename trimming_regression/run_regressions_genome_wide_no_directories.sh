@@ -12,8 +12,6 @@ PCA_TYPE=$5
 
 source parameters.sh $TRIM_TYPE $PCA
 
-bash $PROJECT_PATH/tcr-gwas/trimming_regression/send_regressions_to_cluster/make_combination_directories.sh $TRIM_TYPE $PCA $PCA_TYPE
-
 bash $PROJECT_PATH/tcr-gwas/trimming_regression/send_regressions_to_cluster/continuous_submit.sh $TRIM_TYPE $PCA $PARTITION $CPU_COUNT
 
 cd $PROJECT_PATH/tcr-gwas/trimming_regression/send_regressions_to_cluster/cluster_directories/${TRIM_TYPE}_${PCA}
@@ -29,4 +27,3 @@ echo "finished compiling regressions!"
 
 rm -r $PROJECT_PATH/tcr-gwas/trimming_regression/send_regressions_to_cluster/cluster_directories/${TRIM_TYPE}_${PCA}
 rm -r $REGRESSION_OUTPUT_PATH
-

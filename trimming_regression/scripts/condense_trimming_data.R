@@ -4,7 +4,9 @@ library("plyr")
 library("readr")
 library("stringr")
 
+#need to comment out the next two lines
 #args = commandArgs(trailingOnly=TRUE)
+#project_path = '/home/mrussel2'
 
 infer_d_gene <- function(patient_trimming_table){
     # filter between entries that have missing d_gene and those that do not have a missing dgene
@@ -62,6 +64,19 @@ infer_d_gene <- function(patient_trimming_table){
     return(inferred)
 }
 
+combine_genes_by_common_cdr3 <- function(gene_type){
+    cdr3 = fread(file = paste0(project_path, '/tcr-gwas/_ignore/human_vj_allele_cdr3_nucseqs.tsv'))
+    cdr3$gene = str_split(cdr3$id, fixed('*'), simplify = TRUE)[,1]
+    # add d genes
+    cdr3 = rbind(cdr3, data.frame(cdr3_nucseq = c('NA', 'NA', 'NA'), id = c("TRBD1*01", "TRBD2*01", "TRBD2*02"), gene = c("TRBD1*01", "TRBD2*01", "TRBD2*02")))
+    cdr3 = cdr3[,cdr3_gene_group := .GRP, by = .(cdr3_nucseq, gene)]
+    #cdr3$gene_type = paste0(tolower(str_sub(cdr3$id, 4,4)), '_gene')
+    #cdr3 = cdr3[gene_type == gene_type]
+    cdr3_small = cdr3[,c('id', 'cdr3_gene_group')]
+    return(cdr3_small)
+}
+
+
 condense_trim_data <- function(trim_types, infer_d, condensing){
     dir = paste0(project_path, '/tcr-gwas/_ignore/emerson_stats/')
     files = list.files(path=dir, pattern="*.tsv", full.names=TRUE)
@@ -76,32 +91,38 @@ condense_trim_data <- function(trim_types, infer_d, condensing){
     for (file in files){
         count = count + 1
         # read file...
-        temp_file = data.table()
+        temp_file_original = data.table()
         temp_file_condensed = data.table()
-        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
-        temp_file = as.data.table(temp_file)
-        file_name = str_split(file, "/")[[1]][7]
+        temp_file_original = fread(file, sep = "\t", fill=TRUE, header = TRUE)
+        temp_file_original = as.data.table(temp_file_original)
+        file_name = str_split(file, "/")[[1]][8]
         file_root_name = str_split(file_name, ".tsv")[[1]][1]
         patient_id = str_split(file_root_name, "_")[[1]][3]
-        temp_file$patient_id = patient_id
+        temp_file_original$patient_id = patient_id
 
         # Infer d genes (when d gene is missing)
         if (infer_d == 'True'){
-            temp_file = infer_d_gene(temp_file)
+            temp_file_original = infer_d_gene(temp_file_original)
         } else {
-            temp_file = temp_file[d_gene != '-']
+            temp_file_original = temp_file_original[d_gene != '-']
         }
-        if (condensing == 'by_gene'){        
+        if (condensing == 'by_gene' | condensing == 'by_cdr3'){        
             for (trim in trim_types){
                 together = data.table()
 
                 if ((str_split(trim, "_")[[1]][2])== "trim"){
                     # extract gene type (separate from '_trim')
                     gene_type = paste0(substr(trim, 1, 1), '_gene')
+                    if (condensing == 'by_cdr3'){
+                        cdr3 = combine_genes_by_common_cdr3(gene_type)
+                        temp_file = merge(temp_file_original, cdr3, by.x = gene_type, by.y = 'id')
+                        conditioning_variable = 'cdr3_gene_group' 
+                    } else if (condensing == 'by_gene'){
+                        conditioning_variable = gene_type
+                    }
 
                     # condense patient file by gene type (and take the mean trimming for each gene type)
-                    together = temp_file[,.(mean(v_trim), mean(d0_trim), mean(d1_trim), mean(j_trim), mean(vj_insert), mean(dj_insert), mean(vd_insert), .N), by = .(patient_id, eval(parse(text=gene_type)), productive)]
-
+                    together = temp_file[,.(mean(v_trim), mean(d0_trim), mean(d1_trim), mean(j_trim), mean(vj_insert), mean(dj_insert), mean(vd_insert), .N), by = .(patient_id, eval(parse(text=conditioning_variable)), productive)]
                     colnames(together) = c("patient_id", paste(gene_type), "productive", "v_trim", "d0_trim", "d1_trim", "j_trim", "vj_insert","dj_insert", "vd_insert", paste0(gene_type, '_count'))
                 } else if ((str_split(trim, "_")[[1]][2])== "insert"){
                     # extract gene type (separate from '_trim')
@@ -119,7 +140,7 @@ condense_trim_data <- function(trim_types, infer_d, condensing){
                 assign(paste0('condensed_', trim, '_data'), rbind(get(paste0('condensed_', trim, '_data')), together))
                 print(paste0(count," of ", length(files), " processed for ", trim))
             
-                filename = ifelse(infer_d == 'True', paste0(project_path, '/tcr-gwas/_ignore/condensed_', trim,'_data_all_patients.tsv'), paste0(project_path, '/tcr-gwas/_ignore/condensed_', trim,'_data_all_patients_NO_d_gene_infer.tsv'))
+                filename = ifelse(infer_d == 'True', paste0(project_path, '/tcr-gwas/_ignore/', condensing, '_condensed_', trim,'_data_all_patients.tsv'), paste0(project_path, '/tcr-gwas/_ignore/', condensing, '_condensed_', trim,'_data_all_patients_NO_d_gene_infer.tsv'))
         
                 write.table(get(paste0('condensed_', trim, '_data')), file=filename, quote=FALSE, sep='\t', col.names = NA)
             }
@@ -140,11 +161,15 @@ condense_trim_data <- function(trim_types, infer_d, condensing){
 }
 
 
-#stopifnot(args[1] %in% c('trimming', 'insertion')
-#types = ifelse(args[1] == 'trimming', c('v_trim', 'd0_trim', 'd1_trim', 'j_trim'), c('vd_insert', 'vj_insert', 'dj_insert'))
+#stopifnot(args[1] %in% c('trimming', 'insertion'))
+#if (args[1] == 'trimming'){
+#    types = c('v_trim', 'd0_trim', 'd1_trim', 'j_trim')
+#} else {
+#    types = c('vd_insert', 'vj_insert', 'dj_insert')
+#}
 
-#stopifnot(args[2] %in% c('True', 'False')
-#stopifnot(args[3] %in% c('by_gene', 'by_patient')
+#stopifnot(args[2] %in% c('True', 'False'))
+#stopifnot(args[3] %in% c('by_cdr3', 'by_gene', 'by_patient'))
 
 #condense_trim_data(trim_types = types, infer_d = args[2], condensing = args[3])
 

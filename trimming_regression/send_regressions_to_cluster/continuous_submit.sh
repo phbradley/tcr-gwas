@@ -15,6 +15,7 @@ while [ $TOTAL_COUNT -lt $EXPECTED_TOTAL ]; do
     JOB_COUNT=$(squeue -u $USER -p $PARTITION | wc -l)
     echo "There are currently $JOB_COUNT jobs submitted to the normal cluster for $TRIM_TYPE"
     while [ $JOB_COUNT -le 1000 ]; do
+        TOTAL_COUNT=$(ls $REGRESSION_OUTPUT_PATH | wc -l)
         if [[ "$TOTAL_COUNT" == "$EXPECTED_TOTAL" ]]; then
             break
         fi
@@ -44,7 +45,6 @@ while [ $TOTAL_COUNT -lt $EXPECTED_TOTAL ]; do
         done
     done
     echo "There are currently $JOB_COUNT jobs submitted to the normal cluster and $TOTAL_COUNT jobs completed overall for $TRIM_TYPE"
-    sleep 2m
     TOTAL_COUNT=$(ls $REGRESSION_OUTPUT_PATH | wc -l)
 done
 echo "Finished with regressions"

@@ -1,4 +1,4 @@
-source(paste0(project_path, "/tcr-gwas/trimming_regression/scripts/compile_data_functions.R"))
+source(paste0(PROJECT_PATH, "/tcr-gwas/trimming_regression/scripts/compile_data_functions.R"))
 
 library('RhpcBLASctl')
 library('data.table')
@@ -23,9 +23,11 @@ calculate_maf_by_snp_file <- function(genotype_data_filtered, complete_dt){
         gt_individual_count = c(gt_individual_count, sum(genotype_dt[[column]] %in% c(0,1,2)))
         snp_list = c(snp_list, column)
     }
-    gt_individuals = data.table(snp = paste0('snp', snp_list), individual_count = gt_individual_count)
+    gt_individuals = data.table(snp = paste0('snp', snp_list), 
+                                individual_count = gt_individual_count)
     
-    gt_sums = data.table(snp = paste0('snp', colnames(genotype_data_filtered)), gt_sums = colSums(genotype_data_filtered, na.rm = TRUE))
+    gt_sums = data.table(snp = paste0('snp', colnames(genotype_data_filtered)), 
+                         gt_sums = colSums(genotype_data_filtered, na.rm = TRUE))
 
     gt_stats = merge(gt_individuals, gt_sums)
     
@@ -45,7 +47,9 @@ foreach(snp_start = seq(1, 35481497, count)) %dopar% {
         genotype_data_filtered = remove_matrix_column_by_genotype(genotype_data)
         print(paste0('starting calculation for snps starting at ', snp_start))
         results = calculate_maf_by_snp_file(genotype_data_filtered)
-        write.table(results, file=paste0(output_path, '/maf_results/maf_snps_starting_', snp_start, '.tsv'), quote=FALSE, sep='\t', col.names = NA)
+        write.table(results, file=paste0(OUTPUT_PATH, 
+                                         '/maf_results/maf_snps_starting_', snp_start, '.tsv'), 
+                    quote=FALSE, sep='\t', col.names = NA)
         }
 stopImplicitCluster()
 

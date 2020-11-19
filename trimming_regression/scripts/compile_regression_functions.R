@@ -7,14 +7,15 @@ library(tidyverse)
 #blas_set_num_threads(1)
 setDTthreads(threads = 1)
 
-source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions.R')
-source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_data_functions.R')
+source(paste0(PROJECT_PATH, "/tcr-gwas/trimming_regression/scripts/config.R"))
+source(paste0(PROJECT_PATH, '/tcr-gwas/trimming_regression/scripts/regression_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/trimming_regression/scripts/compile_data_functions.R'))
 
 
-find_files <- function(trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction){
+find_files <- function(trim_type, pca_structure_correction){
     #make arbitrary snp list
     snp_list = data.frame(snp = seq(1,100))
-    file_name = make_regression_file_name(snp_list, trim_type, condensing, random_effects, d_infer, repetitions, pca_structure_correction)
+    file_name = make_regression_file_name(snp_list, trim_type, pca_structure_correction)
     path_name = paste0('/', paste(strsplit(file_name, '/')[[1]][-c(1,12)], collapse = '/'))
     file_pattern = paste0('*_', paste(strsplit(strsplit(file_name, '/')[[1]][12], '_')[[1]][-c(1:3)], collapse = '_'))
         
@@ -24,20 +25,14 @@ find_files <- function(trim_type, random_effects, condensing, d_infer, repetitio
 
 
 # This script compiles all regression data from cluster across the entire genome
-compile_all_data_from_cluster_sequential <- function(trim_type, pca_structure_correction){
+compile_all_data_from_cluster_sequential <- function(trim_type, pca_structure_correction, pca_type){
     bonferroni = 0.05/35481497
 
     # parse type (either 'insert' or 'trim')
     stopifnot(trim_type %in% c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vd_insert', 'dj_insert', 'vj_insert'))
-    type = strsplit(trim_type, '_')[[1]][2]
+    set_regression_parameters(trim_type)
  
-    # Set regression parameters
-    condensing = ifelse(type == 'insert', 'by_patient', 'by_gene')
-    random_effects = ifelse(type == 'insert', 'False', 'True')
-    d_infer = ifelse(type == 'insert', 'False', 'True')
-    repetitions = ifelse(type == 'insert', 0, 100)
- 
-    data_files = find_files(trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction)
+    data_files = find_files(trim_type, pca_structure_correction)
   
     print(paste0('compile file list for ', trim_type))
     assign(paste0('together_list_', trim_type), NULL)
@@ -50,30 +45,36 @@ compile_all_data_from_cluster_sequential <- function(trim_type, pca_structure_co
         temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
         #together = rbind(together, temp_file)
         if (ncol(temp_file) > 2){
-            assign(paste0('together_list_', trim_type), rbindlist(list(get(paste0('together_list_', trim_type)), temp_file)))
+            assign(paste0('together_list_', trim_type), 
+                   rbindlist(list(get(paste0('together_list_', trim_type)), temp_file)))
         }
         count = count + 1
         print(paste0(count, ' of ', length(data_files), ' completed for ', trim_type))
     }
     assign('together', get(paste0('together_list_', trim_type)))
-    subset_and_write_df(together, trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction, ncpus = 1)
+    subset_and_write_df(together, trim_type, pca_structure_correction, pca_type, ncpus = 1)
 }
 
-# This script compiles all regression data from cluster across the entire genome
-compile_all_data_from_cluster_for_parallel <- function(file, data_files, trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction){
-    index = which(file == data_files)
 
-    # read file...
-    if (file.size(file) > 1){
-        temp_file = fread(file, sep = "\t", fill=TRUE, header = TRUE)
-        print(paste0('finished ', index, ' of ', length(data_files)))
-    
-        return(temp_file)
+make_compiled_regression_file_name <- function(productivity, trim_type, pca_structure_correction, pca_type){
+    random_effects_name = ifelse(RANDOM_EFFECTS == 'True', '_random_effects', '_no_random_effects')
+    d_infer_name = ifelse(D_INFER == 'True', '_d_infer', '_no_d_infer')
+    pca_name = ifelse(pca_structure_correction == 'True', '_pca_correction', '_no_pca_correction')
+    boots = paste0('_', REPETITIONS, '_bootstraps')
+    weight_name = ifelse(WEIGHTING=='True', '_with_weighting', '')
+
+    file_name = paste0(OUTPUT_PATH, 
+                       '/results/', 
+                       productivity, '_', trim_type, '_snps_regression', weight_name, '_condensing_', CONDENSING, random_effects_name, d_infer_name, pca_name, boots,'_', pca_type, '.tsv')
+    if (!dir.exists(paste0(OUTPUT_PATH, '/results'))){
+        system(paste0('mkdir ', OUTPUT_PATH, '/results'))
     }
+    return(file_name)
 }
 
 
-subset_and_write_df <- function(together, trim_type, random_effects, condensing, d_infer, repetitions, pca_structure_correction, ncpus){
+
+subset_and_write_df <- function(together, trim_type, pca_structure_correction, pca_type, ncpus){
 
     setDTthreads(threads = ncpus)
 
@@ -86,24 +87,13 @@ subset_and_write_df <- function(together, trim_type, random_effects, condensing,
     together_productive = get(paste0('together_productive_', trim_type))
     together_NOT_productive = get(paste0('together_NOT_productive_', trim_type))
 
-    if (random_effects == 'True'){
-         file_name = paste0(trim_type, '_snps_regression_with_weighting_condensing_', condensing,'_with_random_effects_', repetitions, '_bootstraps')
-    } else {
-         file_name = paste0(trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', repetitions, '_bootstraps')
-    }
-
-    if (d_infer == 'False'){
-        file_name = paste0(file_name, '_NO_d_infer')
-    } 
-
-    if (pca_structure_correction == 'True'){
-        file_name = paste0(file_name, '_WITH_pca_structure_correction.tsv')
-    } else{
-        file_name = paste0(file_name, '.tsv')
-    }
-        
-
-    write.table(together_productive, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive_', file_name), quote=FALSE, sep='\t', col.names = NA)
-    write.table(together_NOT_productive, file=paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/NOT_productive_', file_name), quote=FALSE, sep='\t', col.names = NA)
+    write.table(together_productive, file = make_compiled_regression_file_name(productivity = 'productive', 
+                                                                               trim_type, 
+                                                                               pca_structure_correction, 
+                                                                               pca_type) , quote=FALSE, sep='\t', col.names = NA)
+    write.table(together_NOT_productive, file = make_compiled_regression_file_name(productivity = 'NOT_productive', 
+                                                                                   trim_type, 
+                                                                                   pca_structure_correction, 
+                                                                                   pca_type), quote=FALSE, sep='\t', col.names = NA)
 }
 

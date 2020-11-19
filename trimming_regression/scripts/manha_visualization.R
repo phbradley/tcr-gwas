@@ -14,55 +14,15 @@ source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions
 
 # This script compiles all regression data from cluster across the entire genome
 
-compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction){
-    if (random_effects == 'True'){
-         first_pass_file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_count, '_bootstraps')
-         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_', bootstrap_rerun_count, '_bootstraps')
-    } else {
-         first_pass_file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_count, '_bootstraps')
-         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_', bootstrap_rerun_count, '_bootstraps')
-    }
+compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type){
+    productive_file_name = make_compiled_regression_file_name(productivity = 'productive', trim_type, weighting, condensing, random_effects, d_infer, repetitions, pca_structure_correction, pca_type) 
+     NOT_productive_file_name = make_compiled_regression_file_name(productivity = 'NOT_productive', trim_type, weighting, condensing, random_effects, d_infer, repetitions, pca_structure_correction, pca_type) 
+   
+    productive_data = fread(productive_file_name, sep = "\t", fill=TRUE, header = TRUE)
+    not_productive_data = fread(NOT_productive_file_name, sep = "\t", fill=TRUE, header = TRUE)
     
-    if (d_infer == 'False'){
-        file_name = paste0(file_name, '_NO_d_infer')
-        first_pass_file_name = paste0(first_pass_file_name, '_NO_d_infer.tsv')
-    } else {
-        first_pass_file_name = paste0(first_pass_file_name, '.tsv')
-    }
-    
-    productive_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive', first_pass_file_name), sep = "\t", fill=TRUE, header = TRUE)
-    not_productive_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/NOT_productive', first_pass_file_name), sep = "\t", fill=TRUE, header = TRUE)
-    
-    if (pca_structure_correction == 'True'){
-        file_name = paste0(file_name, '_WITH_pca_structure_correction.tsv')
-    } else{
-        file_name = paste0(file_name, '.tsv')
-    }
-
-    prod_file_path = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/productive', file_name)
-    NOTprod_file_path = paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/results/NOT_productive', file_name)
-        
-    if (bootstrap_rerun_count != 'False' & file.exists(prod_file_path) & file.exists(NOTprod_file_path)){
-        productive_boot_data = fread(prod_file_path, sep = "\t", fill=TRUE, header = TRUE)
-        productive_boot_data = productive_boot_data[!duplicated(productive_boot_data$snp)]
-        not_productive_boot_data = fread(NOTprod_file_path, sep = "\t", fill=TRUE, header = TRUE)
-        not_productive_boot_data = not_productive_boot_data[!duplicated(not_productive_boot_data$snp)]
-        data_boot = rbind(productive_boot_data, not_productive_boot_data)[,-c(1,2)]
-        data_boot$bootstraps = paste0(bootstrap_rerun_count, '_bootstraps')
-
-        # remove snps from non-bootstrapped dataframe if they have been boostrapped
-        productive_data = productive_data[!productive_data$snp %in% productive_boot_data$snp,]
-        not_productive_data = not_productive_data[!not_productive_data$snp %in% not_productive_boot_data$snp,]
-        data = rbind(productive_data, not_productive_data)[,-c(1,2)]
-        data$bootstraps = paste0(bootstrap_count, '_bootstraps')
-
-        data = rbind(data, data_boot)
-        data = merge(data, maf_data, by = 'snp')
-    } else {
-        data = rbind(productive_data, not_productive_data)[,-c(1,2)]
-        data = merge(data, maf_data, by = 'snp')
-        data$bootstraps = paste0(bootstrap_count, '_bootstraps')
-    }
+    data = rbind(productive_data, not_productive_data)[,-c(1,2)]
+    data = merge(data, maf_data, by = 'snp')
 
     if (maf_cutoff != 'False'){
         data = data[maf > maf_cutoff]
@@ -75,23 +35,26 @@ compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, con
 
 # This script makes a manhattan plot for the entire genome!
 
-manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, condensing, d_infer, plotting_cutoff, gene_annotations, maf_cutoff, bootstrap_rerun_count, pca_structure_correction, subset = 'False'){
+manhattan_plot_cluster <- function(trim_type, random_effects, repetitions, condensing, d_infer, plotting_cutoff, gene_annotations, maf_cutoff, pca_structure_correction, pca_type, subset = 'False'){
     bonferroni = 0.05/35481497
     maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
 
     if (trim_type == 'all_trim'){
         data = data.frame()
         for (trim in c('v_trim', 'd0_trim', 'd1_trim', 'j_trim')){
-            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+            data = rbind(data,compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type)) 
         }
     } else if (trim_type == 'all_insert'){
         data = data.frame()
         for (trim in c('vj_insert', 'vd_insert', 'dj_insert')){
-            data = rbind(data, compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction))
+            data = rbind(data,compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type)) 
         }
     } else {
-        data = compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, d_infer, bootstrap_count, maf_cutoff, bootstrap_rerun_count, pca_structure_correction)
+        data = rbind(data,compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type)) 
     }
+
+    data$bootstrap_count = paste0(data$boostraps, '_bootstraps')
+
     if (trim_type == 'all_trim'){
         title = 'All trimming types'
     } else if (trim_type == 'all_insert'){
@@ -107,7 +70,7 @@ manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, c
     #}
 
     if (pca_structure_correction == 'True'){
-         title = paste0(title, ' with population structure PCA correction')
+         title = paste0(title, ' with population structure PCA correction using ', pca_type, ' PCs')
     }
 
     if (plotting_cutoff != 'False'){
@@ -138,7 +101,7 @@ manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, c
 
     if (gene_annotations == 'False'){
         ggplot(data) + 
-            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = point_size) + 
+            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstrap_count), alpha = 0.5, size = point_size) + 
             facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + 
             theme_classic() + 
             theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ 
@@ -149,7 +112,7 @@ manhattan_plot_cluster <- function(trim_type, random_effects, bootstrap_count, c
             guides(color = 'legend', shape = 'none')
     } else {
         ggplot(data) + 
-            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstraps), alpha = 0.5, size = point_size) + 
+            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=trim_type, shape = bootstrap_count), alpha = 0.5, size = point_size) + 
             geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = alpha_gene) + 
             facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + 
             theme_classic() + 
