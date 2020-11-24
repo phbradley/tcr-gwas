@@ -18,7 +18,6 @@ PCA_TYPE <<- args[7]
 
 # set config variables for regression
 source(paste0(PROJECT_PATH, "/tcr-gwas/trimming_regression/scripts/config.R"))
-set_regression_parameters(TRIM_TYPE)
 
 # import functions
 source(paste0(PROJECT_PATH, "/tcr-gwas/trimming_regression/scripts/run_bootstrap_regression_all_snps_functions_cluster.R"))
@@ -38,7 +37,7 @@ run_snps_trimming_snp_list_cluster(snp_list = snp_data,
                                    trim_type = TRIM_TYPE, 
                                    pca_structure_correction = PCA_STRUCTURE_CORRECTION, 
                                    pca_type = PCA_TYPE, 
-                                   write_table = 'False') 
+                                   write_table = 'True') 
 
 
 print(paste0("Finished regressions for ", TRIM_TYPE, " for snps ", START, '-', as.character(as.numeric(START)+count)))

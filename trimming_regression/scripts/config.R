@@ -15,4 +15,4 @@ set_regression_parameters <- function(trim_type){
     MAF_CUTOFF <<- 0.05
 }
 
-
+set_regression_parameters(TRIM_TYPE)

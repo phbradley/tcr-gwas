@@ -59,7 +59,7 @@ clusboot_lmer <- function(regression, data, cluster_variable, trim_type, RANDOM_
             control=lmerControl(check.conv.singular = .makeCC(action = "ignore",  tol = 1e-4))
 
             if (WEIGHTING == 'True'){
-                regression_temp = lmer(formula, bootdat, weights = get(weight), control = control)
+                regression_temp = eval(bquote(lmer(formula, bootdat, weights = .(as.name(weight)), control = control)))
                 standard_errors[i,] <- c(colMeans(coef((regression_temp))$localID[1]), colMeans(coef(regression_temp)$localID[2]))
             } else {
                 regression_temp =lmer(formula, bootdat, control = control)
@@ -67,7 +67,7 @@ clusboot_lmer <- function(regression, data, cluster_variable, trim_type, RANDOM_
             }
         } else {
             if (WEIGHTING == 'True'){
-                regression_temp = lm(formula = formula, data = bootdat, weights = get(weight))
+                regression_temp = eval(bquote(lm(formula = formula, data = bootdat, weights = .(as.name(weight)))))
                 standard_errors[i,] <- c(coef(regression_temp)[1], coef(regression_temp)[2])
             } else {
                 regression_temp = lm(formula = formula, data = bootdat)   

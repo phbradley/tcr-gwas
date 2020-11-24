@@ -7,7 +7,6 @@ library(tidyverse)
 #blas_set_num_threads(1)
 setDTthreads(threads = 1)
 
-source(paste0(PROJECT_PATH, "/tcr-gwas/trimming_regression/scripts/config.R"))
 source(paste0(PROJECT_PATH, '/tcr-gwas/trimming_regression/scripts/regression_functions.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/trimming_regression/scripts/compile_data_functions.R'))
 
@@ -30,7 +29,6 @@ compile_all_data_from_cluster_sequential <- function(trim_type, pca_structure_co
 
     # parse type (either 'insert' or 'trim')
     stopifnot(trim_type %in% c('v_trim', 'd0_trim', 'd1_trim', 'j_trim', 'vd_insert', 'dj_insert', 'vj_insert'))
-    set_regression_parameters(trim_type)
  
     data_files = find_files(trim_type, pca_structure_correction)
   
