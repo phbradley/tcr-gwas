@@ -14,9 +14,9 @@ source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions
 
 # This script compiles all regression data from cluster across the entire genome
 
-compile_manhattan_plot_data <- function(trim_type, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type){
-    productive_file_name = make_compiled_regression_file_name(productivity = 'productive', trim_type, weighting, condensing, random_effects, d_infer, repetitions, pca_structure_correction, pca_type) 
-     NOT_productive_file_name = make_compiled_regression_file_name(productivity = 'NOT_productive', trim_type, weighting, condensing, random_effects, d_infer, repetitions, pca_structure_correction, pca_type) 
+compile_manhattan_plot_data <- function(trim_type, maf_data, maf_cutoff, pca_structure_correction, pca_type){
+    productive_file_name = make_compiled_regression_file_name(productivity = 'productive', trim_type, pca_structure_correction, pca_type) 
+     NOT_productive_file_name = make_compiled_regression_file_name(productivity = 'NOT_productive', trim_type, pca_structure_correction, pca_type) 
    
     productive_data = fread(productive_file_name, sep = "\t", fill=TRUE, header = TRUE)
     not_productive_data = fread(NOT_productive_file_name, sep = "\t", fill=TRUE, header = TRUE)
@@ -42,15 +42,15 @@ manhattan_plot_cluster <- function(trim_type, random_effects, repetitions, conde
     if (trim_type == 'all_trim'){
         data = data.frame()
         for (trim in c('v_trim', 'd0_trim', 'd1_trim', 'j_trim')){
-            data = rbind(data,compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type)) 
+            data = rbind(data,compile_manhattan_plot_data(trim_type = trim, maf_data, maf_cutoff, pca_structure_correction, pca_type)) 
         }
     } else if (trim_type == 'all_insert'){
         data = data.frame()
         for (trim in c('vj_insert', 'vd_insert', 'dj_insert')){
-            data = rbind(data,compile_manhattan_plot_data(trim_type = trim, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type)) 
+            data = rbind(data,compile_manhattan_plot_data(trim_type = trim, maf_data, maf_cutoff, pca_structure_correction, pca_type)) 
         }
     } else {
-        data = rbind(data,compile_manhattan_plot_data(trim_type, maf_data, random_effects, condensing, d_infer, repetitions, maf_cutoff, pca_structure_correction, pca_type)) 
+        data = rbind(data,compile_manhattan_plot_data(trim_type, maf_data, maf_cutoff, pca_structure_correction, pca_type)) 
     }
 
     data$bootstrap_count = paste0(data$boostraps, '_bootstraps')

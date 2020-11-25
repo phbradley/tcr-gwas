@@ -30,10 +30,10 @@ run_snps_trimming_snp_list_cluster_by_race <- function(snp_list, genotype_list, 
                                                          NOT_productive_log10_count_cutoff=3.5, 
                                                          trim_type) 
     
-    ethnicity_data = fread(file = '/home/mrussel2/tcr-gwas/_ignore/snp_data/ethnicity_data.csv')   
-
-    together = merge(trimming_data, ethnicity_data, by.x = 'localID', by.y = 'id')
-
+    ethnicity_data = fread(file = '/home/mrussel2/tcr-gwas/_ignore/race_pcs_18Nov2020.txt')   
+    ethnicity_data = ethnicity_data[, c('localID', 'race.g')]
+    colnames(ethnicity_data) = c('localID', 'race')
+    together = merge(trimming_data, ethnicity_data, by = 'localID')
 
     #filter out snps with maf below cutoff
     list_of_snps = filtered_snps_by_maf(MAF_CUTOFF, genotype_list)
