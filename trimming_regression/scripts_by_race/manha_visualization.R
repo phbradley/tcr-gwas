@@ -107,7 +107,7 @@ manhattan_plot_cluster_by_race_gene <- function(trim_type, plotting_cutoff, subs
     if (subset_by_race == 'True'){
         data_subset = data[race != 'all_together' & race != 'Middle Eastern' & race != 'African']
         plot <- ggplot(data_subset) + 
-            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=race), alpha = 0.5, size = point_size) + 
+            geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=race, shape=productivity), alpha = 0.5, size = point_size) + 
             geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = alpha_gene) + 
             facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + 
             theme_classic() + 
@@ -115,38 +115,8 @@ manhattan_plot_cluster_by_race_gene <- function(trim_type, plotting_cutoff, subs
             theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_text(size = 12, angle = 90))+ 
             labs(y="-log10(p-value)", x="Chromosome Position") + 
             ggtitle(title) + 
-            scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) +
-            guides(color = 'legend', shape = 'none', fill = 'legend')
+            scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) 
     }
     plot
 }
 
-# This script makes a manhattan plot for a specific regression file
-
-manhattan_plot_specific_file <- function(filename, trim_type, add_gene_annotations, maf_cutoff, bootstrap_count){
-    bonferroni = 0.05/35481497
-    data = fread(filename, sep = "\t", fill=TRUE, header = TRUE)
-    maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
-
-    data = merge(data, maf_data, by = 'snp')
-
-    if (maf_cutoff != 'False'){
-        data = data[maf > maf_cutoff]
-        title = paste0(trim_type, ' plot with ', bootstrap_count, ' bootstraps and ', maf_cutoff, ' MAF cutoff')
-    } else {
-        title = paste0(trim_type, ' plot with ', bootstrap_count, ' bootstraps')
-    }
-
-    genes = c('artemis', 'mhc', 'dntt', 'rag', 'tcrb', 'tcra')
-    chr = c(10, 6, 10, 11, 7, 14)
-    pos1 = c(14939358, 25912984, 98064085, 36510709, 141998851, 22090057)
-    pos2 = c(14996431, 33290793, 98098321, 36593156, 142510972, 23021075)
-
-    gene_annotations = data.frame(genes = genes, chr = chr, pos1 = pos1, pos2 = pos2)
-
-    if (add_gene_annotations == 'False'){
-        ggplot(data) + geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=productivity), alpha = 0.5, size = 2.5) + facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + theme_classic() + theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ labs(y="-log10(p-value)", x="Chromosome Position") + geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + ggtitle(title) + scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8))
-    } else if (add_gene_annotations == 'True'){
-        ggplot(data) + geom_point(aes(x = hg19_pos, y = -log10(pvalue), color=productivity), alpha = 0.5, size = 2.5) + geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = 0.5) + facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") + theme_classic() + theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 30), axis.text.x = element_text(size = 8, angle = 90))+ labs(y="-log10(p-value)", x="Chromosome Position") + geom_hline(yintercept=-log10(bonferroni), linetype="dashed", color = "green4", size=1.5) + ggtitle(title) + scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8))
-    }
-}
