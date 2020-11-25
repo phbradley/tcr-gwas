@@ -46,7 +46,10 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, CO
 
     # Indicate which snp we are regressing
     snpID = names(snps_dataframe)[-c(1)]
-    
+    snpnum = sub('snp', '', snpID)
+    meta_data = snp_list %>% filter(snp == snpnum)
+    meta_data$snp = snpID
+
     colnames(snps_dataframe) = c('localID', 'snp')
     # merge snp data and trimming data
     snps_trimming_data = merge(snps_dataframe, condensed_trimming_dataframe, by = "localID")
@@ -79,9 +82,11 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, CO
     }
 
     total_results = as.data.frame(summary(regression)$coefficients)
-    total_results$variable = rownames(total_results)
+    total_results$variable = sub('as\\.factor\\(race\\.g\\)', '', unlist(rownames(total_results)))
     total_results$snp = snpID
-
+    rownames(total_results) = NULL
+    total_results = merge(total_results, meta_data)
+    
     if (substr(snp_list$snp[1], 1, 3) != 'snp'){
         snp_list$snp = paste0('snp', snp_list$snp)
     }
