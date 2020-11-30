@@ -41,8 +41,9 @@ together_inserts = together_inserts[productive == 'FALSE', productivity_status :
 #look at mean inserts by racial group
 for (data in c('together_trims', 'together_inserts')){
     df = get(data)
-    title = ifelse(data == 'together_trims', 'Total Trimming Length Average by Ethnicity', 'Total Insertion Length Average by Ethnicity')
-    filename = ifelse(data == 'together_trims', 'figures/trim_average_by_ethnicity.png', 'figures/insert_average_by_ethnicity.png')
+    yname = ifelse(data == 'together_trims', 'Mean total trimming length', 'Mean total insertion length')
+    title = ifelse(data == 'together_trims', 'Mean total trimming length by racial group', 'Mean total insertion length by racial group')
+    filename = ifelse(data == 'together_trims', 'figures/trim_average_by_ethnicity.pdf', 'figures/insert_average_by_ethnicity.pdf')
     average_all = df[, mean(total_trim), by = .(productivity_status)]
     colnames(average_all) = c('productivity_status', 'total_avg')
 
@@ -50,13 +51,16 @@ for (data in c('together_trims', 'together_inserts')){
         facet_grid(cols = vars(productivity_status)) +
         geom_boxplot() +
         geom_jitter(shape=16, position=position_jitter(0.2), size = 3.5, alpha = 0.5) +
+        stat_compare_means(label = "p.signif", method = "t.test", ref.group = ".all.") +
         theme_classic() + 
-        theme(text = element_text(size = 30), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
+        theme(text = element_text(size = 18), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
         ggtitle(title) +
         geom_hline(data = average_all, aes(yintercept = total_avg), size = 2, color = 'green', linetype = 2) +
-        stat_compare_means(label = "p.signif", method = "t.test", ref.group = ".all.")
+        xlab('Racial Group') +
+        ylab(yname) 
 
-    ggsave(filename, plot = last_plot(), width = 25, height = 10, units = 'in', dpi = 500)
+
+    ggsave(filename, plot = last_plot(), width = 18, height = 6, units = 'in', dpi = 500)
 }
 
 
