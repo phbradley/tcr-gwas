@@ -7,10 +7,10 @@ blas_set_num_threads(1)
 
 # This function calculates the bootstrap-free p-value 
 # (so the pvalue from the initial regression is calculated using the variance, covariance matrix from the regression)
-bootstrap_screen <- function(regression, RANDOM_EFFECTS){
+bootstrap_screen <- function(regression, RANDOM_EFFECTS, by_race){
     # extract standard error from regression object for snp slope
-    se = sqrt(diag(vcov(regression)))[PVALUE_VARIABLE]
-    slope = ifelse(RANDOM_EFFECTS == 'True', fixef(regression)[PVALUE_VARIABLE], coef(regression)[PVALUE_VARIABLE])
+    se = sqrt(diag(vcov(regression)))[2]
+    slope = ifelse(RANDOM_EFFECTS == 'True', fixef(regression)['snp'], coef(regression)['snp'])
     # zscore calculation
     zscore = slope/se
     # calculate two sided pvalue

@@ -1,0 +1,49 @@
+---
+title: "VDJ trimming/insertion regression by SNPs across the genome"
+output:
+  html_document:
+    fig_crop: no
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
+fig_width: 26
+fig_height: 10 
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(Cairo)
+knitr::opts_chunk$set(dev="CairoPNG")
+knitr::opts_chunk$set(fig.width=26, fig.height=10, dpi = 300) 
+knitr::opts_chunk$set(fig.path = "/home/mrussel2/tcr-gwas/trimming_regression/figures/genome/")
+
+project_path = '/home/mrussel2'
+output_path = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output'
+# Set bootstrap rerun count and pca structure correction variables globally
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_data_functions.R")
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_regression_functions.R")
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts/manha_visualization.R")
+setDTthreads(1)
+
+set_regression_parameters(trim_type = 'all_insert')
+```
+
+All insertion regressions, no PCs:
+```{r ALL_insertion_plot_no_pc, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_insert', random_effects, repetitions, condensing, d_infer, plotting_cutoff=4, gene_annotations,maf_cutoff= 0.05, pca_structure_correction = 'False', pca_type = 'none')
+```
+
+All insertion regressions, Maggie's PCs:
+```{r ALL_insertion_plot_maggie_pc, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_insert', random_effects, repetitions, condensing, d_infer, plotting_cutoff=4, gene_annotations,maf_cutoff= 0.05, pca_structure_correction = 'True', pca_type = 'pc_fixed_maggie')
+```
+
+All insertion regressions, Dave's PCAir PCs (1 PC):
+```{r ALL_insertion_plot_pc_air, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_insert', random_effects, repetitions, condensing, d_infer, plotting_cutoff=4, gene_annotations,maf_cutoff= 0.05, pca_structure_correction = 'True', pca_type = 'pc_air')
+```
+
+All insertion regressions, Dave's PCAir PCsi (8 PCs):
+```{r ALL_insertion_plot_8_pc_air, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster(trim_type = 'all_insert', random_effects, repetitions, condensing, d_infer, plotting_cutoff=4, gene_annotations,maf_cutoff= 0.05, pca_structure_correction = 'True', pca_type = '8_pc_air')
+```

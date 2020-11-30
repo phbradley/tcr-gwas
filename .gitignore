@@ -8,6 +8,7 @@ cluster_job_results/
 random_effects_cluster_job*/
 scripts_10_19_2020/
 *pass_directories/
+cluster_directories/
 
 # Custom
 *.html

@@ -1,6 +1,67 @@
 # Miscellaneous functions!
 
 #library("SNPRelate")
+# This function makes a genotype file given a random snp file
+make_genotype_file_given_random_snps <- function(snp_file){
+    snps_gds = snpgdsOpen(paste0(project_path, "/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds"))
+    snp_id_list = as.numeric(gsub('snp', '', snp_file$snp))
+    subject_id_mapping = as.data.frame(read.table(paste0(project_path, '/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv'), sep = "\t", fill=TRUE, header = TRUE, check.names = FALSE))
+    genotype_list = data.frame(localID = subject_id_mapping$localID)
+    for (snp in snp_id_list){
+        genotype = snpgdsGetGeno(snps_gds, snp.id=snp, with.id = TRUE)
+        genotype_matrix = data.frame(genotype$genotype, scanID = as.numeric(as.character(genotype$sample.id)))
+        subject_id_HIP_genotypes = merge( genotype_matrix, subject_id_mapping, by = "scanID")
+        colnames(subject_id_HIP_genotypes) = c('scanID', paste(snp), 'localID')
+        genotype_list = merge(genotype_list, subject_id_HIP_genotypes[,c('localID', paste(snp))], by = 'localID')
+    }
+    rownames(genotype_list) = genotype_list$localID
+    closefn.gds(snps_gds)
+    return(genotype_list)
+}
+
+
+# This function compiles trimming data crosses
+compile_trimming_data_cross <- function(){
+    trimming_data_by_gene_all = data.frame()
+    for (trim in c('v_trim', 'd0_trim', 'j_trim')){
+        assign(paste0(trim, '_trimming_data'), as.data.frame(read.table(paste0(project_path, "/tcr-gwas/_ignore/condensed_", trim, "_data_all_patients.tsv"), sep = "\t", fill=TRUE, header = TRUE)[-1]))
+        setnames(get(paste0(trim, '_trimming_data')), "patient_id", "localID")
+        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene'), "gene")
+        setnames(get(paste0(trim, '_trimming_data')), paste0(substring(trim, 1, 1), '_gene_count'), "gene_count")
+        setnames(get(paste0(trim, '_trimming_data')), paste0('weighted_', substring(trim, 1, 1), '_gene_count'), "weighted_gene_count")
+        gene_type = data.frame(gene_class = rep(paste0(substr(trim, 1, 1), '_gene'), nrow(get(paste0(trim, '_trimming_data')))))
+        assign(paste0(trim, '_trimming_data'), cbind(get(paste0(trim, '_trimming_data')), gene_type))
+        trimming_data_by_gene_all = rbind(trimming_data_by_gene_all, get(paste0(trim, '_trimming_data')))
+    }
+    return(trimming_data_by_gene_all)
+}
+
+
+# This function finds a regression file (from cluster) and subsets based on signficance cutoff (for use in bootstraps)
+open_regressed_file_and_subset_by_pval <- function(significance_cutoff, trim_type, random_effects, condensing, d_infer, maf_cutoff){
+    if (random_effects == 'True'){
+         file_name = paste0('_', trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_with_random_effects_0_bootstraps')
+    } else {
+         file_name = paste0('_',trim_type, '_snps_regression_with_weighting_condensing_', condensing, '_NO_random_effects_0_bootstraps')
+    }
+
+    if (d_infer == 'False'){
+        file_name = paste0(file_name, '_NO_d_infer.tsv')
+    } else {
+        file_name = paste0(file_name, '.tsv')
+    }
+
+    productive_data = fread(paste0(output_path, '/results/productive', file_name), sep = "\t", fill=TRUE, header = TRUE)
+    not_productive_data = fread(paste0(output_path, '/results/NOT_productive', file_name), sep = "\t", fill=TRUE, header = TRUE)
+    maf_data = fread(paste0(output_path, '/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
+
+    data = rbind(productive_data, not_productive_data)[,-c(1,2)]
+    data = merge(data, maf_data, by = 'snp')
+    data = data[maf > maf_cutoff]
+    data = data[pvalue < significance_cutoff]
+    return(data[,c(1:3)])
+}
+
 
 # This script makes a manhattan plot for a specific region
 compile_data_manhattan <- function(snp_meta_data, snp_id_list, correlated_snps, paired_productive_snps, productivity, varying_int, trim_type, chromosome, correlate_snps, gene_conditioning, weighting, gene_region){
