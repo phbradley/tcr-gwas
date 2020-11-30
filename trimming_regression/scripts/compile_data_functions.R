@@ -205,7 +205,7 @@ remove_matrix_column_by_genotype <- function(genotype_matrix){
 }
 
 read_genotype_pca <- function(pca_type){
-    stopifnot(pca_type %in% c('none', 'pc_air', 'pc_fixed_maggie', 'pc_fixed_dave', '8_pc_air'))
+    stopifnot(pca_type %in% c('none', 'pc_air', 'pc_fixed_maggie', 'pc_fixed_dave', '8_pc_air', 'asian_identity'))
 
     subject_id_conversion = read.table(paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv'), 
                                        sep = "\t", 
@@ -221,8 +221,10 @@ read_genotype_pca <- function(pca_type){
     } else if (pca_type == 'pc_fixed_dave'){
         pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/pc_fixed_08Nov2020.txt')
     } else if (pca_type == 'pc_air' | pca_type == '8_pc_air'){
-        pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/pc_pcair_08Nov2020.txt')
-    } 
+        pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/pc_pcair_08Nov2020.txt') 
+    } else if (pca_type == 'asian_identity'){
+        pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/race_pcs_18Nov2020.txt')
+    }
 
     if (pca_type != 'none'){
         pca = read.table(pca_file_name, 

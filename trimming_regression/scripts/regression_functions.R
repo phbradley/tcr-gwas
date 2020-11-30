@@ -3,7 +3,7 @@ library('RhpcBLASctl')
 omp_set_num_threads(1)
 blas_set_num_threads(1)
 
-set_regression_formula <- function(trim_type, pca_structure_correction, GENE_CONDITIONING, RANDOM_EFFECTS, by_race = 'False'){
+set_regression_formula <- function(trim_type, pca_structure_correction, pca_type, GENE_CONDITIONING, RANDOM_EFFECTS, by_race = 'False'){
     # define trim type and gene type
     gene_type <<- paste0(substr(trim_type, 1, 1), '_gene')
     
@@ -28,9 +28,12 @@ set_regression_formula <- function(trim_type, pca_structure_correction, GENE_CON
     } 
 
     if (pca_structure_correction == 'True'){
-       form = update(form, ~ . + EV1 + EV2 + EV3 + EV4 + EV5 + EV6 + EV7 + EV8)
-    }
-
+        if (pca_type == 'asian_identity'){
+            form = update(form, ~ . + is_asian)
+        } else {
+            form = update(form, ~ . + EV1 + EV2 + EV3 + EV4 + EV5 + EV6 + EV7 + EV8)
+        }
+    }   
     if (by_race == 'True'){
         form = update(form, ~ . + as.factor(race.g))
     }
@@ -55,8 +58,11 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, CO
     if (pca_structure_correction != 'False'){
         genotype_pca = read_genotype_pca(pca_type)
         snps_trimming_data = merge(snps_trimming_data, genotype_pca)
+        if (pca_type == 'asian_identity'){
+            snps_trimming_data$is_asian = ifelse(snps_trimming_data$race.g == 'Asian', 1, 0)
+        }
     }
-    form = set_regression_formula(trim_type, pca_structure_correction, GENE_CONDITIONING, RANDOM_EFFECTS)
+    form = set_regression_formula(trim_type, pca_structure_correction, pca_type, GENE_CONDITIONING, RANDOM_EFFECTS)
 
     # REGRESSION!
     # remove warning messages (about singularity)
