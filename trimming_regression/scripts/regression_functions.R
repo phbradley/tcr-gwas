@@ -120,6 +120,6 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, CO
     results_temp = merge(snp_list, data.frame(snp = snpID, intercept = intercept, slope = slope), by = 'snp')
     # combine slope, intercept, and pvalue for the specified snp
     regression_results = cbind(results_temp, bootstrap_results)
-
+    regression_results$pvalue_variable = PVALUE_VARIABLE
     return(regression_results)
 }

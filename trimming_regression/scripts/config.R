@@ -13,6 +13,7 @@ set_regression_parameters <- function(trim_type){
     REPETITIONS <<- ifelse(type == 'insert', 0, 100)
     BOOT_CUTOFF <<- 5e-5
     MAF_CUTOFF <<- 0.05
+    PVALUE_VARIABLE <<- 'snp'
 }
 
 set_regression_parameters(TRIM_TYPE)
