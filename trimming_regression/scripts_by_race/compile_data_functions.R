@@ -5,7 +5,7 @@ library("GWASTools")
 library(data.table)
 setDTthreads(threads = 1)
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/trimming_regression/scripts/condense_trimming_data.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/trimming_regression/scripts_by_race/condense_trimming_data.R'))
 
 compile_condensed_trimming_data <- function(trim_type, CONDENSING){
     print('compiling TCR trimming/insertion data')
@@ -205,7 +205,7 @@ remove_matrix_column_by_genotype <- function(genotype_matrix){
 }
 
 read_genotype_pca <- function(pca_type){
-    stopifnot(pca_type %in% c('none', 'pc_air', 'pc_fixed_maggie', 'pc_fixed_dave', '8_pc_air', 'asian_identity'))
+    stopifnot(pca_type %in% c('none', 'pc_air', 'pc_fixed_maggie', 'pc_fixed_dave', '8_pc_air'))
 
     subject_id_conversion = read.table(paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/gwas_id_mapping.tsv'), 
                                        sep = "\t", 
@@ -221,10 +221,8 @@ read_genotype_pca <- function(pca_type){
     } else if (pca_type == 'pc_fixed_dave'){
         pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/pc_fixed_08Nov2020.txt')
     } else if (pca_type == 'pc_air' | pca_type == '8_pc_air'){
-        pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/pc_pcair_08Nov2020.txt') 
-    } else if (pca_type == 'asian_identity'){
-        pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/race_pcs_18Nov2020.txt')
-    }
+        pca_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/snp_data/pc_pcair_08Nov2020.txt')
+    } 
 
     if (pca_type != 'none'){
         pca = read.table(pca_file_name, 
@@ -241,33 +239,34 @@ read_genotype_pca <- function(pca_type){
     return(pca)
 }
     
-make_regression_file_name <- function(snp_list, trim_type, pca_structure_correction){
+make_regression_file_name <- function(snp_list, trim_type, pca_structure_correction, by_race){
     random_effects_name = ifelse(RANDOM_EFFECTS == 'True', 'random_effects', 'no_random_effects')
     d_infer_name = ifelse(D_INFER == 'True', '_d_infer', '_no_d_infer')
     pca_name = ifelse(pca_structure_correction == 'True', '_pca_correction', '_no_pca_correction')
     boots = paste0('_', REPETITIONS, '_bootstraps')
-
+    by_race_name = paste0(by_race == 'True', '_with_race_covariate', '')
+    gene = paste0(snp_list[1,1], '-', snp_list[nrow(snp_list),1])
     file_name = paste0(OUTPUT_PATH, 
                        '/cluster_job_results/', 
-                       trim_type, '/', 
+                       trim_type, '_', gene, by_race_name, '/', 
                        random_effects_name, d_infer_name, pca_name, boots, '/', 
                        CONDENSING, '/', 
-                       trim_type, '_', snp_list$snp[1], '-', snp_list$snp[nrow(snp_list)], '_snps_regression_with_weighting_condensing_', CONDENSING, '.tsv')
+                       trim_type, '_', gene, '_snps_regression_with_weighting_condensing_', CONDENSING, '.tsv')
 
     if (!dir.exists(paste0(OUTPUT_PATH, '/cluster_job_results'))){
         system(paste0('mkdir ', OUTPUT_PATH, '/cluster_job_results'))
     }
  
-    if (!dir.exists(paste0(OUTPUT_PATH, '/cluster_job_results/', trim_type))){
-        system(paste0('mkdir ', OUTPUT_PATH, '/cluster_job_results/', trim_type))
+    if (!dir.exists(paste0(OUTPUT_PATH, '/cluster_job_results/', trim_type, '_', gene, by_race_name))){
+        system(paste0('mkdir ', OUTPUT_PATH, '/cluster_job_results/', trim_type, '_', gene, by_race_name))
     }
     
-    if (!dir.exists(paste0(OUTPUT_PATH, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots))){
-        system(paste0('mkdir ', OUTPUT_PATH, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots))
+    if (!dir.exists(paste0(OUTPUT_PATH, '/cluster_job_results/', trim_type, '_', gene, by_race_name, '/', random_effects_name, d_infer_name, pca_name, boots))){
+        system(paste0('mkdir ', OUTPUT_PATH, '/cluster_job_results/', trim_type, '_', gene, by_race_name, '/', random_effects_name, d_infer_name, pca_name, boots))
     }
 
-    if (!dir.exists(paste0(OUTPUT_PATH, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', CONDENSING))){
-        system(paste0('mkdir ', OUTPUT_PATH, '/cluster_job_results/', trim_type, '/', random_effects_name, d_infer_name, pca_name, boots, '/', CONDENSING))
+    if (!dir.exists(paste0(OUTPUT_PATH, '/cluster_job_results/', trim_type, '_', gene, by_race_name, '/', random_effects_name, d_infer_name, pca_name, boots, '/', CONDENSING))){
+        system(paste0('mkdir ', OUTPUT_PATH, '/cluster_job_results/', trim_type, '_', gene, by_race_name, '/', random_effects_name, d_infer_name, pca_name, boots, '/', CONDENSING))
     }
 
     return(file_name)
