@@ -4,7 +4,7 @@ args = commandArgs(trailingOnly=TRUE)
 
 
 gene_name = args[1]
-stopifnot(gene_name %in% c('dntt')
+stopifnot(gene_name %in% c('dntt'))
 TRIM_TYPE= args[2]
 
 # restrict threads
@@ -20,12 +20,12 @@ file_name =paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/
 data = fread(file_name)
 
 plot = ggplot(data, aes(x = -log10(pvalue_without_correction), y = -log10(pvalue_with_correction), color = pca_correction, shape = productivity)) +
-    geom_point(size = 3, alpha = 0.5) +
+    geom_point(size = 4, alpha = 0.5) +
     # geom_smooth(method = lm) +
     geom_abline(size = 2) + 
     ggtitle(paste0('P-value comparison at ', gene_name, ' locus for ', TRIM_TYPE)) +
     theme_classic() + 
-    theme(text = element_text(size=16)) 
+    theme(text = element_text(size=20)) 
 
 
-ggsave(paste0('figures/', gene_name, '_', TRIM_TYPE, '_pc_by_asian_comparison.png'), plot = plot, height=10, width=10, units="in", dpi = 500)
+ggsave(paste0('figures/', gene_name, '_', TRIM_TYPE, '_pc_by_asian_comparison.png'), plot = plot, height=8, width=8, units="in", dpi = 500)

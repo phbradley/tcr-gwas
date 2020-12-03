@@ -9,8 +9,10 @@ library(tidyverse)
 #omp_set_num_threads(1)
 #blas_set_num_threads(1)
 setDTthreads(threads = 1)
-
-source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/regression_functions.R')
+PROJECT_PATH = '/home/mrussel2'
+OUTPUT_PATH = '/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output'
+source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/config.R')
+source('/home/mrussel2/tcr-gwas/trimming_regression/scripts/compile_regression_functions.R')
 
 # This script compiles all regression data from cluster across the entire genome
 
@@ -35,7 +37,7 @@ compile_manhattan_plot_data <- function(trim_type, maf_data, maf_cutoff, pca_str
 
 # This script makes a manhattan plot for the entire genome!
 
-manhattan_plot_cluster <- function(trim_type, random_effects, repetitions, condensing, d_infer, plotting_cutoff, gene_annotations, maf_cutoff, pca_structure_correction, pca_type, subset = 'False'){
+manhattan_plot_cluster <- function(trim_type, plotting_cutoff, gene_annotations, maf_cutoff, pca_structure_correction, pca_type, subset = 'False'){
     bonferroni = 0.05/35481497
     maf_data = fread(paste0('/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output/maf_all_snps.tsv'), sep = "\t", fill=TRUE, header = TRUE)[,-c(1)]
 
@@ -91,7 +93,7 @@ manhattan_plot_cluster <- function(trim_type, random_effects, repetitions, conde
     if (subset != 'False'){
         subset_gene = gene_annotations %>% filter(genes == subset)
         gene_annotations = subset_gene
-        data = data %>% filter(chr == subset_gene$chr) %>% filter(hg19_pos < subset_gene$pos2 + 100000) %>% filter(hg19_pos > subset_gene$pos1 - 100000)
+        data = data %>% filter(chr == subset_gene$chr) %>% filter(hg19_pos < subset_gene$pos2 + 100) %>% filter(hg19_pos > subset_gene$pos1 - 100)
         point_size = 5
         alpha_gene = 0.1
     } else {

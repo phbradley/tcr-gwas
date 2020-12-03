@@ -4,31 +4,28 @@ library("SNPRelate")
 library("GWASTools")
 library(data.table)
 setDTthreads(threads = 1)
+PROJECT_PATH = '/home/mrussel2'
+source(paste0(PROJECT_PATH, "/tcr-gwas/trimming_regression/scripts/compile_data_functions.R"))
 
- This function makes a snp file from chromosme and position data using the gds file
-snp_file <- function(chromosome, position1, position2){
-    snps_gds = snpgdsOpen(paste0(PROJECT_PATH, "/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds"))
-    snp_chrom <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"))
+dntt = find_snp_start_by_position(chromosome = 10, position1 = 98064085, position2 =98098321)
+snp_data = snp_file_by_snp_start(dntt[1], dntt[2])
+genotype_data = compile_all_genotypes(dntt[1], dntt[2])
+genotype_data_asian = genotype_data[rownames(genotype_data) %in% ethnicity_data[race.g == 'Asian']$localID,]
 
-    chr_index_start = match(chromosome,snp_chrom)
-    chr_index_end = match(chromosome+1,snp_chrom)-1
+ethnicity_data = fread(file = '/home/mrussel2/tcr-gwas/_ignore/race_pcs_18Nov2020.txt')   
+ethnicity_data = ethnicity_data[, c('localID', 'scanID', 'race.g')]
 
-    snp_pos <- read.gdsn(index.gdsn(snps_gds, "snp.position"), 
-                         start = chr_index_start, 
-                         count=(chr_index_end-chr_index_start)+1)
-    snp_id <- read.gdsn(index.gdsn(snps_gds, "snp.id"), 
-                        start = chr_index_start, 
-                        count=(chr_index_end-chr_index_start)+1)
+list_of_snps = filtered_snps_by_maf(0.05, genotype_data_asian)
+subjects = ethnicity_data[race.g == 'Asian']$scanID
+snps = list_of_snps
 
-    snps_chromosome = data.frame(snp = snp_id, 
-                                 chr = snp_chrom[chr_index_start:chr_index_end], 
-                                 hg19_pos = snp_pos)
+snps_gds = snpgdsOpen(paste0(PROJECT_PATH, "/tcr-gwas/_ignore/snp_data/HSCT_comb_geno_combined_v03_tcr.gds"))
 
-    if (position1 != 'all'){
-        snps_chromosome = snps_chromosome[hg19_pos < position2 & hg19_pos > position1]
-    }
-    closefn.gds(snps_gds)
-    return(snps_chromosome)
-}
+ld_dntt_asian = snpgdsLDMat(snps_gds, snp.id = snps, sample.id = subjects, slide = -1, with.id = TRUE)
 
+plot_ld_dntt_asian = reshape2::melt(ld_dntt_asian$LD)
+
+plot = ggplot(plot_ld_dntt_asian) + geom_tile(aes(x = Var1, y = Var2, fill = value^2))
+
+ggsave(paste0('figures/ld/ld_dntt_asian.png'), plot = plot, height=10, width=10, units="in", dpi = 500)
 
