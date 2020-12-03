@@ -1,0 +1,34 @@
+---
+title: "VDJ trimming/insertion regression by race for DNTT"
+output:
+  html_document:
+    fig_crop: no
+    toc: true
+    toc_depth: 2
+    dev: 'svg'
+fig_width: 26
+fig_height: 10 
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(knitr)
+library(Cairo)
+knitr::opts_chunk$set(dev = "png", dev.args = list(type = "cairo-png"), fig.path = "/home/mrussel2/tcr-gwas/trimming_regression/scripts_by_race/figures", dpi = 600,fig.width=20, fig.height=10) 
+#knitr::opts_chunk$set(dpi = 600,fig.width=26, fig.height=10) 
+
+source("/home/mrussel2/tcr-gwas/trimming_regression/scripts_by_race/manha_visualization.R")
+setDTthreads(1)
+subset = 'dntt'
+plotting_cutoff = 'False'
+```
+
+For the following plots, I am regressing by using observations only from the indicated racial group. The plotted pvalues are calculated from the snp effect term from each of these regressions. 
+
+```{r dj_insert_subset_by_race_plots, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster_by_race_gene(trim_type= 'dj_insert', plotting_cutoff, subset, race_covariate = 'False', subset_by_race = 'True')
+```
+
+```{r vd_insert_subset_by_race_plots, echo=TRUE, warning=FALSE}
+manhattan_plot_cluster_by_race_gene(trim_type= 'vd_insert', plotting_cutoff, subset, race_covariate = 'False', subset_by_race = 'True')
+```
+

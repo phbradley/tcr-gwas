@@ -44,7 +44,7 @@ compile_all_data_from_cluster_sequential <- function(trim_type, pca_structure_co
         #together = rbind(together, temp_file)
         if (ncol(temp_file) > 2){
             assign(paste0('together_list_', trim_type), 
-                   rbindlist(list(get(paste0('together_list_', trim_type)), temp_file)))
+                   rbindlist(list(get(paste0('together_list_', trim_type)), temp_file), fill = TRUE))
         }
         count = count + 1
         print(paste0(count, ' of ', length(data_files), ' completed for ', trim_type))

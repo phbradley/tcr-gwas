@@ -86,10 +86,10 @@ trimming_regression <- function(snps_dataframe, condensed_trimming_dataframe, CO
 
     # Calculate slope, intercept 
     if (RANDOM_EFFECTS == 'True'){
-        slope = fixef(regression)['snp']
+        slope = fixef(regression)[PVALUE_VARIABLE]
         intercept = fixef(regression)['(Intercept)'] + mean(fixef(regression)[-c(1,2)]) #need to add random effects here...
     } else {
-        slope = coef(regression)['snp']
+        slope = coef(regression)[PVALUE_VARIABLE]
         intercept = coef(regression)['(Intercept)']
     }
 
