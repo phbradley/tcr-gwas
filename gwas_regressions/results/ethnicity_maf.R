@@ -104,11 +104,11 @@ ggplot(sig_snps_together_reshaped) +
     geom_abline(slope = 1, intercept = 0,  size = 2) +
     ggtitle('MAF by racial group versus by population \nfor DNTT significant snps') +
     theme_classic() +
-    theme(text = element_text(size = 40)) + 
+    theme(text = element_text(size = 20)) + 
     xlab('MAF computed across all individuals') +
     ylab('MAF computed by racial group') +
     labs(fill = "Racial Group")
 
-ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/maf_by_race.pdf', plot = last_plot(), width = 12, height = 12, units = 'in', dpi = 750, device = 'pdf')
+ggsave('figures/maf_by_ethnicity_population.pdf', plot = last_plot(), width = 8, height = 6, units = 'in', dpi = 500)
 
 
