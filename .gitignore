@@ -1,4 +1,5 @@
 # Hide data files
+trimming_regression/
 submission_outputs/
 current_cluster_job_directories/
 _ignore/
