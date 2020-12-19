@@ -1,4 +1,6 @@
 # Hide data files
+submission_outputs/
+current_cluster_job_directories/
 _ignore/
 regression_bootstrap_results/
 figures/
@@ -17,6 +19,7 @@ cluster_directories/
 *.nfs*
 trimming_regression/*.nfs*
 slurm*
+submit_*
 
 # History files
 .Rhistory
