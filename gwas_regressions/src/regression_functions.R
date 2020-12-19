@@ -1,4 +1,4 @@
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/config.R'))
+source('config.R')
 ###############################################
 # Functions to read in SNP and genotype files #
 ###############################################
@@ -48,16 +48,19 @@ snp_file_by_snp_start <- function(snp_start, count){
 
 remove_matrix_column_by_genotype <- function(genotype_matrix){
     snps_passing_maf_cutoff = filter_snps_by_maf(genotype_matrix)
-
-    for (snp in colnames(genotype_matrix)){
-        genotypes = unique(genotype_matrix[,snp])
-        nonNA_genotypes = genotypes[genotypes != 3]
-        if (length(nonNA_genotypes) <= 1 | !(snp %in% snps_passing_maf_cutoff)){
-            genotype_matrix = genotype_matrix[, colnames(genotype_matrix) != snp]
+    if (length(snps_passing_maf_cutoff) == 0){
+        return(data.table())
+    } else {
+        for (snp in colnames(genotype_matrix)){
+            genotypes = unique(genotype_matrix[,snp])
+            nonNA_genotypes = genotypes[genotypes != 3]
+            if (length(nonNA_genotypes) <= 1 | !(snp %in% snps_passing_maf_cutoff)){
+                genotype_matrix = genotype_matrix[, colnames(genotype_matrix) != snp, drop = FALSE]
+            }
         }
+        genotype_matrix[genotype_matrix == 3] <- NA
+        return(genotype_matrix)
     }
-    genotype_matrix[genotype_matrix == 3] <- NA
-    return(genotype_matrix)
 }
 
 compile_all_genotypes <- function(snp_start, count){
@@ -149,25 +152,25 @@ infer_d_gene <- function(tcr_repertoire_data){
     return(inferred_tcrs)
 }
 
-generate_condensed_tcr_repertoire_file_name <- function(){
-    inferred_d_gene_end = ifelse(INFER_MISSING_D_GENE == 'True', '_with_inferred_d_gene.tsv', '_NO_inferred_d_gene.tsv')
-    condensed_tcr_repertoires_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/condensed_tcr_repertoire_data/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects', inferred_d_gene_end)
-    return(condensed_tcr_repertoires_file_name)
-}
-
 #######################################
 # Import phenotype specific functions #
 #######################################
 
-# phenotype_functions = modules::use(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/phenotype_functions/', PHENOTYPE, '.R'))
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/phenotype_functions/', PHENOTYPE, '.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/src/phenotype_functions/', PHENOTYPE, '.R'))
+
+
+generate_condensed_tcr_repertoire_file_name <- function(){
+    inferred_d_gene_end = ifelse(INFER_MISSING_D_GENE == 'True', '_with_inferred_d_gene.tsv', '_NO_inferred_d_gene.tsv')
+    condensed_tcr_repertoires_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/condensed_tcr_repertoire_data/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects_', PHENOTYPE_CLASS, '_for_', PHENOTYPE, inferred_d_gene_end)
+    return(condensed_tcr_repertoires_file_name)
+}
 
 compile_condensed_tcr_repertoire_data <- function(){
     file_name = generate_condensed_tcr_repertoire_file_name() 
 
     if (!file.exists(file_name)){
         print('Data CONDENSING required. Computing now.')
-        phenotype_functions$condense_all_tcr_repertoire_data()
+        condense_all_tcr_repertoire_data()
     }
 
     tcr_repertoire_data = fread(file = file_name)
@@ -219,21 +222,31 @@ make_regression_file_path <- function(){
     return(path_to_file)
 }
 
+find_regression_file_path_for_shell <- function(){
+    cat(make_regression_file_path())
+}
+
 make_regression_file_name <- function(){
     path = make_regression_file_path()
     file_name = paste0(PHENOTYPE, '_regressions_condensing_', CONDENSING_VARIABLE, '_for_', SNPS_PER_JOB, '_snps_starting_at_', START, '.tsv')
     return(paste0(path, file_name)) 
 }
 
-execute_regressions <- function(genotypes, phenotypes, write.table){
+execute_regressions <- function(snp_meta_data, genotypes, phenotypes, write.table){
     regression_data = merge(genotypes, phenotypes, by = 'localID')
-    snps = colnames(genotypes)[colnames(genotypes)!='localID'] 
-    count = 0 
-    registerDoParallel(cores=NCPU)
-    results = foreach(snp = snps, .combine='rbind') %dopar% {
-        regress(snp, snps, regression_data)
+    if (nrow(genotypes) == 0){
+        results = data.table(snp = NA, slope = NA, standard_error = NA, pvalue = NA, parameter = NA, phenotype = NA, bootstraps = NA, productive = NA)
+    } else {
+        snps = colnames(genotypes)[colnames(genotypes)!='localID'] 
+        count = 0 
+        registerDoParallel(cores=NCPU)
+        results = foreach(snp = snps, .combine='rbind') %dopar% {
+            regress(snp, snps, regression_data)
+        }
+        stopImplicitCluster()
     }
-    stopImplicitCluster()
+    snp_meta_data$snp = as.character(snp_meta_data$snp)
+    results = merge(results, snp_meta_data, by = 'snp')
 
     file_name = make_regression_file_name()
 
@@ -252,8 +265,19 @@ make_compiled_file_name <- function(){
     return(file_name)
 }
 
+remove_empty_file_names <- function(files_list){
+    for (file in files_list){
+        if (nrow(vroom(file)) == 0){
+            files_list = files_list[files_list != file]
+        }
+    }
+    return(files_list)
+}
+
 compile_regressions <- function(){
+    # files = list.files(make_regression_file_path(), pattern = "*.tsv", full.names=TRUE)
     files = fs::dir_ls(path = make_regression_file_path())
+    files = remove_empty_file_names(files)
     compiled_filename = make_compiled_file_name()
-    vroom_write(vroom::vroom(files, num_threads = NCPU), compiled_filename)
+    vroom::vroom_write(vroom::vroom(files, num_threads = NCPU), compiled_filename)
 }

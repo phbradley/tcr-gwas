@@ -1,49 +1,66 @@
 CONDENSING_VARIABLE <<- 'by_gene_cdr3'
 CONDITIONING_VARIABLE <<- 'cdr3_gene_group'
-INFER_MISSING_D_GENE <<- 'True'
+INFER_MISSING_D_GENE <<- 'False'
 REPETITIONS <<- 100
 BOOTSTRAP_PVALUE_CUTOFF <<- 5e-5
 PCA_COUNT <<- 8
  
 
 condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
-    conditioning_variable = 'cdr3_gene_group'
     cdr3 = combine_genes_by_common_cdr3()
     tcr_repertoire_data = merge(tcr_repertoire_dataframe, cdr3, by.x = GENE_TYPE, by.y = 'id')
-    tcr_repertoire_data$tcr_count = nrow(tcr_repertoire_data)
 
-    names = c('localID', paste(conditioning_variable), 'productive')
+    parameter = gsub('_fraction_zero_trimming_subset', '', PHENOTYPE)
+    names = c('localID', paste(CONDITIONING_VARIABLE), 'productive')
     
-    condensed_tcr_repertoire_data = tcr_repertoire_data[, paste0(GENE_TYPE, '_count') := .N, by = mget(names)][, lapply(.SD, mean), by = mget(names), .SDcols = sapply(tcr_repertoire_data, is.numeric)]
+    # Subset to only TCRs which have zero trimming (i.e. potential for p-nucs)
+    tcr_repertoire_data_subset = tcr_repertoire_data[get(parameter) != -1]
+    # Find total number of TCRs which have zero trimming
+    tcr_total = nrow(tcr_repertoire_data_subset)
+    # Find proportion of TCRs with each gene
+    tcr_repertoire_data_subset_weights = tcr_repertoire_data_subset[, .N, by = .(localID, productive, cdr3_gene_group)]
+    setnames(tcr_repertoire_data_subset_weights, 'N', paste0(GENE_TYPE, '_count'))
+    # Find the number of TCRs containing pnucs of each gene
+    tcr_repertoire_data_subset_pnuc_tcr_counts = tcr_repertoire_data_subset[get(parameter) >0, .N, by= .(localID, productive, cdr3_gene_group)]
+    setnames(tcr_repertoire_data_subset_pnuc_tcr_counts, 'N', paste0(parameter, '_count'))
+    # merge 
+    together = merge(tcr_repertoire_data_subset_weights, tcr_repertoire_data_subset_pnuc_tcr_counts, all.x = TRUE)
+    # replace NA with zero for observations where no TCRs have pnucs of a certain gene type
+    together[is.na(together[[paste0(parameter, '_count')]])][[paste0(parameter, '_count')]] <- 0
+    # define weights
+    together[[paste0('weighted_', GENE_TYPE, '_count')]] = together[[paste0(GENE_TYPE, '_count')]]/tcr_total
+    #define fraction phenotype
+    together[[PHENOTYPE]] = together[[paste0(parameter, '_count')]]/together[[paste0(GENE_TYPE, '_count')]]
+    
+    together$tcr_count = tcr_total
 
-    condensed_tcr_repertoire_data[[paste0('weighted_', GENE_TYPE, '_count')]] = condensed_tcr_repertoire_data[[paste0(GENE_TYPE, '_count')]]/nrow(tcr_repertoire_data)
+    valid_columns = c(names, PHENOTYPE, 'tcr_count', paste0(GENE_TYPE, '_count'), paste0('weighted_', GENE_TYPE, '_count'))
 
-    return(condensed_tcr_repertoire_data)
+    return(together[,..valid_columns])
 }
 
 condense_all_tcr_repertoire_data <- function(){
     files = list.files(TCR_REPERTOIRE_DATA_DIRECTORY, pattern = "*.tsv", full.names=TRUE)
-    assign(paste0(GENE_TYPE, '_tcr_rep_data'), data.table())        
+    tcr_rep_data = data.table()        
 
     count = 0
-    for (file in files){
+
+    registerDoParallel(cores=NCPU)
+    tcr_rep_data = foreach(file = files, .combine = 'rbind') %dopar% {
         count = count + 1
         file_data = fread(file)
         file_data$localID = extract_subject_ID(file)
-
         if (INFER_MISSING_D_GENE == 'True'){
             file_data = infer_d_gene(file_data)
         } else {
             file_data = file_data[d_gene != '-']
         }
-
-        assign(paste0(GENE_TYPE, '_tcr_rep_data'),
-               rbind(get(paste0(GENE_TYPE, '_tcr_rep_data')),
-               condense_individual_tcr_repertoire_data(file_data)))
-        filename = generate_condensed_tcr_repertoire_file_name()
-        write.table(get(paste0(GENE_TYPE, '_tcr_rep_data')), file = filename, quote=FALSE, sep='\t', col.names = NA)
+        print(paste0('processing ', count, ' of ', length(files)))
+        condense_individual_tcr_repertoire_data(file_data)
     }
-    print(paste0(count," of ", length(files), " processed"))
+    stopImplicitCluster()
+    filename = generate_condensed_tcr_repertoire_file_name()
+    write.table(tcr_rep_data, file = filename, quote=FALSE, sep='\t', col.names = NA)
 }
 
 set_regression_formula <- function(snp){
@@ -70,7 +87,7 @@ bootstrap_by_localID <- function(snp, regression, regression_data_filtered_by_pr
             }
         }
         
-        if (length(unique(bootstrap_data[[snp]]))<= 1){
+        if (length(unique(bootstrap_data[[snp]])[!is.na(unique(bootstrap_data[[snp]]))])<= 1){
             next
         }
         
@@ -111,6 +128,9 @@ regress <- function(snp, snps, regression_data){
     weight = paste0('weighted_', GENE_TYPE, '_count')
     regression_results_together = data.table()
     for (productivity in c('TRUE', 'FALSE')){
+        if (length(unique(regression_data[productive == productivity][[snp]][!is.na(regression_data[productive == productivity][[snp]])])) <= 1){
+            next
+        }
         regression = eval(bquote(lm(formula = formula, data = regression_data[productive == productivity], weights = .(as.name(weight)))))
         regression_results = calculate_regression_results(snp, regression, regression_data[productive == productivity])
         regression_results$productive = productivity
