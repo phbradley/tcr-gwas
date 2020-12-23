@@ -21,6 +21,12 @@ manhattan_plot(dataframe = compile_manhattan_plot_data(c('v_trim', 'j_trim', 'd1
                file_name = make_file_name('trimming'), 
                plotting_p_value_cutoff = -log10(5e-5))
 
+manhattan_plot(dataframe = compile_manhattan_plot_data(c('v_trim_naive', 'j_trim_naive', 'd1_trim_naive', 'd0_trim_naive')), 
+               plot_title = set_manhattan_plot_title('trimming_naive'), 
+               file_name = make_file_name('trimming_naive'), 
+               plotting_p_value_cutoff = -log10(5e-5))
+
+
 manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert', 'dj_insert')), 
                plot_title = set_manhattan_plot_title('insertion'), 
                file_name = make_file_name('insertion'), 
@@ -31,4 +37,12 @@ manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert_no_pca', 'dj
                file_name = make_file_name('insertion_no_pca'), 
                plotting_p_value_cutoff = -log10(5e-5))
 
+manhattan_plot(dataframe = compile_manhattan_plot_data(c('v_pnucs_fraction_zero_trimming_subset', 'j_pnucs_fraction_zero_trimming_subset', 'd0_pnucs_fraction_zero_trimming_subset', 'd1_pnucs_fraction_zero_trimming_subset')), 
+               plot_title = set_manhattan_plot_title('p_addition_fraction_zero_trimming_subset'), 
+               file_name = make_file_name('p_addition_fraction_zero_trimming_subset'), 
+               plotting_p_value_cutoff = -log10(5e-5))
 
+# manhattan_plot(dataframe = compile_manhattan_plot_data(c('v_trim_zero_trimming_fraction', 'j_trim_zero_trimming_fraction', 'd1_trim_zero_trimming_fraction', 'd0_trim_zero_trimming_fraction')), 
+#                plot_title = set_manhattan_plot_title('zero_trimming_fraction'), 
+#                file_name = make_file_name('zero_trimming_fraction'), 
+#                plotting_p_value_cutoff = -log10(5e-5))

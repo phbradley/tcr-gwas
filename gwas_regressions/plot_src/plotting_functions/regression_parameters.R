@@ -1,11 +1,14 @@
 trimming = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'True', pca_count = '8')
 trimming_naive = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'True', pca_count = '8')
+zero_trimming_fraction = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'True', pca_count = '8')
 
 insertion = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'False', pca_count = '8')
 insertion_no_pca = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'False', pca_count = '0')
 
 p_addition_count = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'False', pca_count = '8')
 p_addition_fraction = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'False', pca_count = '8') 
+p_addition_fraction_zero_trimming_subset = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'False', pca_count = '8')
+
 
 set_regression_parameters <- function(phenotype){
     if (phenotype %in% c('v_trim', 'j_trim', 'd0_trim', 'd1_trim')){
@@ -20,6 +23,10 @@ set_regression_parameters <- function(phenotype){
         parameters = c(phenotype = phenotype, p_addition_count)
     } else if (phenotype %in% c('v_pnucs_fraction', 'j_pnucs_fraction', 'd0_pnucs_fraction', 'd1_pnucs_fraction')){ 
         parameters = c(phenotype = phenotype, p_addition_fraction)
+    } else if (phenotype %in% c('v_pnucs_fraction_zero_trimming_subset', 'j_pnucs_fraction_zero_trimming_subset', 'd0_pnucs_fraction_zero_trimming_subset', 'd1_pnucs_fraction_zero_trimming_subset')){
+        parameters = c(phenotype = phenotype, p_addition_fraction_zero_trimming_subset)
+    } else if (phenotype %in% c('v_trimzero_trimming_fraction', 'j_trimzero_trimming_fraction', 'd0_trimzero_trimming_fraction', 'd1_trimzero_trimming_fraction')){
+        parameters = c(phenotype = phenotype, zero_trimming_fraction)
     }
     return(parameters)
 }
