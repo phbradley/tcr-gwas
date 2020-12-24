@@ -12,18 +12,20 @@ library(tidyverse)
 library(gdsfmt)
 library(SNPRelate)
 library(GWASTools)
+
 args = commandArgs(trailingOnly=TRUE)
 
 START <<- args[1]
 PHENOTYPE <<- args[2]
 NCPU <<- as.numeric(args[3])
-print('111')
+
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/src/regression_functions.R'))
-print('222')
+
 genotypes = compile_all_genotypes(as.numeric(START), as.numeric(SNPS_PER_JOB))
 phenotypes = compile_phenotype_data() 
 snp_meta_data = snp_file_by_snp_start(as.numeric(START), as.numeric(SNPS_PER_JOB))
-print('333')
+
+
 execute_regressions(snp_meta_data, genotypes, phenotypes, write.table = TRUE)
 
 print(paste0('Finished regressions for ', PHENOTYPE, ' for snps ', START, '-', as.character(as.numeric(START) + as.numeric(SNPS_PER_JOB))))
