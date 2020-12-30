@@ -13,7 +13,7 @@ p_addition_fraction_zero_trimming_subset = c(condensing_variable = 'by_gene_cdr3
 set_regression_parameters <- function(phenotype){
     if (phenotype %in% c('v_trim', 'j_trim', 'd0_trim', 'd1_trim')){
         parameters = c(phenotype = phenotype, trimming)
-    } else if (phenotype %in% c('vd_insert', 'vj_insert', 'dj_insert')){
+    } else if (phenotype %in% c('vd_insert', 'vj_insert', 'dj_insert', 'total_insert')){
         parameters = c(phenotype = phenotype, insertion)
     } else if (phenotype %in% c('v_trim_naive', 'j_trim_naive', 'd0_trim_naive', 'd1_trim_naive')){
         parameters = c(phenotype = phenotype, trimming_naive)
@@ -25,7 +25,7 @@ set_regression_parameters <- function(phenotype){
         parameters = c(phenotype = phenotype, p_addition_fraction)
     } else if (phenotype %in% c('v_pnucs_fraction_zero_trimming_subset', 'j_pnucs_fraction_zero_trimming_subset', 'd0_pnucs_fraction_zero_trimming_subset', 'd1_pnucs_fraction_zero_trimming_subset')){
         parameters = c(phenotype = phenotype, p_addition_fraction_zero_trimming_subset)
-    } else if (phenotype %in% c('v_trimzero_trimming_fraction', 'j_trimzero_trimming_fraction', 'd0_trimzero_trimming_fraction', 'd1_trimzero_trimming_fraction')){
+    } else if (phenotype %in% c('v_trim_zero_trimming_fraction', 'j_trim_zero_trimming_fraction', 'd0_trim_zero_trimming_fraction', 'd1_trim_zero_trimming_fraction')){
         parameters = c(phenotype = phenotype, zero_trimming_fraction)
     }
     return(parameters)

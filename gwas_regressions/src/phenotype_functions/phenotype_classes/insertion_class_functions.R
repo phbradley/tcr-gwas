@@ -12,7 +12,7 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     names = c('localID', 'productive')
     
     condensed_tcr_repertoire_data = tcr_repertoire_dataframe[, lapply(.SD, mean), by = mget(names), .SDcols = sapply(tcr_repertoire_dataframe, is.numeric)]
-    condensed_tcr_repertoire_data$total_insert = tcr_repertoire_dataframe$vd_insert + tcr_repertoire_dataframe$dj_insert + tcr_repertoire_dataframe$vj_insert
+    condensed_tcr_repertoire_data$total_insert = condensed_tcr_repertoire_data$vd_insert + condensed_tcr_repertoire_data$dj_insert + condensed_tcr_repertoire_data$vj_insert
     valid_columns = c(names, PHENOTYPE, 'tcr_count')
 
     return(condensed_tcr_repertoire_data[,..valid_columns])
