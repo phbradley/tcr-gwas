@@ -33,8 +33,8 @@ manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert', 'dj_insert
                plotting_p_value_cutoff = -log10(5e-5))
 
 manhattan_plot(dataframe = compile_manhattan_plot_data(c('total_insert')), 
-               plot_title = set_manhattan_plot_title('insertion'), 
-               file_name = make_file_name('insertion'), 
+               plot_title = set_manhattan_plot_title('total_insertion'), 
+               file_name = make_file_name('total_insertion'), 
                plotting_p_value_cutoff = -log10(5e-5))
 
 manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert_no_pca', 'dj_insert_no_pca')), 

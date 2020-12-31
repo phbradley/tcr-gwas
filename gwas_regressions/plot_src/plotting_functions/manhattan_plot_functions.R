@@ -29,6 +29,8 @@ set_manhattan_plot_title <- function(phenotype_class, gene_subset = 'NA'){
         title = 'All trimming types conditioning on gene/cdr3'
     } else if (phenotype_class == 'insertion'){
         title = 'All N-insertion types'
+    } else if (phenotype_class == 'total_insertion'){
+        title = 'Total N-insertion'
     } else if (phenotype_class == 'trimming_naive'){
         title = 'All trimming types without gene/cdr3 conditioning'
     } else if (phenotype_class == 'insertion_no_pca'){
