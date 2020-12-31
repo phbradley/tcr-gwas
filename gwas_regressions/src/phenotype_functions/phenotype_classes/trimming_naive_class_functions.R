@@ -1,6 +1,6 @@
 CONDENSING_VARIABLE <<- 'by_subject'
 CONDITIONING_VARIABLE <<- FALSE
-INFER_MISSING_D_GENE <<- 'False'
+INFER_MISSING_D_GENE <<- 'True'
 REPETITIONS <<- FALSE
 BOOTSTRAP_PVALUE_CUTOFF <<- FALSE
 PCA_COUNT <<- 8
@@ -12,7 +12,8 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     names = c('localID', 'productive')
     
     condensed_tcr_repertoire_data = tcr_repertoire_dataframe[, lapply(.SD, mean), by = mget(names), .SDcols = sapply(tcr_repertoire_dataframe, is.numeric)]
-    condensed_tcr_repertoire_data$total_insert = condensed_tcr_repertoire_data$vd_insert + condensed_tcr_repertoire_data$dj_insert + condensed_tcr_repertoire_data$vj_insert
+
+    setnames(condensed_tcr_repertoire_data, gsub('_naive', '', PHENOTYPE), PHENOTYPE)
     valid_columns = c(names, PHENOTYPE, 'tcr_count')
 
     return(condensed_tcr_repertoire_data[,..valid_columns])

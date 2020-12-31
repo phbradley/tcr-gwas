@@ -7,6 +7,7 @@ library(vroom)
 library(fs)
 library(data.table)
 setDTthreads(1)
+
 args = commandArgs(trailingOnly=TRUE)
 
 PHENOTYPE <<- args[1]

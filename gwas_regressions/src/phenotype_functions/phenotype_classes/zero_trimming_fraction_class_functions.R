@@ -24,7 +24,9 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     # merge 
     together = merge(tcr_repertoire_data_weights, tcr_repertoire_data_no_trim_tcr_counts, all.x = TRUE)
     # replace NA with zero for observations where no TCRs have pnucs of a certain gene type
-    together[is.na(together[[paste0(parameter, '_zero_trim_count')]])][[paste0(parameter, '_zero_trim_count')]] <- 0
+    if (length(together[is.na(together[[paste0(parameter, '_count')]])][[paste0(parameter, '_count')]]) > 0){
+        together[is.na(together[[paste0(parameter, '_zero_trim_count')]])][[paste0(parameter, '_zero_trim_count')]] <- 0
+    }
     # define weights
     together[[paste0('weighted_', GENE_TYPE, '_count')]] = together[[paste0(GENE_TYPE, '_count')]]/tcr_total
     #define fraction phenotype

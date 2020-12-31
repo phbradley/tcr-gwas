@@ -1,4 +1,5 @@
 source('config.R')
+
 args = commandArgs(trailingOnly=TRUE)
 
 PHENOTYPE <<- args[1]
