@@ -1,7 +1,7 @@
 #!/bin/sh
 
-source /home/mrussel2/miniconda3/etc/profile.d/conda.sh
-conda activate r
+source $HOME/miniconda3/etc/profile.d/conda.sh
+conda activate tcr-gwas 
 set -eu
 
 PHENOTYPE=$1
