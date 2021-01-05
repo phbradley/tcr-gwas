@@ -9,7 +9,6 @@ _ignore/
 *.pdf
 *.nfs*
 slurm*
-submit_*
 temp_*
 *_submissions
 
