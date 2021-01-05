@@ -1,4 +1,4 @@
-source('config.R')
+source('config/config.R')
 
 args = commandArgs(trailingOnly=TRUE)
 
