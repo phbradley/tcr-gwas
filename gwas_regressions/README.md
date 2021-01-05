@@ -10,10 +10,10 @@ conda activate r
 ```
 
 # Analysis outline: 
-1. Download data into the directory `gwas-regressions/_ignore/` (add sources and/or write script to do this)
-2. Edit [config](tcr-gwas/gwas_regressions/config) files to be project and/or computer specific
+1. Download data into the directory `tcr-gwas/_ignore/` (add sources and/or write script to do this)
+2. Edit [config](/config) files to be project and/or computer specific
 2. Run the genome-wide GWAS analysis for a phenotype or phenotype class of interest
-    * You can run [submit_phenotype.sh](tcr-gwas/gwas_regressions/submit_phenotype.sh) or [submit_phenotype_class.sh](tcr-gwas/gwas_regressions/submit_phenotype_class.sh). Both scripts take three arguments: 
+    * You can run [submit_phenotype.sh](submit_phenotype.sh) or [submit_phenotype_class.sh](submit_phenotype_class.sh). Both scripts take three arguments: 
         1. phenotype (i.e. v_trim, vd_insert, etc.) or phenotype class (i.e. trimming, insertion, etc.) 
         2. cluster partition (these scripts are set up to run with a slurm cluster scheduler)
         3. number of cluster cores per job
