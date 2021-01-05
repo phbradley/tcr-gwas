@@ -1,0 +1,4 @@
+bash run_regressions_genome_wide.sh v_trim campus-new 1 > /home/mrussel2/tcr-gwas/gwas_regressions/submission_outputs/v_trim_submissions
+bash run_regressions_genome_wide.sh j_trim campus-new 1 > /home/mrussel2/tcr-gwas/gwas_regressions/submission_outputs/j_trim_submissions
+bash run_regressions_genome_wide.sh d0_trim campus-new 1 > /home/mrussel2/tcr-gwas/gwas_regressions/submission_outputs/d0_trim_submissions
+bash run_regressions_genome_wide.sh d1_trim campus-new 1 > /home/mrussel2/tcr-gwas/gwas_regressions/submission_outputs/d1_trim_submissions
