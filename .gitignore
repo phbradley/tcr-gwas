@@ -1,17 +1,7 @@
-# Hide data files
+# Hide data, submission directories, and old pipeline files
 trimming_regression/
-submission_outputs/*
 current_cluster_job_directories/
 _ignore/
-regression_bootstrap_results/
-figures/
-old_scripts/
-cluster_job_directories/
-cluster_job_results/
-random_effects_cluster_job*/
-scripts_10_19_2020/
-*pass_directories/
-cluster_directories/
 
 # Custom
 *.html
@@ -21,6 +11,7 @@ cluster_directories/
 slurm*
 submit_*
 temp_*
+*_submissions
 
 # History files
 .Rhistory
