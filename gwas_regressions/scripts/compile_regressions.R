@@ -1,4 +1,4 @@
-source('config.R')
+source('config/config.R')
 
 library(RhpcBLASctl)
 omp_set_num_threads(1)

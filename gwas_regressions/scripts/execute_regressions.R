@@ -1,5 +1,5 @@
-source('config.R')
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/file_paths.R'))
+source('config/config.R')
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/config/file_paths.R'))
 
 library(data.table)
 setDTthreads(1)

@@ -1,4 +1,4 @@
-source('config.R')
+source('config/config.R')
 ###############################################
 # Functions to read in SNP and genotype files #
 ###############################################
