@@ -12,3 +12,6 @@ TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/emerson_
 
 # CDR3 sequence to gene file
 CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/human_vj_allele_cdr3_nucseqs.tsv')
+
+# TCRdiv scores by localID (optional)
+TCRDIV_FILE = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/emerson_tcrdiv_scores.tsv')

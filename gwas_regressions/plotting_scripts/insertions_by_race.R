@@ -5,7 +5,7 @@ library(ggplot2)
 library(RColorBrewer)
 
 source('config.R')
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plot_src/plotting_functions/manhattan_plot_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
 insertions = fread(file = '/fh/fast/matsen_e/shared/tcr-gwas/insertion_data/insertions_by_patient.tsv')[,-1]
 setnames(insertions, 'patient_id', 'localID')

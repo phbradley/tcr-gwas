@@ -9,9 +9,9 @@ library(ggpubr)
 
 source('config.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/file_paths.R'))
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/src/regression_functions.R'))
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plot_src/plotting_functions/maf_functions.R'))
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plot_src/plotting_functions/manhattan_plot_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/regression_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/maf_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
 dntt = find_snp_start_by_position(chromosome = 10, position1 = 98064085, position2 =98098321)
 

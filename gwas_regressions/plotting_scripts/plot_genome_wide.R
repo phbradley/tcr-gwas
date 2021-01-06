@@ -3,8 +3,8 @@ setDTthreads(1)
 library(ggplot2)
 library(RColorBrewer)
 
-source('config.R')
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plot_src/plotting_functions/manhattan_plot_functions.R'))
+source('config/config.R')
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
 manhattan_plot(dataframe = compile_manhattan_plot_data(c('v_pnucs_count', 'j_pnucs_count', 'd0_pnucs_count', 'd1_pnucs_count')), 
                plot_title = set_manhattan_plot_title('p_addition_count'), 
@@ -27,14 +27,9 @@ manhattan_plot(dataframe = compile_manhattan_plot_data(c('v_trim_naive', 'j_trim
                plotting_p_value_cutoff = -log10(5e-5))
 
 
-manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert', 'dj_insert')), 
+manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert', 'dj_insert', 'total_insert')), 
                plot_title = set_manhattan_plot_title('insertion'), 
                file_name = make_file_name('insertion'), 
-               plotting_p_value_cutoff = -log10(5e-5))
-
-manhattan_plot(dataframe = compile_manhattan_plot_data(c('total_insert')), 
-               plot_title = set_manhattan_plot_title('total_insertion'), 
-               file_name = make_file_name('total_insertion'), 
                plotting_p_value_cutoff = -log10(5e-5))
 
 manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert_no_pca', 'dj_insert_no_pca')), 

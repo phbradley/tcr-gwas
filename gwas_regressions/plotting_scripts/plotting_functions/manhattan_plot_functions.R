@@ -1,4 +1,4 @@
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plot_src/plotting_functions/regression_parameters.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/regression_parameters.R'))
 
 get_compiled_file_name_with_arguments <- function(phenotype, condensing_variable, infer_missing_d_gene, pca_count){
     file_name = paste0(OUTPUT_PATH, '/results/', phenotype, '_regressions_', condensing_variable, '_d_infer-', infer_missing_d_gene, '_', pca_count, '_PCAir_PCs.tsv')
