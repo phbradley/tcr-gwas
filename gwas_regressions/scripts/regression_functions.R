@@ -156,7 +156,7 @@ infer_d_gene <- function(tcr_repertoire_data){
 # Import phenotype specific functions #
 #######################################
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/src/phenotype_functions/', PHENOTYPE, '.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functions/', PHENOTYPE, '.R'))
 
 
 generate_condensed_tcr_repertoire_file_name <- function(){
@@ -202,7 +202,9 @@ compile_population_structure_pca_data <- function(){
 
 compile_phenotype_data <- function(){
     tcr_repertoire_data = compile_condensed_tcr_repertoire_data()
-    tcr_repertoire_data = remove_small_repertoire_observations(tcr_repertoire_data)
+    if (PHENOTYPE != 'tcr_div'){
+        tcr_repertoire_data = remove_small_repertoire_observations(tcr_repertoire_data)
+    }
     pca_data = compile_population_structure_pca_data()
     phenotype_data = merge(tcr_repertoire_data, pca_data, by = 'localID')
     return(phenotype_data)
