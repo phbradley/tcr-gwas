@@ -19,7 +19,7 @@ START <<- args[1]
 PHENOTYPE <<- args[2]
 NCPU <<- as.numeric(args[3])
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/src/regression_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/regression_functions.R'))
 
 genotypes = compile_all_genotypes(as.numeric(START), as.numeric(SNPS_PER_JOB))
 phenotypes = compile_phenotype_data() 
