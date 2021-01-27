@@ -13,6 +13,6 @@ args = commandArgs(trailingOnly=TRUE)
 PHENOTYPE <<- args[1]
 NCPU <<- as.numeric(args[2])
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/src/regression_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/regression_functions.R'))
 
 compile_regressions()

@@ -14,8 +14,9 @@ bash $PROJECT_PATH/tcr-gwas/gwas_regressions/submission_scripts/make_job_directo
 
 bash $PROJECT_PATH/tcr-gwas/gwas_regressions/submission_scripts/submit_cluster_jobs_continuously.sh $PHENOTYPE $PARTITION $NCPU
 
-cp $PWD/config/config.sh $PROJECT_PATH/tcr-gwas/gwas_regressions/current_cluster_job_directories/${PHENOTYPE}
-cp $PWD/config/config.R $PROJECT_PATH/tcr-gwas/gwas_regressions/current_cluster_job_directories/${PHENOTYPE}
+mkdir $PROJECT_PATH/tcr-gwas/gwas_regressions/current_cluster_job_directories/${PHENOTYPE}/config
+cp $PWD/config/config.sh $PROJECT_PATH/tcr-gwas/gwas_regressions/current_cluster_job_directories/${PHENOTYPE}/config
+cp $PWD/config/config.R $PROJECT_PATH/tcr-gwas/gwas_regressions/current_cluster_job_directories/${PHENOTYPE}/config
 cd $PROJECT_PATH/tcr-gwas/gwas_regressions/current_cluster_job_directories/${PHENOTYPE}
 
 sbatch -c $NCPU -p $PARTITION -q $PARTITION $PROJECT_PATH/tcr-gwas/gwas_regressions/scripts/compile_regressions.sh $PHENOTYPE $NCPU > compile_job_id

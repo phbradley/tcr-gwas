@@ -9,4 +9,4 @@ NCPU=$2
 
 source $PWD/config.sh $PHENOTYPE
 
-Rscript $PROJECT_PATH/tcr-gwas/gwas_regressions/src/compile_regressions.R $PHENOTYPE $NCPU
+Rscript $PROJECT_PATH/tcr-gwas/gwas_regressions/scripts/compile_regressions.R $PHENOTYPE $NCPU

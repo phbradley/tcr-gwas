@@ -10,5 +10,5 @@ NCPU=$3
 default_script="run_regressions_genome_wide.sh"
 SCRIPT=${4:-$default_script}
 
-bash $SCRIPT $PHENOTYPE $PARTITION $NCPU > $PWD/submission_outputs/${PHENOTYPE}_submissions
+bash $PWD/submission_scripts/$SCRIPT $PHENOTYPE $PARTITION $NCPU 
 

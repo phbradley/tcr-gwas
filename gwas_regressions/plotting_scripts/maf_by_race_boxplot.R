@@ -1,3 +1,4 @@
+library(rstatix)
 library(tidyverse)
 library(gdsfmt)
 library(SNPRelate)
@@ -33,7 +34,7 @@ together$total_inserts = together$vj_insert + together$vd_insert + together$dj_i
 maf_dt = data.table()
 for (snp in colnames(genotypes)[colnames(genotypes) != 'localID']){
     minor_allele = determine_true_minor_allele(snp, together)
-    for (race in c(unique(together$race.g), 'all')){
+    for (race in c(unique(together$race.g), 'Population')){
         maf = calculate_maf(snp, minor_allele, race, together)
         temp = data.table(snp = snp, ancestry_group = race, maf = maf, minor_allele = minor_allele)
         maf_dt = rbind(maf_dt, temp)
@@ -45,20 +46,20 @@ sig_snps = find_significant_snps(c('vd_insert_no_pca', 'dj_insert_no_pca'), bonf
 
 sig_snps_together_mafs = maf_dt[snp %in% sig_snps$snp]
 
-# reshape data
-all_race_mafs = sig_snps_together_mafs[ancestry_group== 'all']
-by_race_mafs = sig_snps_together_mafs[ancestry_group != 'all']
-sig_snps_together_reshaped = merge(by_race_mafs, all_race_mafs, by = c('snp', 'minor_allele'))[,c('snp', 'ancestry_group.x', 'maf.x', 'maf.y')]
-colnames(sig_snps_together_reshaped) = c('snp', 'ancestry_group', 'maf_by_race', 'maf_all_races')
 
-ggplot(sig_snps_together_reshaped) +
-    geom_point(aes(x = maf_all_races, y = maf_by_race, color = ancestry_group), alpha = 0.5, size = 7) +
-    geom_abline(slope = 1, intercept = 0,  size = 2) +
-    ggtitle('MAF by ancestry group versus by population \nfor DNTT significant snps') +
+t_test = sig_snps_together_mafs %>%
+    t_test(maf ~ ancestry_group, ref.group = 'Population')
+
+ggboxplot(sig_snps_together_mafs, x = 'ancestry_group', y = 'maf', fill = 'ancestry_group', lwd = 1.5) +
+    geom_jitter(shape=16, position=position_jitter(0.1), size = 4, alpha = 0.5) +
+    stat_pvalue_manual(t_test, label = 'p.adj.signif', size = 10, y.position = 12, remove.bracket = TRUE) +
     theme_classic() +
-    theme(text = element_text(size = 40)) +
-    xlab('MAF computed across all individuals') +
-    ylab('MAF computed by ancestry group') +
-    labs(fill = "Ancestry Group")
+    theme(text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none")
+    ggtitle('Minor Allele Frequency by Ancestry Group\nfor significant DNTT SNPs') +
+    # geom_hline(data = average_all, aes(yintercept = population_maf_mean), size = 2.5, color = 'red', linetype = 2) +
+    xlab('Ancestry Group') +
+    ylab('Minor Allele Frequency') 
 
-ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/maf_by_race.pdf'), plot = last_plot(), width = 14, height = 12, units = 'in', dpi = 750, device = 'pdf')
+ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/maf_by_race_boxplot.pdf'), plot = last_plot(), width = 15, height = 12, units = 'in', dpi = 750, device = 'pdf')
+
+

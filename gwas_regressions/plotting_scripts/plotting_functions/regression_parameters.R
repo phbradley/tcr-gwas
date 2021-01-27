@@ -2,6 +2,8 @@ trimming = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'True'
 trimming_naive = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'True', pca_count = '8')
 zero_trimming_fraction = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'True', pca_count = '8')
 
+tcr_div = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'False', pca_count = '8')
+
 insertion = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'False', pca_count = '8')
 insertion_no_pca = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'False', pca_count = '0')
 total_insertion = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'False', pca_count = '8')
@@ -30,6 +32,8 @@ set_regression_parameters <- function(phenotype){
         parameters = c(phenotype = phenotype, p_addition_fraction_zero_trimming_subset)
     } else if (phenotype %in% c('v_trim_zero_trimming_fraction', 'j_trim_zero_trimming_fraction', 'd0_trim_zero_trimming_fraction', 'd1_trim_zero_trimming_fraction')){
         parameters = c(phenotype = phenotype, zero_trimming_fraction)
+    } else if (phenotype %in% c('tcr_div')){
+        parameters = c(phenotype = phenotype, tcr_div)
     }
     return(parameters)
 }

@@ -1,6 +1,6 @@
 GENE_TYPE <<- 'd_gene'
 PHENOTYPE_CLASS <<- 'p-addition_count'
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/src/phenotype_functions/phenotype_classes/', PHENOTYPE_CLASS, '_class_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functions/phenotype_classes/', PHENOTYPE_CLASS, '_class_functions.R'))
 
 
