@@ -1,5 +1,5 @@
 # TCR-GWAS 
-TODO add description
+The goal of this project is to identify genetic biases within T-cell receptor repertoires by testing whether any genetic variations genome-wide are associated with repertoire feature biases (i.e. increased trimming, N-insertion, P-addition, etc.). 
 
 # Install
 Everything R 4.0.2 based. R packages that are required can be installed via [miniconda](https://docs.conda.io/en/latest/miniconda.html): 
@@ -24,82 +24,43 @@ conda activate r
 
 # About the genome-wide analysis
 
-(TODO expand)
 With this model, we want to measure the effect of genome wide SNPs on certain TCR repertoire features. 
+See the manuscript for specific model details. (TODO add ms details) 
 
 Specifically, you can run the analysis one of two ways: 
-1. Using a specific phenotype (using [submit_phenotype.sh](submit_phenotype.sh) as described above) from the options below: 
-| Phenotype Class | TCR Phenotypes in Class | Phenotype Description                                                 |
-| --------------- | ----------------------- | --------------------------------------------------------------------- |
-| trimming        | v_trim                  | Amount of V-gene trimming with population structure correction        |
-|                 | d0_trim                 | Amount of 5'-end-D-gene trimming with population structure correction |
-|                 | d1_trim                 | Amount of 3'-end-D-gene trimming with population structure correction |
-|                 | j_trim                  | Amount of J-gene trimming with population structure correction        |
-    * v_trim
-    * v_trim_naive
-    * v_trim_zero_trimming_fraction
-    * v_pnucs_count
-    * v_pnucs_fraction
-    * v_pnucs_fraction_zero_trimming_subset
-    * d0_trim
-    * d0_trim_naive
-    * d0_trim_zero_trimming_fraction
-    * d0_pnucs_count
-    * d0_pnucs_fraction
-    * d0_pnucs_fraction_zero_trimming_subset
-    * d1_trim
-    * d1_trim_naive
-    * d1_trim_zero_trimming_fraction
-    * d1_pnucs_count
-    * d1_pnucs_fraction
-    * d1_pnucs_fraction_zero_trimming_subset
-    * j_trim
-    * j_trim_naive
-    * j_trim_zero_trimming_fraction
-    * j_pnucs_count
-    * j_pnucs_fraction
-    * j_pnucs_fraction_zero_trimming_subset
-    * dj_insert
-    * vd_insert
-    * vj_insert
-    * total_insert
+1. Using a specific phenotype (using [submit_phenotype.sh](submit_phenotype.sh) as described above) from the options in the "TCR Phenotypes in Class" column:
+2. Using a group of these phenotypes called a "phenotype class" (using [submit_phenotype_class.sh](submit_phenotype_class.sh) as described above) from the "Phenotype Class":
+ 
    
-2. Using a group of these phenotypes called a "phenotype class" (using [submit_phenotype_class.sh](submit_phenotype_class.sh) as described above) from the options below:
-    * trimming
-        * v_trim
-        * d0_trim
-        * d1_trim
-        * j_trim
-    * trimming_naive
-        * v_trim_naive
-        * d0_trim_naive
-        * d1_trim_naive
-        * j_trim_naive
-    * insertion
-        * dj_insert
-        * vd_insert
-        * vj_insert
-        * total_insert
-    * p-addition_count
-        * v_pnucs_count
-        * d0_pnucs_count
-        * d1_pnucs_count
-        * j_pnucs_count
-    * p-addition_fraction
-        * v_pnucs_fraction
-        * d0_pnucs_fraction
-        * d1_pnucs_fraction
-        * j_pnucs_fraction
-    * p-addition_fraction_trimming_subset
-        * v_pnucs_fraction_zero_trimming_subset
-        * d0_pnucs_fraction_zero_trimming_subset
-        * d1_pnucs_fraction_zero_trimming_subset
-        * j_pnucs_fraction_zero_trimming_subset
-    * zero_trimming_fraction
-        * v_trim_zero_trimming_fraction
-        * d0_trim_zero_trimming_fraction
-        * d1_trim_zero_trimming_fraction
-        * j_trim_zero_trimming_fraction
+| Phenotype Class                     | TCR Phenotypes in Class                | Phenotype Description                                                                                          |
+|-------------------------------------|----------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| trimming                            | v_trim                                 | Amount of V-gene trimming (with population structure correction)                                               |
+|                                     | d0_trim                                | Amount of 5'-end-D-gene trimming (with population structure correction)                                        |
+|                                     | d1_trim                                | Amount of 3'-end-D-gene trimming (with population structure correction)                                        |
+|                                     | j_trim                                 | Amount of 3'-end-D-gene trimming (with population structure correction)                                        |
+| trimming_naive                      | v_trim_naive                           | Amount of V-gene trimming (without population structure correction)                                            |
+|                                     | d0_trim_naive                          | Amount of 5'-end-D-gene trimming (without population structure correction)                                     |
+|                                     | d1_trim_naive                          | Amount of 3'-end-D-gene trimming (without population structure correction)                                     |
+|                                     | j_trim_naive                           | Amount of 3'-end-D-gene trimming (without population structure correction)                                     |
+| zero_trimming_fraction              | v_trim_zero_trimming_fraction          | Fraction of TCRs with zero V-gene trimming (with population structure correction)                              |
+|                                     | d0_trim_zero_trimming_fraction         | Fraction of TCRs with zero 5'-end-D-gene trimming (with population structure correction)                       |
+|                                     | d1_trim_zero_trimming_fraction         | Fraction of TCRs with zero 3'-end-D-gene trimming (with population structure correction)                       |
+|                                     | j_trim_zero_trimming_fraction          | Fraction of TCRs with zero J-gene trimming (with population structure correction)                              |
+| p-addition_count                    | v_pnucs_count                          | Number of V-gene P-nucleotides (with population structure correction)                                          |
+|                                     | d0_pnucs_count                         | Number of 5'-end-D-gene P-nucleotides (with population structure correction)                                   |
+|                                     | d1_pnucs_count                         | Number of 3'-end-D-gene P-nucleotides (with population structure correction)                                   |
+|                                     | j_pnucs_count                          | Number of J-gene P-nucleotides (with population structure correction)                                          |
+| p-addition_fraction                 | v_pnucs_fraction                       | Fraction of TCRs with V-gene P-nucleotides (with population structure correction)                              |
+|                                     | d0_pnucs_fraction                      | Fraction of TCRs with 5'-end-D-gene P-nucleotides (with population structure correction)                       |
+|                                     | d1_pnucs_fraction                      | Fraction of TCRs with 3'-end-D-gene P-nucleotides (with population structure correction)                       |
+|                                     | j_pnucs_fraction                       | Fraction of TCRs with J-gene P-nucleotides (with population structure correction)                              |
+| p-addition_fraction_trimming_subset | v_pnucs_fraction_zero_trimming_subset  | Fraction of non-V-gene-trimmed TCRs with V-gene P-nucleotides (with population structure correction)           |
+|                                     | d0_pnucs_fraction_zero_trimming_subset | Fraction of non-5'-D-gene-trimmed TCRs with 5'-end-D-gene P-nucleotides (with population structure correction) |
+|                                     | d1_pnucs_fraction_zero_trimming_subset | Fraction of non-3'-D-gene-trimmed TCRs with 3'-end-D-gene P-nucleotides (with population structure correction) |
+|                                     | j_pnucs_fraction_zero_trimming_subset  | Fraction of non-J-gene-trimmed TCRs with J-gene P-nucleotides (with population structure correction)           |
+| insertion                           | dj_insert                              | Number of D-J nucleotide insertions (with population structure correction)                                     |
+|                                     | vd_insert                              | Number of V-D nucleotide insertions (with population structure correction)                                     |
+|                                     | total_insert                           | Number of V-D and D-J nucleotide insertions (with population structure correction)                             |
 
 
 
