@@ -29,6 +29,12 @@ With this model, we want to measure the effect of genome wide SNPs on certain TC
 
 Specifically, you can run the analysis one of two ways: 
 1. Using a specific phenotype (using [submit_phenotype.sh](submit_phenotype.sh) as described above) from the options below: 
+| Phenotype Class | TCR Phenotypes in Class | Phenotype Description                                                 |
+| --------------- | ----------------------- | --------------------------------------------------------------------- |
+| trimming        | v_trim                  | Amount of V-gene trimming with population structure correction        |
+|                 | d0_trim                 | Amount of 5'-end-D-gene trimming with population structure correction |
+|                 | d1_trim                 | Amount of 3'-end-D-gene trimming with population structure correction |
+|                 | j_trim                  | Amount of J-gene trimming with population structure correction        |
     * v_trim
     * v_trim_naive
     * v_trim_zero_trimming_fraction
