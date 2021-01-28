@@ -10,6 +10,11 @@ conda env create -f environment.yml
 conda activate r
 ```
 
+# Requirements: 
+Due to the computationally intensive nature of running these analyses genome-wide, this pipeline requires a cluster to run. 
+These scripts are written specifically for a cluster set up to use the Slurm job scheduler. 
+(Some minor modifications to the [single job submission script](submission_scripts/run_regressions_genome_wide.sh) and the [genome-wide submission script](submission_scripts/submit_cluster_jobs_continuously.sh) could allow this pipeline to be run using a different cluster workload manager.) 
+
 # Analysis outline: 
 1. Download data into the directory `tcr-gwas/_ignore/` (TODO add sources and/or write script to do this)
 2. Edit [config](config/) files to be project and/or computer specific
