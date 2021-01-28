@@ -30,7 +30,7 @@ See the manuscript for specific model details. (TODO add ms details)
 
 Specifically, you can run the analysis one of two ways: 
 1. Using a specific phenotype (using [submit_phenotype.sh](submit_phenotype.sh) as described above) from the options in the "TCR Phenotypes in Class" column:
-2. Using a group of these phenotypes called a "phenotype class" (using [submit_phenotype_class.sh](submit_phenotype_class.sh) as described above) from the "Phenotype Class":
+2. Using a group of these phenotypes called a "phenotype class" (using [submit_phenotype_class.sh](submit_phenotype_class.sh) as described above) from the "Phenotype Class" column:
  
    
 | Phenotype Class                     | TCR Phenotypes in Class                | Phenotype Description                                                                                          |
