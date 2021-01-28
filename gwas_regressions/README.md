@@ -20,7 +20,8 @@ conda activate r
         3. number of cluster cores per job
     * i.e. `bash submit_phenotype.sh v_trim partition-name 2` will run the pipeline for v_trim by submitting 2 core jobs to the cluster partition named "partition-name"
     * A full list of possible phenotypes and phenotype classes is listed below
-3. Plot results [genome-wide](plotting_scripts/plot_genome_wide.Rmd) or for a [specific gene](plotting_scripts/plot_gene.Rmd) using the Rmarkdown notebooks
+3. Plot results across the [genome](plotting_scripts/plot_genome_wide.Rmd) or for a specific [gene](plotting_scripts/plot_gene.Rmd) using the Rmarkdown notebook.
+    * Also, have a look at the plotting [README](plotting_scripts/README.md) for more details.
 
 # About the genome-wide analysis
 

@@ -38,6 +38,3 @@ ggboxplot(together, x = 'ancestry_group', y = 'total_inserts', fill = 'ancestry_
 
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/insertions_by_race.pdf'), plot = last_plot(), width = 25, height = 12, units = 'in', dpi = 750, device = 'pdf')
 
-# Get pvalues for paper
-compare_means(total_inserts ~ ancestry_group, data = together[productive == 'productive'], ref.group = '.all.', method = 't.test')
-compare_means(total_inserts ~ ancestry_group, data = together[productive == 'non-productive'], ref.group = '.all.', method = 't.test')
