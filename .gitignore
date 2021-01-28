@@ -11,6 +11,7 @@ _ignore/
 slurm*
 temp_*
 *_submissions
+tcr_div*
 
 # History files
 .Rhistory
