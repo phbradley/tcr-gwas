@@ -12,6 +12,7 @@ slurm*
 temp_*
 *_submissions
 tcr_div*
+test_*
 
 # History files
 .Rhistory

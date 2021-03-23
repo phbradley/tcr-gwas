@@ -7,6 +7,6 @@ set -eu
 PHENOTYPE=$1
 NCPU=$2
 
-source $PWD/config.sh $PHENOTYPE
+source $PWD/config/config.sh $PHENOTYPE
 
 Rscript $PROJECT_PATH/tcr-gwas/gwas_regressions/scripts/compile_regressions.R $PHENOTYPE $NCPU

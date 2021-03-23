@@ -1,4 +1,6 @@
 library(rstatix)
+library(RColorBrewer)
+
 library(tidyverse)
 library(gdsfmt)
 library(SNPRelate)
@@ -58,7 +60,8 @@ ggboxplot(sig_snps_together_mafs, x = 'ancestry_group', y = 'maf', fill = 'ances
     ggtitle('Minor Allele Frequency by Ancestry Group\nfor significant DNTT SNPs') +
     # geom_hline(data = average_all, aes(yintercept = population_maf_mean), size = 2.5, color = 'red', linetype = 2) +
     xlab('Ancestry Group') +
-    ylab('Minor Allele Frequency') 
+    ylab('Minor Allele Frequency')+
+    scale_fill_brewer(palette = 'Set2')
 
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/maf_by_race_boxplot.pdf'), plot = last_plot(), width = 15, height = 12, units = 'in', dpi = 750, device = 'pdf')
 

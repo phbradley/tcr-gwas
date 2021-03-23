@@ -54,11 +54,12 @@ colnames(sig_snps_together_reshaped) = c('snp', 'ancestry_group', 'maf_by_race',
 ggplot(sig_snps_together_reshaped) +
     geom_point(aes(x = maf_all_races, y = maf_by_race, color = ancestry_group), alpha = 0.5, size = 7) +
     geom_abline(slope = 1, intercept = 0,  size = 2) +
-    ggtitle('MAF by ancestry group versus by population \nfor DNTT significant snps') +
+    # ggtitle('MAF by ancestry group versus by population \nfor DNTT significant snps') +
     theme_classic() +
     theme(text = element_text(size = 40)) +
     xlab('MAF computed across all individuals') +
     ylab('MAF computed by ancestry group') +
-    labs(fill = "Ancestry Group")
+    labs(fill = "Ancestry Group") +
+    scale_color_brewer(palette = 'Set2')
 
-ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/maf_by_race.pdf'), plot = last_plot(), width = 14, height = 12, units = 'in', dpi = 750, device = 'pdf')
+ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/maf_by_race.pdf'), plot = last_plot(), width = 14, height = 10, units = 'in', dpi = 750, device = 'pdf')

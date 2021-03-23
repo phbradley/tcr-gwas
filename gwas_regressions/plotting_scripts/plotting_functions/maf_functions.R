@@ -14,7 +14,7 @@ determine_true_minor_allele <- function(snp, phenotype_genotype_dt){
 
 calculate_maf <- function(snp, minor_allele, race, genotype_dt){
     columns = c('localID', 'race.g', paste(snp))
-    if (race != 'Population'){
+    if (race != 'all'){
         data = genotype_dt[race.g == race,..columns]
     } else {
         data = genotype_dt[,..columns]

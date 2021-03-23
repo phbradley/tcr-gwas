@@ -1,4 +1,6 @@
 library(tidyverse)
+library(RColorBrewer)
+library(plyr)
 library(ggpubr)
 library(data.table)
 setDTthreads(1)
@@ -57,25 +59,30 @@ create_filename <- function(paired_feature_types){
 }
 
 
-plot_distributions_by_gene <- function(data, gene_types, paired_feature_types){
+plot_distributions_by_gene <- function(data, gene_types, paired_feature_types, plot_variable_names){
     data_condensed = create_distribution_data(data, gene_types, paired_feature_types)
     data_condensed = data_condensed[gene_of_interest != '-']
-    data_condensed$facet_variable = paste0(data_condensed$feature, ' by ', data_condensed$gene_type)
-    mean_dt = data_condensed %>%
-        group_by(gene_of_interest, productivity, facet_variable) %>%
-        summarize(median= median(feature_of_interest))
+    data_condensed$facet_variable = mapvalues(data_condensed$feature, from = unique(data_condensed$feature), to = plot_variable_names)
+    data_condensed$facet_variable = paste0(data_condensed$facet_variable, '\nby ', data_condensed$gene_type)
+
+    mean_dt = data_condensed[, median(feature_of_interest), by = .(gene_of_interest, productivity, facet_variable)]
+    colnames(mean_dt) = c('gene_of_interest', 'productivity', 'facet_variable', 'median')
+    
     plot = ggplot(data_condensed, aes(x=feature_of_interest)) +
         facet_grid(cols = vars(productivity), rows = vars(facet_variable)) +
-        geom_vline(data = mean_dt, aes(xintercept=median, color = gene_of_interest), alpha = 0.1, linetype='solid', size=1) +
-        geom_density(aes(color = gene_of_interest), alpha = 0.3, adjust = 2.5) + 
+        geom_vline(data = mean_dt, aes(xintercept=median, color = facet_variable), alpha = 0.1, linetype='solid', size=1) +
+        geom_density(aes(group = gene_of_interest, color = facet_variable), alpha = 0.3, adjust = 2.5) + 
         theme_classic() +
         theme(text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
-        ggtitle(create_title(paired_feature_types))
+        ggtitle(create_title(paired_feature_types))+
+        scale_color_brewer(palette = 'Set2')
+
     filename = create_filename(paired_feature_types)
     ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/', filename), plot = plot, width = 15, height = 20, units = 'in', dpi = 750, device = 'pdf')
 }
 
-plot_distributions_by_gene(insertions, c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
-plot_distributions_by_gene(trimmings, c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('v_trim', 'd0_trim', 'd1_trim', 'j_trim'))
+plot_distributions_by_gene(insertions, c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'), c('V-D-gene insertions', 'D-J-gene insertions'))
+plot_distributions_by_gene(trimmings, c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('v_trim', 'd0_trim', 'd1_trim', 'j_trim'), c('V-gene trimming', '5\'-D-gene trimming', '3\'-end-D-gene trimming', 'J-gene trimming'))
+
 
 #TODO FINISH this!!

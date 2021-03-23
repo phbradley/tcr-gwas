@@ -250,9 +250,8 @@ execute_regressions <- function(snp_meta_data, genotypes, phenotypes, write.tabl
     snp_meta_data$snp = as.character(snp_meta_data$snp)
     results = merge(results, snp_meta_data, by = 'snp')
 
-    file_name = make_regression_file_name()
-
     if (write.table == TRUE){
+        file_name = make_regression_file_name()
         write.table(as.data.frame(results), file = file_name, quote=FALSE, sep='\t', col.names = NA)
     } else if (write.table == FALSE){
         return(results)

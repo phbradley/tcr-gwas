@@ -1,4 +1,6 @@
 library(GWASTools)
+library(RColorBrewer)
+
 library(ggpubr)
 library(data.table)
 setDTthreads(1)
@@ -27,8 +29,9 @@ theme_classic() +
 theme(text = element_text(size = 40)) +
     ggtitle('Population Structure PCA Scores by Ancestry Group') +
     xlab('Principal Component') +
-    ylab('Scaled PC Scores') 
-
+    ylab('Scaled PC Scores') +
+    scale_color_brewer(palette = 'Set2')
+  
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/pc_parallel_coordinates_by_race.pdf'), plot = last_plot(), width = 30, height = 12, units = 'in', dpi = 750, device = 'pdf')
 
 scree_plot = data.frame(pc=1:32, varprop = pc$varprop)

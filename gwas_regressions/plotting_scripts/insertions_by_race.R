@@ -1,4 +1,5 @@
 library(ggpubr)
+library(RColorBrewer)
 library(data.table)
 setDTthreads(1)
 library(ggplot2)
@@ -34,7 +35,8 @@ ggboxplot(together, x = 'ancestry_group', y = 'total_inserts', fill = 'ancestry_
     ggtitle('Mean Total Insertions by Ancestry Group') +
     geom_hline(data = average_all, aes(yintercept = total_insert_mean), size = 2.5, color = 'red', linetype = 2) +
     xlab('Ancestry Group') +
-    ylab('Mean total inserts') 
+    ylab('Mean total inserts') + 
+    scale_fill_brewer(palette = 'Set2')
 
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/insertions_by_race.pdf'), plot = last_plot(), width = 25, height = 12, units = 'in', dpi = 750, device = 'pdf')
 
