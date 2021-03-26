@@ -2,6 +2,7 @@
 trimming_regression/
 current_cluster_job_directories/
 _ignore/
+analysis/
 
 # Custom
 *.html
@@ -12,7 +13,7 @@ slurm*
 temp_*
 *_submissions
 tcr_div*
-test_*
+test*
 
 # History files
 .Rhistory
