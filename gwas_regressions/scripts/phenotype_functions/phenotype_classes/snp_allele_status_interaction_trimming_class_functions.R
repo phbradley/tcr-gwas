@@ -10,14 +10,15 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     cdr3 = combine_genes_by_common_cdr3()
     tcr_repertoire_data = merge(tcr_repertoire_dataframe, cdr3, by.x = GENE_TYPE, by.y = 'id')
     tcr_repertoire_data$tcr_count = nrow(tcr_repertoire_data)
-
+    tcr_repertoire_dataframe[, productivity_tcr_count := .N, by = .(localID, productive)]
+ 
     names = c('localID', paste(CONDITIONING_VARIABLE), 'productive')
     
     condensed_tcr_repertoire_data = tcr_repertoire_data[, paste0(GENE_TYPE, '_count') := .N, by = mget(names)][, lapply(.SD, mean), by = mget(names), .SDcols = sapply(tcr_repertoire_data, is.numeric)]
 
     condensed_tcr_repertoire_data[[paste0('weighted_', GENE_TYPE, '_count')]] = condensed_tcr_repertoire_data[[paste0(GENE_TYPE, '_count')]]/nrow(tcr_repertoire_data)
 
-    valid_columns = c(names, PHENOTYPE, 'tcr_count', paste0(GENE_TYPE, '_count'), paste0('weighted_', GENE_TYPE, '_count'))
+    valid_columns = c(names, PHENOTYPE, 'tcr_count', 'productivity_tcr_count', paste0(GENE_TYPE, '_count'), paste0('weighted_', GENE_TYPE, '_count'))
 
     return(condensed_tcr_repertoire_data[,..valid_columns])
 }

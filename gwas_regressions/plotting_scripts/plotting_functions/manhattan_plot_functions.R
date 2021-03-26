@@ -55,6 +55,8 @@ set_manhattan_plot_title <- function(phenotype_class, gene_subset = 'NA'){
         title = 'TCR Diversity'
     } else if (phenotype_class == 'gene_usage'){
         title = 'Gene usage'
+    } else if (phenotype_class == 'gene_usage_no_PCA'){
+        title = 'Gene usage without population structure correction'
     }
     return(title)
 }

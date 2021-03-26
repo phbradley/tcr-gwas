@@ -13,7 +13,11 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     names = c('localID', paste(CONDITIONING_VARIABLE), 'productive')
     
     # Find total number of TCRs
-    tcr_total = nrow(tcr_repertoire_data)
+    tcr_count_names = c('localID', 'tcr_count', 'productivity_tcr_count')
+    tcr_repertoire_dataframe[,tcr_count := .N, by = .(localID)]
+    tcr_repertoire_dataframe[, productivity_tcr_count := .N, by = .(localID, productive)]
+    counts = tcr_repertoire_dataframe[..tcr_count_names]
+
     # Find proportion of TCRs with each gene
     tcr_repertoire_data_weights = tcr_repertoire_data[, .N, by = .(localID, productive, cdr3_gene_group)]
     setnames(tcr_repertoire_data_weights, 'N', paste0(GENE_TYPE, '_count'))
@@ -28,10 +32,10 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     together[[paste0('weighted_', GENE_TYPE, '_count')]] = together[[paste0(GENE_TYPE, '_count')]]/tcr_total
     #define fraction phenotype
     together[[PHENOTYPE]] = together[[paste0(parameter, '_count')]]/together[[paste0(GENE_TYPE, '_count')]]
-    
-    together$tcr_count = tcr_total
+   
+    together = merge(together, counts, by = 'localID')
 
-    valid_columns = c(names, PHENOTYPE, 'tcr_count', paste0(GENE_TYPE, '_count'), paste0('weighted_', GENE_TYPE, '_count'))
+    valid_columns = c(names, PHENOTYPE, 'tcr_count', 'productivity_tcr_count', paste0(GENE_TYPE, '_count'), paste0('weighted_', GENE_TYPE, '_count'))
 
     return(together[,..valid_columns])
 }

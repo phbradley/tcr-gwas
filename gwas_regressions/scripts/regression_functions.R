@@ -161,7 +161,7 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functi
 
 generate_condensed_tcr_repertoire_file_name <- function(){
     inferred_d_gene_end = ifelse(INFER_MISSING_D_GENE == 'True', '_with_inferred_d_gene.tsv', '_NO_inferred_d_gene.tsv')
-    condensed_tcr_repertoires_file_name = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/condensed_tcr_repertoire_data/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects_', PHENOTYPE_CLASS, '_for_', PHENOTYPE, inferred_d_gene_end)
+    condensed_tcr_repertoires_file_name = paste0(OUTPUT_PATH, '/condensed_tcr_repertoire_data/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects_', PHENOTYPE_CLASS, '_for_', PHENOTYPE, inferred_d_gene_end)
     return(condensed_tcr_repertoires_file_name)
 }
 
@@ -188,7 +188,7 @@ filter_tcr_repertoire_data_by_productivity <- function(condensed_tcr_repertoire_
 }
 
 remove_small_repertoire_observations <- function(tcr_repertoire_data, productive_log10_count_cutoff = 4.25, NOT_productive_log10_count_cutoff = 3.5){
-    filtered_tcr_repertoire_data = tcr_repertoire_data[(productive == 'TRUE' & log10(tcr_count)>productive_log10_count_cutoff) | (productive == 'FALSE' & log10(tcr_count)>NOT_productive_log10_count_cutoff)]
+    filtered_tcr_repertoire_data = tcr_repertoire_data[(productive == 'TRUE' & log10(productivity_tcr_count)>productive_log10_count_cutoff) | (productive == 'FALSE' & log10(productivity_tcr_count)>NOT_productive_log10_count_cutoff)]
     return(filtered_tcr_repertoire_data)
 }
 
@@ -203,10 +203,18 @@ compile_population_structure_pca_data <- function(){
 compile_phenotype_data <- function(){
     tcr_repertoire_data = compile_condensed_tcr_repertoire_data()
     if (PHENOTYPE != 'tcr_div'){
+        #TODO remove the following if statement
+        if (!('productivity_tcr_count' %in% colnames(tcr_repertoire_data))){
+            tcr_repertoire_data$productivity_tcr_count = tcr_repertoire_data$tcr_count
+        }
         tcr_repertoire_data = remove_small_repertoire_observations(tcr_repertoire_data)
     }
-    pca_data = compile_population_structure_pca_data()
-    phenotype_data = merge(tcr_repertoire_data, pca_data, by = 'localID')
+    if (!is.na(PCA_COUNT)){
+        pca_data = compile_population_structure_pca_data()  
+        phenotype_data = merge(tcr_repertoire_data, pca_data, by = 'localID')
+    } else {
+        phenotype_data = tcr_repertoire_data
+    }
     return(phenotype_data)
 }
 
@@ -258,9 +266,9 @@ execute_regressions <- function(snp_meta_data, genotypes, phenotypes, write.tabl
     }   
 }
 
-################################
-# Compile regression functions #
-################################
+
+source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functions/phenotype_classes/', PHENOTYPE_CLASS, '_class_functions.R'))
+##############################
 make_compiled_file_name <- function(){
     file_name = paste0(OUTPUT_PATH, '/results/', PHENOTYPE, '_regressions_', CONDENSING_VARIABLE, '_d_infer-', INFER_MISSING_D_GENE, '_', PCA_COUNT, '_PCAir_PCs.tsv')
     return(file_name)

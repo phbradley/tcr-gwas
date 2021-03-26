@@ -13,18 +13,44 @@ get_gene_from_gene_allele <- function(gene_allele_list){
 
 condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     tcr_repertoire_dataframe$tcr_count = nrow(tcr_repertoire_dataframe)
-    
+    tcr_repertoire_dataframe[, productivity_tcr_count := .N, by = .(localID, productive)]
+
     gene_usage = data.table()
 
     for (gene_type in c('v_gene', 'd_gene', 'j_gene')){
         tcr_repertoire_dataframe[,gene:=get_gene_from_gene_allele(get(gene_type))]
-        gene_freqs = tcr_repertoire_dataframe[,.N, by = .(gene, localID, productive, tcr_count)]
-        colnames(gene_freqs) = c('gene', 'localID', 'productive', 'tcr_count', 'gene_count')
+        gene_freqs = tcr_repertoire_dataframe[,.N, by = .(gene, localID, productive, tcr_count, productivity_tcr_count)]
+        colnames(gene_freqs) = c('gene', 'localID', 'productive', 'tcr_count', 'productivity_tcr_count', 'gene_count')
         gene_freqs[, gene_usage := gene_count/tcr_count]
         gene_usage = rbind(gene_usage, gene_freqs)
     }
     
     return(gene_usage)
+}
+
+construct_complete_dataframe <- function(subjects, genes){
+    together = data.table()
+    genes_dt = data.table(gene = genes)
+    for (subject in subjects){
+        for (prod in c(TRUE, FALSE)){
+            genes_dt$productive = prod
+            genes_dt$localID = subject
+            together = rbind(together, genes_dt)
+        }
+    }
+    return(together)
+}
+
+fill_in_zero_frequencies <- function(compiled_dataframe){
+    meta_subject_data = unique(compiled_dataframe[, c('localID', 'tcr_count', 'productivity_tcr_count', 'productive')])
+    all_genes = unique(compiled_dataframe$gene)
+    all_subjects = unique(compiled_dataframe$localID)
+    complete_dataframe = construct_complete_dataframe(all_subjects, all_genes)
+    complete_dataframe = merge(complete_dataframe, meta_subject_data, by = c('localID', 'productive'))
+    complete_dataframe = merge(complete_dataframe, compiled_dataframe, by = colnames(complete_dataframe), all.x = TRUE)
+    complete_dataframe[is.na(gene_count), gene_count := 0]
+    complete_dataframe[is.na(gene_usage), gene_usage := 0]
+    return(complete_dataframe)
 }
 
 condense_all_tcr_repertoire_data <- function(){
@@ -47,6 +73,7 @@ condense_all_tcr_repertoire_data <- function(){
         condense_individual_tcr_repertoire_data(file_data)
     }
     stopImplicitCluster()
+    tcr_rep_data = fill_in_zero_frequencies(tcr_rep_data)
     filename = generate_condensed_tcr_repertoire_file_name()
     write.table(tcr_rep_data, file = filename, quote=FALSE, sep='\t', col.names = NA)
 }
@@ -78,6 +105,9 @@ regress <- function(snp, snps, regression_data){
     index = which(snps == snp)
     formula = set_regression_formula(snp)
     regression_results_together = data.table()
+    if (PHENOTYPE != 'gene_usage'){
+        setnames(regression_data, 'gene_usage', PHENOTYPE, skip_absent = TRUE)
+    }
     for (productivity in c('TRUE', 'FALSE')){
         for(gene_name in unique(regression_data$gene)){
             # if all subjects have the same genotype, skip
