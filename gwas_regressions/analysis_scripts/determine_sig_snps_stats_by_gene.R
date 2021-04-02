@@ -22,6 +22,8 @@ insertion_lambdas = get_lambdas_xtable(insertion_data, 'insertion')
 pnuc_fraction_data = compile_manhattan_plot_data(c('v_pnucs_fraction_zero_trimming_subset', 'j_pnucs_fraction_zero_trimming_subset', 'd0_pnucs_fraction_zero_trimming_subset', 'd1_pnucs_fraction_zero_trimming_subset'))
 pnuc_fraction_lambdas = get_lambdas_xtable(pnuc_fraction_data, 'pnucs_fraction_zero_trimming_subset')
 
+pnuc_fraction_snp_interaction_corrected_data = fread(paste0(OUTPUT_PATH, '/results/d_allele_linkage/p-addition_fraction_trimming_subset_regressions_snp_interaction_correction_by_gene_cdr3_d_infer-True_8_PCAir_PCs_tcrb.tsv'))
+
 # gene_usage_data = compile_manhattan_plot_data(c('gene_usage'))
 # gene_usage_lambdas = get_lambdas_xtable_gene_usage(gene_usage_data)
 # sig_gene_usage_tcrb = get_sig_snps_stats(gene_usage_data, name = 'gene_usage', gene = 'tcrb', 'genome-wide')
@@ -30,12 +32,15 @@ pnuc_fraction_lambdas = get_lambdas_xtable(pnuc_fraction_data, 'pnucs_fraction_z
 sig_trim_artemis = get_sig_snps_stats(trimming_data, name = 'trimming', gene = 'artemis', 'genome-wide')
 sig_trim_naive_artemis = get_sig_snps_stats(trimming_naive_data, name = 'trimming_naive', gene = 'artemis', 'genome-wide')
 sig_trim_tcrb = get_sig_snps_stats(trimming_data, name = 'trimming', gene = 'tcrb', 'genome-wide')
+sig_trim_tcrb_gene = get_sig_snps_stats(trimming_data, name = 'trimming', gene = 'tcrb', 'gene-surround')
 sig_trim_naive_tcrb = get_sig_snps_stats(trimming_naive_data, name = 'trimming_naive', gene = 'tcrb', 'genome-wide')
 
 sig_trim_naive_mhc = get_sig_snps_stats(trimming_naive_data, name = 'trimming_naive', gene = 'mhc', 'genome-wide')
 
 sig_pnuc_frac_mhc = get_sig_snps_stats(pnuc_fraction_data, name = 'pnuc_fraction', gene = 'mhc', 'genome-wide')
 sig_pnuc_frac_tcrb = get_sig_snps_stats(pnuc_fraction_data, name = 'pnuc_fraction', gene = 'tcrb', 'genome-wide')
+sig_pnuc_frac_tcrb_gene = get_sig_snps_stats(pnuc_fraction_data, name = 'pnuc_fraction', gene = 'tcrb', 'gene-surround')
+sig_pnuc_frac_snp_interation_correction_gene = get_sig_snps_stats(pnuc_fraction_snp_interaction_corrected_data, name = 'pnuc_fraction', gene = 'tcrb', 'gene-surround')[linkage_correction == 'Without correction'] 
 
 sig_insert_dntt = get_sig_snps_stats(insertion_data, name = 'insertion', gene = 'dntt', 'genome-wide')
 sig_insert_dntt_gene = get_sig_snps_stats(insertion_data, name = 'insertion', gene = 'dntt', 'gene-surround')

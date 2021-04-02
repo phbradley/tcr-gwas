@@ -14,6 +14,7 @@ p_addition_count = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene 
 p_addition_fraction = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'False', pca_count = '8') 
 p_addition_fraction_zero_trimming_subset = c(condensing_variable = 'by_gene_cdr3', infer_missing_d_gene = 'False', pca_count = '8')
 
+missing_d_fraction = c(condensing_variable = 'by_subject', infer_missing_d_gene = 'False', pca_count = '8')
 
 set_regression_parameters <- function(phenotype){
     if (phenotype %in% c('v_trim', 'j_trim', 'd0_trim', 'd1_trim')){
@@ -40,7 +41,8 @@ set_regression_parameters <- function(phenotype){
         parameters = c(phenotype = phenotype, gene_usage)
     } else if (phenotype %in% c('gene_usage_no_PCA')){
         parameters = c(phenotype = phenotype, gene_usage_no_PCA)
+    } else if (phenotype %in% c('missing_d_fraction')){
+        parameters = c(phenotype = phenotype, missing_d_fraction)
     }
-
     return(parameters)
 }

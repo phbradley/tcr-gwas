@@ -47,7 +47,7 @@ get_d_gene_usage <- function(){
 }
 
 set_plot_title <- function(){
-    return(paste0('SNP genotype versus TRBD2 alternate allele usage'))
+    return(paste0('SNP genotype versus TRBD2*02 usage'))
 }
 
 set_file_name <- function(snp){
@@ -66,23 +66,32 @@ set_plot_subtitle <- function(snpID, sig_snps){
     return(subtitle)
 }
 
-boxplot_by_d_allele_usage <- function(snp, dataframe, sig_snps){
+boxplot_by_d_allele_usage <- function(snp, dataframe, sig_snps, final_figure = FALSE){
     require(ggplot2)
     require(ggpubr)
     title = set_plot_title()
     subtitle = set_plot_subtitle(snp, sig_snps)
     filename = set_file_name(snp)
-
+    dataframe = dataframe[!is.na(get(snp))]
     compare = list(c('0', '1'), c('1', '2'), c('0', '2'))
-    plot = ggboxplot(dataframe, x = snp, y = 'alt_allele_prop', fill = snp, size = 1.5, outlier.shape = NA) +
-         stat_compare_means(comparisons = compare, size = 8) +
+    plot = ggboxplot(dataframe, x = snp, y = 'alt_allele_prop', fill = snp, size = 2, outlier.shape = NA) +
          # stat_compare_means(label.y = 0.85, size = 8) +
-         geom_jitter(shape=16, position=position_jitter(0.05), size = 4, alpha = 0.75) +
+         geom_jitter(shape=16, position=position_jitter(0.05), size = 6, alpha = 0.75) +
          theme_classic() +
-         theme(text = element_text(size = 30), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
+         theme(text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
+         scale_fill_brewer(palette = 'Set2')
+    
+    if (final_figure == TRUE){
+        final_plot = plot + 
+            stat_compare_means(label='p.signif', comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
+            labs(title = title, x = 'Top association TCRB SNP', y = 'TRBD2*02 allele usage')
+    } else {
+        final_plot = plot + 
+         stat_compare_means(comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
          labs(title = title, subtitle = subtitle, y = 'TRBD2*02 allele usage')
+    }
 
-     ggsave(filename, plot = plot, width = 14, height = 10, units = 'in', dpi = 750, device = 'pdf')
+     ggsave(filename, plot = final_plot, width = 14, height = 10, units = 'in', dpi = 750, device = 'pdf')
 }
 
 ######################################################
@@ -225,7 +234,7 @@ set_plot_title_compare <- function(){
 }
 
 get_file_name_compare <- function(gene){
-    file = paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/', PHENOTYPE, '_', gene, '_compare_with_without_allele_linkage_correction.pdf')
+    file = paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/', PHENOTYPE, '_', gene, '_compare_with_without_allele_linkage_', CORRECTION_TYPE, '_correction.pdf')
     return(file)
 }
 

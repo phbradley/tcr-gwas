@@ -11,17 +11,17 @@ plotting_cutoff = -log10(5e-5)
 #                plot_title = set_manhattan_plot_title('tcr_div'), 
 #                file_name = make_file_name('tcr_div'), 
 #                plotting_p_value_cutoff = plotting_cutoff)
-manhattan_plot(dataframe = compile_manhattan_plot_data(c('gene_usage')), 
-               plot_title = set_manhattan_plot_title('gene_usage'), 
-               file_name = make_file_name('gene_usage'), 
-               plotting_p_value_cutoff = plotting_cutoff, 
-               gene_usage = TRUE)
+# manhattan_plot(dataframe = compile_manhattan_plot_data(c('gene_usage')), 
+#                plot_title = set_manhattan_plot_title('gene_usage'), 
+#                file_name = make_file_name('gene_usage'), 
+#                plotting_p_value_cutoff = plotting_cutoff, 
+#                gene_usage = TRUE)
 
-manhattan_plot(dataframe = compile_manhattan_plot_data(c('gene_usage_no_PCA')), 
-               plot_title = set_manhattan_plot_title('gene_usage_no_PCA'), 
-               file_name = make_file_name('gene_usage_no_PCA'), 
-               plotting_p_value_cutoff = plotting_cutoff, 
-               gene_usage = TRUE)
+manhattan_plot(dataframe = compile_manhattan_plot_data(c('missing_d_fraction')), 
+               phenotype_values = c('missing D-gene fraction'), 
+               plot_title = set_manhattan_plot_title('missing_d_fraction'), 
+               file_name = make_file_name('missing_d_fraction'), 
+               plotting_p_value_cutoff = plotting_cutoff)
 
 
 manhattan_plot(dataframe = compile_manhattan_plot_data(c('v_pnucs_count', 'j_pnucs_count', 'd0_pnucs_count', 'd1_pnucs_count')), 
