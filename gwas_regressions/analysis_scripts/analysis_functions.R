@@ -78,7 +78,7 @@ boxplot_by_d_allele_usage <- function(snp, dataframe, sig_snps, final_figure = F
          # stat_compare_means(label.y = 0.85, size = 8) +
          geom_jitter(shape=16, position=position_jitter(0.05), size = 6, alpha = 0.75) +
          theme_classic() +
-         theme(text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
+         theme(text = element_text(size = 40), legend.position = "none") +
          scale_fill_brewer(palette = 'Set2')
     
     if (final_figure == TRUE){
@@ -90,7 +90,7 @@ boxplot_by_d_allele_usage <- function(snp, dataframe, sig_snps, final_figure = F
          stat_compare_means(comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
          labs(title = title, subtitle = subtitle, y = 'TRBD2*02 allele usage')
     }
-
+    return(final_plot)
      ggsave(filename, plot = final_plot, width = 14, height = 10, units = 'in', dpi = 750, device = 'pdf')
 }
 
@@ -184,7 +184,7 @@ process_names <- function(lambda_dataframe){
     return(lambda_dataframe)
 }
 
-get_lambdas_xtable <- function(dataframe, name){
+get_lambdas <- function(dataframe, name){
     together = data.table()
     for (feature in unique(dataframe$phenotype)){
         for (prod in unique(dataframe$productive)){
@@ -195,12 +195,11 @@ get_lambdas_xtable <- function(dataframe, name){
         }
     }
     together = process_names(together)
-    latex_table = xtable(together)
-    print(latex_table, file = paste0('analysis/', name, '_lambda_latex_table.txt'), include.rownames = FALSE)
+    fwrite(together, file = paste0('analysis/', name, '_lambda_table.txt'), sep = ',')
     return(together)
 }
 
-get_lambdas_xtable_gene_usage <- function(dataframe){
+get_lambdas_gene_usage <- function(dataframe){
     together = data.table()
     for (gene_name in unique(dataframe$gene)){
         for (prod in unique(dataframe$productive)){
@@ -210,8 +209,7 @@ get_lambdas_xtable_gene_usage <- function(dataframe){
             print(paste0('The genome-wide lambda value for ', gene_name, ' and productivity=', prod, ' is ', lambda))
         }
     }
-    latex_table = xtable(together)
-    print(latex_table, file = paste0('analysis/gene_usage_lambda_latex_table.txt'))
+    fwrite(together, file = paste0('analysis/gene_usage_lambda_table.txt'), sep = ',')
     return(together)
 }
 

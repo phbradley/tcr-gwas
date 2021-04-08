@@ -77,7 +77,7 @@ determine_significance_cutoff <- function(alpha, type, genome_wide_dataframe, ph
     return(sig_cutoff)
 }
 
-manhattan_plot <- function(dataframe, phenotype_values = NA, plot_title, file_name, plotting_p_value_cutoff, significance_cutoff_type = 'genome-wide', gene_usage = NA){
+manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = NA, plot_title, file_name, plotting_p_value_cutoff, significance_cutoff_type = 'genome-wide', gene_usage = NA){
     stopifnot(length(significance_cutoff_type) <= 2)
     if (!is.na(phenotype_values)){
         dataframe$feature = mapvalues(dataframe$phenotype, from = unique(dataframe$phenotype), to = phenotype_values) 
@@ -105,6 +105,10 @@ manhattan_plot <- function(dataframe, phenotype_values = NA, plot_title, file_na
    
     GENE_ANNOTATIONS$mid_pos = rowMeans(GENE_ANNOTATIONS[, c('pos1', 'pos2')])
     dataframe = dataframe[-log10(pvalue)>plotting_p_value_cutoff]
+    if (!is.na(phenotype_subset)){
+        dataframe = dataframe[phenotype %in% phenotype_subset]
+    }
+
     feature_colors = feature_colors[names(feature_colors) %in% unique(dataframe$feature)]
     #Set plot parameters
     point_size = 5 
@@ -124,22 +128,22 @@ manhattan_plot <- function(dataframe, phenotype_values = NA, plot_title, file_na
     dataframe = dataframe[rows,]
 
     snps = ggplot(dataframe) +
-        geom_vline(data = GENE_ANNOTATIONS, aes(xintercept = mid_pos), size = 1, lty = 'longdash', alpha = 0.7)+
+        geom_vline(data = GENE_ANNOTATIONS, aes(xintercept = mid_pos), size = 1, lty = 'longdash', alpha = 0.4)+
         geom_text(data = GENE_ANNOTATIONS, size = 8, angle = 90, y = label_position, aes(x = mid_pos, label = gene_locus), vjust = 1.2) + 
-        geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature, shape = productivity), alpha = 0.6, size = point_size) +
+        geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature), alpha = 0.75, size = point_size) +
         # geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = 0.6) +
-        facet_grid(productivity~chr, switch="both", space='free_x', scales = "free_x") +
+        facet_grid(productivity~chr, switch="x", space='free_x', scales = "free_x") +
         theme_classic() +
         theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_blank(), strip.text.x = element_text(size = 18)) +
         labs(y="-log10(p-value)", x="Chromosome Position") +
         geom_hline(data = sig_lines[1,], aes(yintercept=-log10(cutoff)), color = 'grey70', size=2.5) +
         ggtitle(plot_title) +
-        scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8), expand = c(.35, .35)) +
+        scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8), expand = c(.4, .4)) +
         scale_color_manual(guide = guide_legend(reverse=TRUE), values = feature_colors) +
         ylim(c(min(-log10(dataframe$pvalue)), label_position*1.1)) + 
         scale_linetype_manual(name = 'significance', values = 2, guide = guide_legend(override.aes = list(color = 'grey70')))
     
-    ggsave(paste0(file_name, '.pdf'), plot = snps, width = 25, height = 12, units = 'in', dpi = 750, device = 'pdf')
+    ggsave(paste0(file_name, '.pdf'), plot = snps, width = 25, height = 18, units = 'in', dpi = 750, device = 'pdf')
     saveRDS(snps, file = paste0(file_name, '.rds'))
 }
       
@@ -156,6 +160,8 @@ manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, fi
     names(feature_colors) = unique(dataframe$feature)
 
     significance_cutoff = determine_significance_cutoff(0.05, type = gene_subset, dataframe)
+
+    GENE_ANNOTATIONS$mid_pos = rowMeans(GENE_ANNOTATIONS[, c('pos1', 'pos2')])
 
     gene = GENE_ANNOTATIONS[gene_common_name == gene_subset]
     dataframe = dataframe[hg19_pos < (gene$pos2 + 200000) & hg19_pos > (gene$pos1 - 200000) & chr == gene$chr]
@@ -191,11 +197,14 @@ manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, fi
     set.seed(42)
     rows = sample(nrow(dataframe))
     dataframe = dataframe[rows,]
- 
+
+    label_position = 1.2*max(-log10(dataframe$pvalue))
+
     snps = ggplot(dataframe) +
-        geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature, shape = productivity), alpha = 0.5, size = point_size) +
+        geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature), alpha = 0.75, size = point_size) +
         geom_rect(data = plot_features, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = name), alpha = 0.1) +
-        facet_grid(.~chr, switch="both", space='free_x', scales = "free_x") +
+        geom_text(data = plot_features, size = 8, angle = 90, y = label_position, aes(x = mid_pos, label = gene_locus)) + 
+        facet_grid(productivity~chr, switch="x", space='free_x', scales = "free_x") +
         theme_classic() +
         theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_blank()) +
         labs(y="-log10(p-value)", x="Chromosome Position", fill = paste0(unique(plot_features$gene_locus), ' locus')) +
@@ -203,7 +212,7 @@ manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, fi
         ggtitle(plot_title) +
         scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) +
         scale_color_manual(guide = guide_legend(reverse=TRUE), values = feature_colors) +
-        scale_fill_grey()
+        scale_fill_grey(guide = FALSE)
 
     
     ggsave(paste0(file_name, '.pdf'), plot = snps, width = 15, height = 10, units = 'in', dpi = 750, device = 'pdf')
@@ -298,6 +307,7 @@ manhattan_plot_gene_compare <- function(dataframe_correction, dataframe_no_corre
     dataframe_correction$linkage_correction = 'With correction'
     dataframe_no_correction$linkage_correction = 'No correction'
     dataframe = rbind(dataframe_correction, dataframe_no_correction)
+    significance_cutoff = determine_significance_cutoff(0.05, type = gene_subset, dataframe_correction)
 
     if (!is.na(phenotype_values)){
         dataframe$feature = mapvalues(dataframe$phenotype, from = unique(dataframe$phenotype), to = phenotype_values) 
@@ -310,7 +320,6 @@ manhattan_plot_gene_compare <- function(dataframe_correction, dataframe_no_corre
     feature_colors = brewer.pal(n = max(4, length(unique(dataframe$feature))), name = "Set2")
     names(feature_colors) = unique(dataframe$feature)
 
-    significance_cutoff = determine_significance_cutoff(0.05, type = gene_subset, dataframe)
 
     gene = GENE_ANNOTATIONS[gene_common_name == gene_subset]
     dataframe = dataframe[hg19_pos < (gene$pos2 + 200000) & hg19_pos > (gene$pos1 - 200000) & chr == gene$chr]
@@ -348,11 +357,11 @@ manhattan_plot_gene_compare <- function(dataframe_correction, dataframe_no_corre
     dataframe = dataframe[rows,]
  
     snps = ggplot(dataframe) +
-        geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature, shape = productivity), alpha = 0.5, size = point_size) +
+        geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature), alpha = 0.75, size = point_size) +
         geom_rect(data = plot_features, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = name), alpha = 0.1) +
-        facet_wrap(vars(linkage_correction), nrow = 2, ncol = 1)+
+        facet_grid(productivity ~ linkage_correction)+
         theme_classic() +
-        theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_blank()) +
+        theme(text = element_text(size = 40), axis.text.x = element_blank()) +
         labs(y="-log10(p-value)", x="Chromosome Position", fill = paste0(unique(plot_features$gene_locus), ' locus')) +
         geom_hline(yintercept=-log10(significance_cutoff), color = "grey70", size=2) +
         ggtitle(plot_title) +
