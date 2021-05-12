@@ -1,10 +1,4 @@
-CONDENSING_VARIABLE <<- 'by_subject'
-CONDITIONING_VARIABLE <<- FALSE
-INFER_MISSING_D_GENE <<- 'False'
-REPETITIONS <<- FALSE
-BOOTSTRAP_PVALUE_CUTOFF <<- FALSE
-PCA_COUNT <<- 8
- 
+ALLELE_STATUS_CORRECTION <<- NA
 
 condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     tcr_repertoire_dataframe$tcr_count = nrow(tcr_repertoire_dataframe)

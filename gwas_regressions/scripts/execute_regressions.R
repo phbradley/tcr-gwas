@@ -18,6 +18,7 @@ args = commandArgs(trailingOnly=TRUE)
 START <<- args[1]
 PHENOTYPE <<- args[2]
 NCPU <<- as.numeric(args[3])
+CHAIN <<- 'beta'
 
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/regression_functions.R'))
 

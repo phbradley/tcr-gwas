@@ -1,9 +1,4 @@
-CONDENSING_VARIABLE <<- 'by_subject'
-CONDITIONING_VARIABLE <<- FALSE
-INFER_MISSING_D_GENE <<- 'False'
-REPETITIONS <<- FALSE
-BOOTSTRAP_PVALUE_CUTOFF <<- FALSE
- 
+ALLELE_STATUS_CORRECTION <<- NA
 
 get_gene_from_gene_allele <- function(gene_allele_list){
     split_gene_allele = strsplit(gene_allele_list, '*', fixed = TRUE)
@@ -18,8 +13,16 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     gene_usage = data.table()
 
     for (gene_type in c('v_gene', 'd_gene', 'j_gene')){
-        tcr_repertoire_dataframe[,gene:=get_gene_from_gene_allele(get(gene_type))]
-        gene_freqs = tcr_repertoire_dataframe[,.N, by = .(gene, localID, productive, tcr_count, productivity_tcr_count)]
+        if (gene_type == 'd_gene' & KEEP_MISSING_D_GENE == 'True'){
+            temp_tcr_repertoire_dataframe = infer_d_gene(tcr_repertoire_dataframe)
+        } else if (gene_type == 'd_gene' & KEEP_MISSING_D_GENE == 'False'){
+            temp_tcr_repertoire_dataframe = tcr_repertoire_dataframe[d_gene != '-']
+        } else {
+            temp_tcr_repertoire_dataframe = tcr_repertoire_dataframe
+        }
+
+        temp_tcr_repertoire_dataframe[,gene:=get_gene_from_gene_allele(get(gene_type))]
+        gene_freqs = temp_tcr_repertoire_dataframe[,.N, by = .(gene, localID, productive, tcr_count, productivity_tcr_count)]
         colnames(gene_freqs) = c('gene', 'localID', 'productive', 'tcr_count', 'productivity_tcr_count', 'gene_count')
         gene_freqs[, gene_usage := gene_count/tcr_count]
         gene_usage = rbind(gene_usage, gene_freqs)
@@ -64,11 +67,6 @@ condense_all_tcr_repertoire_data <- function(){
         count = count + 1
         file_data = fread(file)
         file_data$localID = extract_subject_ID(file)
-        if (INFER_MISSING_D_GENE == 'True'){
-            file_data = infer_d_gene(file_data)
-        } else {
-            file_data = file_data[d_gene != '-']
-        }
         print(paste0('processing ', count, ' of ', length(files)))
         condense_individual_tcr_repertoire_data(file_data)
     }

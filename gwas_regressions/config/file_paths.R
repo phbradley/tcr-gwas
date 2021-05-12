@@ -15,3 +15,7 @@ CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/human_vj_all
 
 # TCR diversity measure file path (optional)
 TCR_DIV_FILE = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/emerson_tcrdiv_scores.tsv')
+
+# snp meta data file
+SNP_META_DATA_FILE = paste0('/fh/fast/matsen_e/shared/tcr-gwas/emerson_snp_data.csv')
+

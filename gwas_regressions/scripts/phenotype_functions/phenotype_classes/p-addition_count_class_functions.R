@@ -1,10 +1,4 @@
-CONDENSING_VARIABLE <<- 'by_gene_cdr3'
-CONDITIONING_VARIABLE <<- 'cdr3_gene_group'
-INFER_MISSING_D_GENE <<- 'False'
-REPETITIONS <<- 100
-BOOTSTRAP_PVALUE_CUTOFF <<- 5e-5
-PCA_COUNT <<- 8
- 
+ALLELE_STATUS_CORRECTION <<- NA
 
 condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     cdr3 = combine_genes_by_common_cdr3()
@@ -14,7 +8,7 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     setnames(tcr_repertoire_data, gsub('_count', '', PHENOTYPE), PHENOTYPE)
     tcr_repertoire_data = tcr_repertoire_data[get(PHENOTYPE) != -1]
     tcr_repertoire_data$tcr_count = nrow(tcr_repertoire_data)
-    tcr_repertoire_dataframe[, productivity_tcr_count := .N, by = .(localID, productive)]
+    tcr_repertoire_data[, productivity_tcr_count := .N, by = .(localID, productive)]
     
     condensed_tcr_repertoire_data = tcr_repertoire_data[, paste0(GENE_TYPE, '_count') := .N, by = mget(names)][, lapply(.SD, mean), by = mget(names), .SDcols = sapply(tcr_repertoire_data, is.numeric)]
 
@@ -36,9 +30,7 @@ condense_all_tcr_repertoire_data <- function(){
         count = count + 1
         file_data = fread(file)
         file_data$localID = extract_subject_ID(file)
-        if (INFER_MISSING_D_GENE == 'True'){
-            file_data = infer_d_gene(file_data)
-        } else {
+        if (KEEP_MISSING_D_GENE == 'False'){
             file_data = file_data[d_gene != '-']
         }
         print(paste0('processing ', count, ' of ', length(files)))

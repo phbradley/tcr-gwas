@@ -1,10 +1,4 @@
-CONDENSING_VARIABLE <<- 'by_subject'
-CONDITIONING_VARIABLE <<- FALSE
-INFER_MISSING_D_GENE <<- 'True'
-REPETITIONS <<- FALSE
-BOOTSTRAP_PVALUE_CUTOFF <<- FALSE
-PCA_COUNT <<- 8
- 
+ALLELE_STATUS_CORRECTION <<- NA
 
 condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     tcr_repertoire_dataframe$tcr_count = nrow(tcr_repertoire_dataframe)
@@ -31,9 +25,7 @@ condense_all_tcr_repertoire_data <- function(){
         count = count + 1
         file_data = fread(file)
         file_data$localID = extract_subject_ID(file)
-        if (INFER_MISSING_D_GENE == 'True'){
-            file_data = infer_d_gene(file_data)
-        } else {
+        if (KEEP_MISSING_D_GENE == 'False'){
             file_data = file_data[d_gene != '-']
         }
         print(paste0('processing ', count, ' of ', length(files)))

@@ -6,7 +6,7 @@ library(plyr)
 library(cowplot)
 library(ggh4x)
 library(ggnewscale)
-
+library(Cairo)
 
 source('config/config.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
@@ -22,6 +22,6 @@ assign('dntt_insert_loci', readRDS(paste0(make_file_name('insertion', 'dntt_loci
 
 file_name = paste0(make_file_name('insertion', 'dntt_loci_zoom'), '.pdf')
 
-final_plot = dntt_insert_loci + ggtitle('') + theme_cowplot() + theme(text = element_text(size = 40), axis.text.y = element_text(size = 30),axis.line = element_blank(), axis.text.x = element_blank()) + coord_cartesian(clip="off") + background_grid(major = 'xy') + xlab('DNTT position') + ylab('') 
+final_plot = dntt_insert_loci + ggtitle('') + theme_cowplot(font_family = 'Arial') + theme(text = element_text(size = 40), axis.text.y = element_text(size = 30),axis.line = element_blank(), axis.text.x = element_blank()) + coord_cartesian(clip="off") + background_grid(major = 'xy') + xlab('Extended DNTT locus position') + ylab('') 
 
-ggsave(file_name, plot= final_plot, width = 35, height = 10, units= 'in', dpi = 750, device = 'pdf')
+ggsave(file_name, plot= final_plot, width = 35, height = 10, units= 'in', dpi = 750, device = cairo_pdf)

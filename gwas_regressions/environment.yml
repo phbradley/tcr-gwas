@@ -127,8 +127,6 @@ dependencies:
   - r-askpass=1.1=r36hcdcec82_2
   - r-assertthat=0.2.1=r36h6115d3f_2
   - r-backports=1.2.1=r36hcfec24a_0
-  - r-base=3.6.1=haffb61f_2
-  - r-base64enc=0.1_3=r36hcdcec82_1004
   - r-bit=4.0.4=r36hcdcec82_0
   - r-bit64=4.0.5=r36hcdcec82_0
   - r-blob=1.2.1=r36h6115d3f_1

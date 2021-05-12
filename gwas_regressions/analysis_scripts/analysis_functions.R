@@ -28,6 +28,14 @@ compile_all_genotypes_snp_list <- function(snp_list){
     return(genotype_dt)
 }
 
+snp_file_by_snp_list <- function(snp_list){
+    snp_data = fread(SNP_META_DATA_FILE)[, -c('V1')]
+    snp_data_subset = snp_data[snpid %in% snp_list]
+    colnames(snp_data_subset) = c('snp', 'hg19_pos', 'chr', 'snpallele')
+    return(snp_data_subset[, -c('snpallele')])
+}
+
+
 get_d_gene_usage <- function(){
     require(doParallel)
     require(foreach)
@@ -50,9 +58,17 @@ set_plot_title <- function(){
     return(paste0('SNP genotype versus TRBD2*02 usage'))
 }
 
-set_file_name <- function(snp){
-    path = paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/d_gene_allele_tcrb_analysis/')
-    name = paste0('TRBD2_alt_allele_usage_by_SNP_genotype_', substring(snp, 4), '.pdf')
+set_file_name <- function(snp, type = 'allele_usage', final_figure = FALSE){
+    if (final_figure == TRUE){
+        path = paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/')
+    } else {
+        path = paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/d_gene_allele_tcrb_analysis/')
+    }
+    if (type == 'allele_usage'){
+        name = paste0('TRBD2_alt_allele_usage_by_SNP_genotype_', substring(snp, 4), '.pdf')
+    } else if (type == 'allele_genotype'){
+        name = paste0('TRBD2_allele_genotype_by_SNP_genotype_', substring(snp, 4), '.pdf')
+    }
     return(paste0(path, name))
 }
 
@@ -71,7 +87,7 @@ boxplot_by_d_allele_usage <- function(snp, dataframe, sig_snps, final_figure = F
     require(ggpubr)
     title = set_plot_title()
     subtitle = set_plot_subtitle(snp, sig_snps)
-    filename = set_file_name(snp)
+    filename = set_file_name(snp, type = 'allele_usage', final_figure)
     dataframe = dataframe[!is.na(get(snp))]
     compare = list(c('0', '1'), c('1', '2'), c('0', '2'))
     plot = ggboxplot(dataframe, x = snp, y = 'alt_allele_prop', fill = snp, size = 2, outlier.shape = NA) +
@@ -83,7 +99,7 @@ boxplot_by_d_allele_usage <- function(snp, dataframe, sig_snps, final_figure = F
     
     if (final_figure == TRUE){
         final_plot = plot + 
-            stat_compare_means(label='p.signif', comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
+            # stat_compare_means(label='p.signif', comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni", family = 'Arial') +
             labs(title = title, x = 'Top association TCRB SNP', y = 'TRBD2*02 allele usage')
     } else {
         final_plot = plot + 
@@ -93,6 +109,65 @@ boxplot_by_d_allele_usage <- function(snp, dataframe, sig_snps, final_figure = F
     return(final_plot)
      ggsave(filename, plot = final_plot, width = 14, height = 10, units = 'in', dpi = 750, device = 'pdf')
 }
+
+boxplot_by_d_allele_genotype <- function(snp, dataframe, sig_snps, final_figure = FALSE){
+    require(ggplot2)
+    require(ggpubr)
+    title = set_plot_title()
+    subtitle = set_plot_subtitle(snp, sig_snps)
+    filename = set_file_name(snp, type = 'allele_genotype', final_figure)
+    dataframe = dataframe[!is.na(get(snp))]
+    compare = list(c('0', '1'), c('1', '2'), c('0', '2'))
+    plot = ggboxplot(dataframe, x = snp, y = 'TRBD2_alt_allele_genotype', fill = snp, size = 2, outlier.shape = NA) +
+         # stat_compare_means(label.y = 0.85, size = 8) +
+         geom_point(shape=16, size = 6, alpha = 0.75, position = position_jitter(w = 0.1, h = 0)) +
+         theme_classic() +
+         theme(text = element_text(size = 40), legend.position = "none") +
+         scale_fill_brewer(palette = 'Set2') +
+         scale_y_continuous(breaks = c(0, 1, 2))
+    
+    if (final_figure == TRUE){
+        final_plot = plot + 
+            # stat_compare_means(label='p.signif', comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
+            labs(title = title, x = 'Genotype of the top association TCRB SNP', y = 'TRBD2*02 allele genotype')
+    } else {
+        final_plot = plot + 
+         # stat_compare_means(comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
+         labs(title = title, subtitle = subtitle, y = 'TRBD2*02 allele genotype')
+    }
+    return(final_plot)
+     ggsave(filename, plot = final_plot, width = 14, height = 10, units = 'in', dpi = 750, device = 'pdf')
+}
+
+heatmap_by_d_allele_genotype <- function(snp, dataframe, sig_snps, final_figure = FALSE){
+    require(ggplot2)
+    require(ggpubr)
+    title = set_plot_title()
+    subtitle = set_plot_subtitle(snp, sig_snps)
+    filename = set_file_name(snp, type = 'allele_genotype', final_figure)
+    dataframe = dataframe[!is.na(get(snp))]
+    compare = list(c('0', '1'), c('1', '2'), c('0', '2'))
+    plot = ggboxplot(dataframe, x = snp, y = 'TRBD2_alt_allele_genotype', fill = snp, size = 2, outlier.shape = NA) +
+         # stat_compare_means(label.y = 0.85, size = 8) +
+         geom_point(shape=16, size = 6, alpha = 0.75, position = position_jitter(w = 0.1, h = 0)) +
+         theme_classic() +
+         theme(text = element_text(size = 40), legend.position = "none") +
+         scale_fill_brewer(palette = 'Set2') +
+         scale_y_continuous(breaks = c(0, 1, 2))
+    
+    if (final_figure == TRUE){
+        final_plot = plot + 
+            # stat_compare_means(label='p.signif', comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
+            labs(title = title, x = 'Genotype of the top association TCRB SNP', y = 'TRBD2*02 allele genotype')
+    } else {
+        final_plot = plot + 
+         # stat_compare_means(comparisons = compare, size = 10, method = 't.test', p.adjust.method = "bonferroni") +
+         labs(title = title, subtitle = subtitle, y = 'TRBD2*02 allele genotype')
+    }
+    return(final_plot)
+     ggsave(filename, plot = final_plot, width = 14, height = 10, units = 'in', dpi = 750, device = 'pdf')
+}
+
 
 ######################################################
 ## functions to determine significance snps by gene ##
@@ -303,5 +378,39 @@ manhattan_plot_gene_compare <- function(dataframe_correction, dataframe_no_corre
         scale_fill_grey()
 
     ggsave(file_name, plot = snps, width = 18, height = 10, units = 'in', dpi = 750, device = 'pdf')
+}
+
+find_feature_overlaps <- function(dataframe, gene_subset, significance_cutoff_type = 'genome-wide'){
+    gene_features = GENE_FEATURES[gene_common_name == gene_subset][order(pos1)]
+
+    significance_cutoff = determine_significance_cutoff(0.05, significance_cutoff_type, dataframe)
+
+    gene = GENE_ANNOTATIONS[gene_common_name == gene_subset]
+    if (significance_cutoff_type != 'genome-wide'){
+        dataframe = dataframe[hg19_pos < (gene$pos2 + 200000) & hg19_pos > (gene$pos1 - 200000) & chr == gene$chr]
+    } else {
+        max_pos = max(as.numeric(gene_features$pos2))
+        min_pos = min(as.numeric(gene_features$pos1))
+        dataframe = dataframe[hg19_pos < max_pos & hg19_pos > min_pos & chr == gene$chr]
+    }
+
+    sig_snps = dataframe[pvalue < significance_cutoff]
+    print(paste0('total associations: ', nrow(sig_snps)))
+
+    for (gene_feature in seq(1, nrow(gene_features))){
+        feature = gene_features[gene_feature]
+        chrom = as.numeric(feature$chr)
+        pos1 = feature$pos1
+        pos2 = feature$pos2
+        if (gene_subset == 'tcrb'){
+            name = feature$gene
+        } else {
+            name = feature$name
+        }
+        sig_snps[chr ==  chrom & hg19_pos > pos1 & hg19_pos < pos2, feature := name]
+    }
+
+    # sig_snps[chr == gene$chr | hg19_pos < pos1 | hg19_pos > pos2, feature := 'not in the locus']
+    print(sig_snps[, .N, by = feature])
 }
  

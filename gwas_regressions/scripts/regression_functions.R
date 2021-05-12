@@ -160,7 +160,7 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functi
 
 
 generate_condensed_tcr_repertoire_file_name <- function(){
-    inferred_d_gene_end = ifelse(INFER_MISSING_D_GENE == 'True', '_with_inferred_d_gene.tsv', '_NO_inferred_d_gene.tsv')
+    inferred_d_gene_end = ifelse(KEEP_MISSING_D_GENE == 'True', '_with_inferred_d_gene.tsv', '_NO_inferred_d_gene.tsv')
     condensed_tcr_repertoires_file_name = paste0(OUTPUT_PATH, '/condensed_tcr_repertoire_data/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects_', PHENOTYPE_CLASS, '_for_', PHENOTYPE, inferred_d_gene_end)
     return(condensed_tcr_repertoires_file_name)
 }
@@ -200,6 +200,15 @@ compile_population_structure_pca_data <- function(){
     return(pca_subset)
 }
 
+compile_d_allele_status_correction_data <- function(){
+    allele_statuses = fread(paste0(PROJECT_PATH, '/tcr-gwas/_ignore/emerson_trbd2_alleles.tsv'))
+    allele_statuses[allele_0 == 'TRBD2*02', alt_allele_genotype := 1]
+    allele_statuses[allele_0 != 'TRBD2*02', alt_allele_genotype := 0]
+    allele_statuses[allele_1 == 'TRBD2*02', alt_allele_genotype := alt_allele_genotype + 1]
+    colnames(allele_statuses) = c('allele_0', 'allele_1', 'localID', 'TRBD2_alt_allele_genotype')
+    return(allele_statuses)
+}
+
 compile_phenotype_data <- function(){
     tcr_repertoire_data = compile_condensed_tcr_repertoire_data()
     if (PHENOTYPE != 'tcr_div'){
@@ -214,6 +223,11 @@ compile_phenotype_data <- function(){
         phenotype_data = merge(tcr_repertoire_data, pca_data, by = 'localID')
     } else {
         phenotype_data = tcr_repertoire_data
+    } 
+
+    if (!is.na(ALLELE_STATUS_CORRECTION)){
+        allele_status_data = compile_d_allele_status_correction_data()
+        phenotype_data = merge(phenotype_data, allele_status_data, by = 'localID')
     }
     return(phenotype_data)
 }
@@ -223,7 +237,7 @@ compile_phenotype_data <- function(){
 ########################
 
 make_regression_file_path <- function(){
-    path_to_file = paste0(OUTPUT_PATH, '/cluster_job_results/', PHENOTYPE, '_', CONDENSING_VARIABLE, '/D_infer_', INFER_MISSING_D_GENE, '/', PCA_COUNT, '_PCAir_PCs/')
+    path_to_file = paste0(OUTPUT_PATH, '/cluster_job_results/', PHENOTYPE, '_', CONDENSING_VARIABLE, '/D_infer_', KEEP_MISSING_D_GENE, '/', PCA_COUNT, '_PCAir_PCs/')
 
     if (!dir.exists(path_to_file)){
         system(paste0('mkdir -p ', path_to_file))
@@ -270,7 +284,7 @@ execute_regressions <- function(snp_meta_data, genotypes, phenotypes, write.tabl
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functions/phenotype_classes/', PHENOTYPE_CLASS, '_class_functions.R'))
 ##############################
 make_compiled_file_name <- function(){
-    file_name = paste0(OUTPUT_PATH, '/results/', PHENOTYPE, '_regressions_', CONDENSING_VARIABLE, '_d_infer-', INFER_MISSING_D_GENE, '_', PCA_COUNT, '_PCAir_PCs.tsv')
+    file_name = paste0(OUTPUT_PATH, '/results/', PHENOTYPE, '_regressions_', CONDENSING_VARIABLE, '_d_infer-', KEEP_MISSING_D_GENE, '_', PCA_COUNT, '_PCAir_PCs.tsv')
     return(file_name)
 }
 

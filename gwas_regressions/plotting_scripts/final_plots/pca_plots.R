@@ -7,6 +7,7 @@ setDTthreads(1)
 library(ggplot2)
 library(RColorBrewer)
 library(GGally)
+library(Cairo)
 
 source('config/config.R')
 source('config/file_paths.R')
@@ -32,9 +33,9 @@ theme(text = element_text(size = 40)) +
     ylab('Scaled PC Scores') +
     scale_color_brewer(palette = 'Set2')
 
-final_plot1 = plot1 + theme_cowplot() + theme(text = element_text(size = 40), axis.text = element_text(size = 24), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') + labs(color = 'Ancestry group')
+final_plot1 = plot1 + theme_cowplot(font_family = 'Arial') + theme(text = element_text(size = 40), axis.text = element_text(size = 24), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') + labs(color = 'Ancestry group')
 
-ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/pc_parallel_coordinates_by_race.pdf'), plot = final_plot1, width = 30, height = 12, units = 'in', dpi = 750, device = 'pdf')
+ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/pc_parallel_coordinates_by_race.pdf'), plot = final_plot1, width = 30, height = 12, units = 'in', dpi = 750, device = cairo_pdf)
 
 scree_plot = data.frame(pc=1:32, varprop = pc$varprop)
 
@@ -47,6 +48,6 @@ plot2 = ggplot(scree_plot, aes(x = pc, y = 100*varprop)) +
     xlab('Principal Component') +
     ylab('Proportion of Variance Explained')
 
-final_plot2 = plot2 + theme_cowplot() + theme(legend.position = "none", text = element_text(size = 40), axis.text = element_text(size = 24), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') 
+final_plot2 = plot2 + theme_cowplot(font_family = 'Arial') + theme(legend.position = "none", text = element_text(size = 40), axis.text = element_text(size = 24), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') 
 
-ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/pc_scree_plot.pdf'), plot = final_plot2, width = 10, height = 10, units = 'in', dpi = 750, device = 'pdf')
+ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/pc_scree_plot.pdf'), plot = final_plot2, width = 10, height = 10, units = 'in', dpi = 750, device = cairo_pdf)

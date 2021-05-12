@@ -6,6 +6,7 @@ setDTthreads(1)
 library(ggplot2)
 library(RColorBrewer)
 library(rstatix)
+library(Cairo)
 
 source('config/config.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
@@ -30,7 +31,7 @@ t_test = together %>%
 plot = ggboxplot(together, x = 'ancestry_group', y = 'total_inserts', fill = 'ancestry_group', lwd = 1.5) +
     facet_grid(cols = vars(productive)) +
     geom_jitter(shape=16, position=position_jitter(0.1), size = 4, alpha = 0.5) +
-    stat_pvalue_manual(t_test, label = 'p.adj.signif', size = 10, y.position = 12, remove.bracket = TRUE) +
+    stat_pvalue_manual(t_test, label = "p = {p}", size = 8, y.position = 12, remove.bracket = TRUE, family = 'Arial') +
     theme_classic() + 
     theme(text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
     ggtitle('Mean Total Insertions by Ancestry Group') +
@@ -39,6 +40,6 @@ plot = ggboxplot(together, x = 'ancestry_group', y = 'total_inserts', fill = 'an
     ylab('Mean total inserts') + 
     scale_fill_brewer(palette = 'Set2')
 
-final_plot = plot + theme_cowplot() + theme(legend.position = "none", text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5, size = 24), axis.text.y = element_text(size = 24), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') + panel_border(color = 'gray60', size = 1.5)
-ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/insertions_by_race.pdf'), plot = final_plot, width = 25, height = 12, units = 'in', dpi = 750, device = 'pdf')
+final_plot = plot + theme_cowplot(font_family = 'Arial') + theme(legend.position = "none", text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5, size = 24), axis.text.y = element_text(size = 24), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') + panel_border(color = 'gray60', size = 1.5)
+ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/insertions_by_race.pdf'), plot = final_plot, width = 25, height = 12, units = 'in', dpi = 750, device = cairo_pdf)
 

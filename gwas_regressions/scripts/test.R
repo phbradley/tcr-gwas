@@ -26,7 +26,7 @@ snp_meta_data = snp_file_by_snp_start(as.numeric(START), as.numeric(SNPS_PER_JOB
 results = execute_regressions(snp_meta_data, genotypes, phenotypes, write.table = FALSE)
 
 
-INFER_MISSING_D_GENE = 'False'
+KEEP_MISSING_D_GENE = 'False'
 
 no_missing_d_phenotypes = compile_phenotype_data()
 
@@ -41,7 +41,7 @@ dev.off()
 
 START <<- 16730000 
 PHENOTYPE <<- 'd0_trim' 
-INFER_MISSING_D_GENE = 'True'
+KEEP_MISSING_D_GENE = 'True'
 
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/regression_functions.R'))
 
@@ -52,7 +52,7 @@ snp_meta_data = snp_file_by_snp_start(as.numeric(START), as.numeric(SNPS_PER_JOB
 results = execute_regressions(snp_meta_data, genotypes, phenotypes, write.table = FALSE)
 
 
-INFER_MISSING_D_GENE = 'False'
+KEEP_MISSING_D_GENE = 'False'
 
 no_missing_d_phenotypes = compile_phenotype_data()
 

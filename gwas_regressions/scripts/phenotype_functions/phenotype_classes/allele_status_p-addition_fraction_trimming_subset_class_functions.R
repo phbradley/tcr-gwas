@@ -1,18 +1,12 @@
-CONDENSING_VARIABLE <<- 'by_gene_cdr3'
-CONDITIONING_VARIABLE <<- 'cdr3_gene_group'
-INFER_MISSING_D_GENE <<- 'False'
-REPETITIONS <<- 100
-BOOTSTRAP_PVALUE_CUTOFF <<- 5e-5
-PCA_COUNT <<- 8
- 
+ALLELE_STATUS_CORRECTION <<- TRUE
 
 condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     cdr3 = combine_genes_by_common_cdr3()
     tcr_repertoire_data = merge(tcr_repertoire_dataframe, cdr3, by.x = GENE_TYPE, by.y = 'id')
     
-    tcr_count_names = c('localID', 'productivity_tcr_count')
-    tcr_repertoire_dataframe[, productivity_tcr_count := .N, by = .(localID, productive)]
-    counts = tcr_repertoire_dataframe[..tcr_count_names]
+    tcr_count_names = c('localID', 'productivity_tcr_count', 'productive')
+    tcr_repertoire_data[, productivity_tcr_count := .N, by = .(localID, productive)]
+    counts = unique(tcr_repertoire_data[,..tcr_count_names])
 
     parameter = gsub('_fraction_zero_trimming_subset', '', PHENOTYPE)
     names = c('localID', paste(CONDITIONING_VARIABLE), 'productive')
@@ -39,7 +33,7 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
     together[[PHENOTYPE]] = together[[paste0(parameter, '_count')]]/together[[paste0(GENE_TYPE, '_count')]]
     
     together$tcr_count = tcr_total
-    together = merge(together, counts, by = 'localID')
+    together = merge(together, counts, by = c('localID', 'productive'))
 
     valid_columns = c(names, PHENOTYPE, 'tcr_count', 'productivity_tcr_count', paste0(GENE_TYPE, '_count'), paste0('weighted_', GENE_TYPE, '_count'))
 
@@ -57,9 +51,7 @@ condense_all_tcr_repertoire_data <- function(){
         count = count + 1
         file_data = fread(file)
         file_data$localID = extract_subject_ID(file)
-        if (INFER_MISSING_D_GENE == 'True'){
-            file_data = infer_d_gene(file_data)
-        } else {
+        if (KEEP_MISSING_D_GENE == 'False'){
             file_data = file_data[d_gene != '-']
         }
         print(paste0('processing ', count, ' of ', length(files)))

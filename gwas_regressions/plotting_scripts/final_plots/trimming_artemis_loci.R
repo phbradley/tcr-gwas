@@ -20,6 +20,6 @@ manhattan_plot_loci(dataframe = compile_manhattan_plot_data(c('v_trim', 'j_trim'
 assign('artemis_trim_loci', readRDS(paste0(make_file_name('trimming', 'artemis_loci'), '.rds')))
 
 file_name = paste0(make_file_name('trimming', 'artemis_loci'), '.pdf')
-final_plot = artemis_trim_loci + ggtitle('') + theme_cowplot() + theme(text = element_text(size = 40), axis.text.y = element_text(size = 30), axis.line = element_blank(), axis.text.x = element_blank()) + coord_cartesian(clip="off") + background_grid(major = 'xy') + xlab('DCLRE1C position') + ylab('') 
+final_plot = artemis_trim_loci + ggtitle('') + theme_cowplot(font_family = 'Arial') + theme(text = element_text(size = 40), axis.text.y = element_text(size = 30), axis.line = element_blank(), axis.text.x = element_blank()) + coord_cartesian(clip="off") + background_grid(major = 'xy') + xlab('DCLRE1C position') + ylab('') 
 
-ggsave(file_name, plot= final_plot, width = 35, height = 10, units= 'in', dpi = 750, device = 'pdf')
+ggsave(file_name, plot= final_plot, width = 35, height = 10, units= 'in', dpi = 750, device = cairo_pdf)

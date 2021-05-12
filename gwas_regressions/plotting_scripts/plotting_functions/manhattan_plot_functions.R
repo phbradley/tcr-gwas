@@ -1,8 +1,8 @@
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/regression_parameters.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/gene_annotations.R'))
 
-get_compiled_file_name_with_arguments <- function(phenotype, condensing_variable, infer_missing_d_gene, pca_count){
-    file_name = paste0(OUTPUT_PATH, '/results/', phenotype, '_regressions_', condensing_variable, '_d_infer-', infer_missing_d_gene, '_', pca_count, '_PCAir_PCs.tsv')
+get_compiled_file_name_with_arguments <- function(phenotype, condensing_variable, keep_missing_d_gene, pca_count){
+    file_name = paste0(OUTPUT_PATH, '/results/', phenotype, '_regressions_', condensing_variable, '_d_infer-', keep_missing_d_gene, '_', pca_count, '_PCAir_PCs.tsv')
     return(file_name)
 }
 
@@ -19,7 +19,7 @@ compile_manhattan_plot_data <- function(phenotype_list){
     compiled_data = data.table()
     for (phenotype in phenotype_list){
         parameters = set_regression_parameters(phenotype)
-        file_name = get_compiled_file_name_with_arguments(parameters[['phenotype']], parameters[['condensing_variable']], parameters[['infer_missing_d_gene']], parameters[['pca_count']])
+        file_name = get_compiled_file_name_with_arguments(parameters[['phenotype']], parameters[['condensing_variable']], parameters[['keep_missing_d_gene']], parameters[['pca_count']])
         compiled_data = rbind(compiled_data, fread(file_name))
     }
     return(compiled_data)
@@ -59,7 +59,9 @@ set_manhattan_plot_title <- function(phenotype_class, gene_subset = 'NA'){
         title = 'Gene usage without population structure correction'
     } else if (phenotype_class == 'missing_d_fraction'){
         title = 'Fraction of TCRs containing a \"missing D gene\"'
-    }
+    } else {
+        title = ''
+    } 
     return(title)
 }
 
@@ -79,11 +81,12 @@ determine_significance_cutoff <- function(alpha, type, genome_wide_dataframe, ph
 
 manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = NA, plot_title, file_name, plotting_p_value_cutoff, significance_cutoff_type = 'genome-wide', gene_usage = NA){
     stopifnot(length(significance_cutoff_type) <= 2)
+    dataframe = dataframe[!is.na(phenotype)]
     if (!is.na(phenotype_values)){
         dataframe$feature = mapvalues(dataframe$phenotype, from = unique(dataframe$phenotype), to = phenotype_values) 
     } else {
         if (!is.na(gene_usage)){
-            dataframe$feature = paste0(substring(dataframe$gene, 4, 4), '-gene')
+            dataframe$feature = paste0(substring(dataframe$gene, 4, 4), '-gene usage')
         } else{
             dataframe$feature = dataframe$phenotype
         }
@@ -123,13 +126,19 @@ manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = 
     label_position = 1.2*max(-log10(dataframe$pvalue))
     
     # scatter rows in dataframe to get scattered colors
-    set.seed(42)
-    rows = sample(nrow(dataframe))
-    dataframe = dataframe[rows,]
+    if (!is.na(gene_usage)){
+        order = c('V-gene usage', 'J-gene usage', 'D-gene usage')
+        dataframe$feature = factor(dataframe$feature, levels = order)
+        dataframe = dataframe[order(dataframe$feature),]
+    } else{
+        set.seed(42)
+        rows = sample(nrow(dataframe))
+        dataframe = dataframe[rows,]
+    }
 
     snps = ggplot(dataframe) +
         geom_vline(data = GENE_ANNOTATIONS, aes(xintercept = mid_pos), size = 1, lty = 'longdash', alpha = 0.4)+
-        geom_text(data = GENE_ANNOTATIONS, size = 8, angle = 90, y = label_position, aes(x = mid_pos, label = gene_locus), vjust = 1.2) + 
+        geom_text(data = GENE_ANNOTATIONS, size = 8, angle = 90, y = label_position, aes(x = mid_pos, label = gene_locus), vjust = 1.2, family = 'Arial') + 
         geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature), alpha = 0.75, size = point_size) +
         # geom_rect(data = gene_annotations, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = genes), alpha = 0.6) +
         facet_grid(productivity~chr, switch="x", space='free_x', scales = "free_x") +
@@ -143,7 +152,7 @@ manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = 
         ylim(c(min(-log10(dataframe$pvalue)), label_position*1.1)) + 
         scale_linetype_manual(name = 'significance', values = 2, guide = guide_legend(override.aes = list(color = 'grey70')))
     
-    ggsave(paste0(file_name, '.pdf'), plot = snps, width = 25, height = 18, units = 'in', dpi = 750, device = 'pdf')
+    # ggsave(paste0(file_name, '.pdf'), plot = snps, width = 25, height = 18, units = 'in', dpi = 750, device = cairo_pdf)
     saveRDS(snps, file = paste0(file_name, '.rds'))
 }
       
@@ -202,8 +211,8 @@ manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, fi
 
     snps = ggplot(dataframe) +
         geom_point(aes(x = hg19_pos, y = -log10(pvalue), color = feature), alpha = 0.75, size = point_size) +
-        geom_rect(data = plot_features, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = name), alpha = 0.1) +
-        geom_text(data = plot_features, size = 8, angle = 90, y = label_position, aes(x = mid_pos, label = gene_locus)) + 
+        geom_rect(data = plot_features, aes(xmin = pos1, xmax = pos2, ymin = -Inf, ymax = Inf, fill = name), color = NA, alpha = 0.1) +
+        geom_text(data = plot_features, size = 8, angle = 90, y = label_position, aes(x = mid_pos, label = gene_locus), family = 'Arial') + 
         facet_grid(productivity~chr, switch="x", space='free_x', scales = "free_x") +
         theme_classic() +
         theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_blank()) +
@@ -215,7 +224,7 @@ manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, fi
         scale_fill_grey(guide = FALSE)
 
     
-    ggsave(paste0(file_name, '.pdf'), plot = snps, width = 15, height = 10, units = 'in', dpi = 750, device = 'pdf')
+    # ggsave(paste0(file_name, '.pdf'), plot = snps, width = 15, height = 10, units = 'in', dpi = 750, device = cairo_pdf)
     saveRDS(snps, file = paste0(file_name, '.rds'))
 
 }
@@ -234,7 +243,6 @@ manhattan_plot_loci <- function(dataframe, phenotype_values = NA, plot_title, fi
     gene = GENE_ANNOTATIONS[gene_common_name == gene_subset]
     if (significance_cutoff_type != 'genome-wide'){
         dataframe = dataframe[hg19_pos < (gene$pos2 + 200000) & hg19_pos > (gene$pos1 - 200000) & chr == gene$chr]
-        significance_cutoff = 0.5/length(unique(dataframe$snp))
         plot_title = paste0(plot_title, '\nGene level Bonferroni significance cutoff')
     # } else if (significance_cutoff == gene_subset){
     #     dataframe = dataframe[hg19_pos < (gene$pos2) & hg19_pos > (gene$pos1) & chr == gene$chr]
@@ -255,7 +263,11 @@ manhattan_plot_loci <- function(dataframe, phenotype_values = NA, plot_title, fi
     
     sig_snps$type = 'snp'
     gene_features$type = 'feature'
-    gene_features$feature = paste0(unique(gene_features$gene_locus), '\nlocus') 
+    if (significance_cutoff_type == gene_subset){
+        gene_features$feature = paste0('extended\n', unique(gene_features$gene_locus), '\nlocus') 
+    } else {
+        gene_features$feature = paste0(unique(gene_features$gene_locus), '\nlocus')
+    }
     gene_features$mid_pos = rowMeans(gene_features[, c('pos1', 'pos2')])
     
     if (!is.na(plot_zoom)){
@@ -270,24 +282,30 @@ manhattan_plot_loci <- function(dataframe, phenotype_values = NA, plot_title, fi
     together$feature = factor(together$feature, levels = unique(together$feature))
 
     feature_count = length(unique(together$name)[!is.na(unique(together$name))])
-    feature_colors = brewer.pal(n = 8, name = "Set2")[5:(5+feature_count-1)]
+    feature_colors = brewer.pal(n = 8, name = "Set1")
 
+    feature_colors = feature_colors[-2]
+
+    together = together[order(-log10(pvalue))]
+    
     plot = ggplot(together) + 
         facet_grid(type~., scales='free', space = 'free_y') +
         theme_minimal() +
         theme(text = element_text(size = 40), axis.text.x = element_blank(), axis.title.y = element_blank()) +
         labs(x="Position") +
         ggtitle(plot_title) +
-        geom_point(data = subset(together, type == 'snp'), aes(x = hg19_pos, y = productivity, color = -log10(pvalue)), size = 12, alpha = 0.6) + 
+        geom_point(data = subset(together, type == 'snp'), aes(x = hg19_pos, y = productivity, color = -log10(pvalue)), size = 12, alpha = 0.8) + 
         facet_wrap(~feature, ncol = 1, strip.position = 'left', scales = 'free_y') +
-        scale_color_gradient(low = "gainsboro", high = "black", guide = guide_colorbar(barheight = 15)) +
+        scale_color_gradient(low = "white", high = 'royalblue4', guide = guide_colorbar(barheight = 15), limits = c(significance_cutoff, max(-log10(together$pvalue)))) +
         new_scale_color() +
-        geom_point(data = subset(together, type == 'feature'), aes(x = mid_pos, y = name, col = name), size = 11, alpha = 0.7, shape = 4, stroke = 5) +
+        geom_point(data = subset(together, type == 'feature'), aes(x = pos1, y = name, col = name), size = 4, alpha = 0.7, shape = '\u25BC', stroke = 5, position = position_nudge(y = 0.08)) +
+        geom_point(data = subset(together, type == 'feature'), aes(x = pos2, y = name, col = name), size = 4, alpha = 0.7, shape = '\u25B2', stroke = 5, position = position_nudge(y = -0.08)) +
+        geom_segment(data = subset(together, type == 'feature'), aes(x = pos1, xend = pos2, y = name, yend = name, color = name), alpha = 0.7, size = 3) +
         scale_color_manual(guide = 'none', values = feature_colors)
         
     final = plot + force_panelsizes(rows = c(1, 1, 1))
 
-    ggsave(paste0(file_name, '.pdf'), plot = final, width = 35, height = 10, units = 'in', dpi = 750, device = 'pdf')
+    # ggsave(paste0(file_name, '.pdf'), plot = final, width = 35, height = 10, units = 'in', dpi = 750, device = cairo_pdf)
     saveRDS(final, file = paste0(file_name, '.rds'))
 }
     
@@ -369,7 +387,7 @@ manhattan_plot_gene_compare <- function(dataframe_correction, dataframe_no_corre
         scale_color_manual(guide = guide_legend(reverse=TRUE), values = feature_colors) +
         scale_fill_grey()
 
-    ggsave(paste0(file_name, '.pdf'), plot = snps, width = 18, height = 20, units = 'in', dpi = 750, device = 'pdf')
+    # ggsave(paste0(file_name, '.pdf'), plot = snps, width = 18, height = 20, units = 'in', dpi = 750, device = cairo_pdf)
     saveRDS(snps, file = paste0(file_name, '.rds'))
 }
  
