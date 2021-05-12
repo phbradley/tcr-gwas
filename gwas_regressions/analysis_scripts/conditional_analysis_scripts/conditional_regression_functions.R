@@ -250,18 +250,19 @@ find_regression_file_path_for_shell <- function(){
     cat(make_regression_file_path())
 }
 
-make_regression_file_name <- function(productivity){
+make_regression_file_name <- function(productivity, round_number){
     path = make_regression_file_path()
-    file_name = paste0(PHENOTYPE, '_', productivity, '_regressions_condensing_', CONDENSING_VARIABLE, '_', GENE, '_conditional_analysis.tsv')
+    file_name = paste0(PHENOTYPE, '_', productivity, '_regressions_condensing_', CONDENSING_VARIABLE, '_', GENE, '_conditional_analysis_ROUND_', round_number, '.tsv')
     return(paste0(path, file_name)) 
 }
 #TODO fix this
-execute_conditional_regressions <- function(snp_meta_data, genotypes, phenotypes, conditional_snp_start, productivity, significance_threshold, write.table){
+execute_conditional_regressions <- function(genotypes, phenotypes, conditional_snp_start, productivity, significance_threshold){
     regression_data = merge(genotypes, phenotypes, by = 'localID')
     conditional_snp_list = conditional_snp_start
-    complete_results = data.table()
     still_finding_snps = TRUE
+    round_number = 0
     while (still_finding_snps == TRUE){
+        round_number = round_number + 1
         snps = colnames(genotypes)[colnames(genotypes)!='localID'] 
         snps = snps[!(snps %in% conditional_snp_list)]
         registerDoParallel(cores=NCPU)
@@ -269,10 +270,14 @@ execute_conditional_regressions <- function(snp_meta_data, genotypes, phenotypes
             conditional_regress(snp, snps, regression_data, conditional_snp_list, productivity)
         }
         stopImplicitCluster()
-        snp_meta_data$snp = as.character(snp_meta_data$snp)
-        results = merge(results, snp_meta_data, by = 'snp')
-        complete_results = rbind(complete_results, results)
         significant_signals = results[pvalue < significance_threshold]
+        for (cond_snp in seq(1, length(conditional_snp_list))){
+            significant_signals = significant_signals[get(paste0('conditional_snp_', cond_snp, '_pvalue')) < significance_threshold]
+        }
+
+        file_name = make_regression_file_name(productivity, round_number)
+        write.table(as.data.frame(results), file = file_name, quote=FALSE, sep='\t', col.names = NA)
+
         if (nrow(significant_signals) == 0){
             still_finding_snps = FALSE
         } else {
@@ -280,11 +285,4 @@ execute_conditional_regressions <- function(snp_meta_data, genotypes, phenotypes
             conditional_snp_list = c(conditional_snp_list, significant_signal_snp)
         }
     }
-
-    if (write.table == TRUE){
-        file_name = make_regression_file_name(productivity)
-        write.table(as.data.frame(complete_results), file = file_name, quote=FALSE, sep='\t', col.names = NA)
-    } else if (write.table == FALSE){
-        return(complete_results)
-    }   
 }

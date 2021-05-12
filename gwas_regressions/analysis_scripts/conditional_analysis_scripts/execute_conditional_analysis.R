@@ -35,11 +35,11 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/analysis_scripts/conditi
 for (productivity in c(TRUE, FALSE)){
          genotypes = compile_all_genotypes_snp_list(original_analysis_gene[productive == productivity]$snp)
          phenotypes = compile_phenotype_data()
-         snp_meta_data = snp_file_by_snp_list(original_analysis_gene[productive == productivity]$snp)
+         # snp_meta_data = snp_file_by_snp_list(original_analysis_gene[productive == productivity]$snp)
          
          if (nrow(original_analysis_gene_sig[productive == productivity]) > 0){
             conditional_snp_start = original_analysis_gene_sig[productive == productivity][order(pvalue)][1]$snp
-            execute_conditional_regressions(snp_meta_data, genotypes, phenotypes, conditional_snp_start, productivity, significance_cutoff, write.table = TRUE)
+            execute_conditional_regressions(genotypes, phenotypes, conditional_snp_start, productivity, significance_cutoff)
          } else {
             print(paste0('No significant snps in the ', GENE, ' region for ', PHENOTYPE, ' of ', productivity, ' productivity TCRs'))
          }

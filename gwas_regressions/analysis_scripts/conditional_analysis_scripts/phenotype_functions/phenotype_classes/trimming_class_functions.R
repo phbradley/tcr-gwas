@@ -85,7 +85,7 @@ recalculate_pvalue <- function(slope, standard_error){
     return(pvalue)
 }
 
-calculate_regression_results <- function(snp, regression, regression_data_filtered_by_productivity){
+calculate_regression_results <- function(snp, regression, regression_data_filtered_by_productivity, conditional_snp_list){
     regression_results = data.table(snp = snp, 
                                     slope = summary(regression)$coefficients[paste0('`', snp, '`'),'Estimate'], 
                                     standard_error = summary(regression)$coefficients[paste0('`', snp, '`'),'Std. Error'], 
@@ -97,6 +97,17 @@ calculate_regression_results <- function(snp, regression, regression_data_filter
         regression_results$standard_error = bootstrap_by_localID(snp, regression, regression_data_filtered_by_productivity)        
         regression_results$pvalue = recalculate_pvalue(regression_results$slope, regression_results$standard_error)
         regression_results$bootstraps = REPETITIONS
+    }
+    for (cond_snp in seq(1, length(conditional_snp_list))){
+        regression_results[, paste0('conditional_snp_', cond_snp) := conditional_snp_list[cond_snp]]
+        regression_results[, paste0('conditional_snp_', cond_snp, '_slope') := summary(regression)$coefficients[paste0('`', conditional_snp_list[cond_snp], '`'),'Estimate']]
+        regression_results[, paste0('conditional_snp_', cond_snp, '_standard_error') := summary(regression)$coefficients[paste0('`', conditional_snp_list[cond_snp], '`'),'Std. Error']]
+        regression_results[, paste0('conditional_snp_', cond_snp, '_pvalue') := summary(regression)$coefficients[paste0('`', conditional_snp_list[cond_snp], '`'),'Pr(>|t|)']]
+
+        if (regression_results[[paste0('conditional_snp_', cond_snp, '_pvalue')]] < BOOTSTRAP_PVALUE_CUTOFF){
+            regression_results[[paste0('conditional_snp_', cond_snp, '_standard_error')]] = bootstrap_by_localID(paste0(conditional_snp_list[cond_snp]), regression, regression_data_filtered_by_productivity)
+            regression_results[[paste0('conditional_snp_', cond_snp, '_pvalue')]] = recalculate_pvalue(regression_results[[paste0('conditional_snp_', cond_snp, '_slope')]], regression_results[[paste0('conditional_snp_', cond_snp, '_standard_error')]])
+        }
     }
     return(regression_results)
 }
@@ -110,7 +121,7 @@ conditional_regress <- function(snp, snps, regression_data, conditional_snp_list
     non_na_data = regression_data[productive == productivity][, ..all_snps][complete.cases(regression_data[productive == productivity][, ..all_snps]),]
     if (nrow(non_na_data) > 0){
         regression = eval(bquote(lm(formula = formula, data = regression_data[productive == productivity], weights = .(as.name(weight)))))
-        regression_results = calculate_regression_results(snp, regression, regression_data[productive == productivity])
+        regression_results = calculate_regression_results(snp, regression, regression_data[productive == productivity], conditional_snp_list)
         regression_results$productive = productivity
         regression_results$conditional_snps = paste0(conditional_snp_list, collapse = ', ')
         regression_results_together = rbind(regression_results_together, regression_results)
