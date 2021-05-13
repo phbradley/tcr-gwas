@@ -4,6 +4,7 @@ current_cluster_job_directories/
 _ignore/
 analysis/
 figures/
+analysis_plots/
 
 # Custom
 *.html
@@ -16,6 +17,7 @@ temp_*
 *_submissions
 tcr_div*
 test*
+plotting_scripts/*.R
 
 # History files
 .Rhistory
