@@ -1,9 +1,11 @@
+# This script contains a series of regression specific functions
 source('config/config.R')
 ###############################################
 # Functions to read in SNP and genotype files #
 ###############################################
 
 map_scanID_to_localID <- function(scanIDs_to_convert){
+    # This function converts subject scanIDs to localIDs
     ID_map_file = fread(ID_MAPPING_FILE)
     converted_IDs = plyr::mapvalues(scanIDs_to_convert, 
                                     ID_map_file$scanID, 
@@ -17,6 +19,7 @@ create_maf_file <- function(genotype_dataframe){
 
 
 filter_snps_by_maf <- function(genotype_matrix){
+    # This function filters all snps whose MAF is less than the MAF_CUTOFF indicated in the config file
     file_name = paste0(OUTPUT_PATH, '/maf_all_snps.tsv')
     if (!file.exists(file_name)){
         create_maf_file()
@@ -28,6 +31,7 @@ filter_snps_by_maf <- function(genotype_matrix){
 }
     
 snp_file_by_snp_start <- function(snp_start, count){
+    # This function creates a snp meta data object given a snp start number and a count of snps
     snp_gds_file = openfn.gds(SNP_GDS_FILE)
     snp_id = read.gdsn(index.gdsn(snp_gds_file, "snp.id"))
 
@@ -47,6 +51,7 @@ snp_file_by_snp_start <- function(snp_start, count){
 
 
 remove_matrix_column_by_genotype <- function(genotype_matrix){
+    # This function prepares the genotype data for the analysis by filtering snps based on maf, transforming "3" genotypes to NA
     snps_passing_maf_cutoff = filter_snps_by_maf(genotype_matrix)
     if (length(snps_passing_maf_cutoff) == 0){
         return(data.table())
@@ -64,6 +69,7 @@ remove_matrix_column_by_genotype <- function(genotype_matrix){
 }
 
 compile_all_genotypes <- function(snp_start, count){
+    # This function compiles all genotypes for an indicated snp starting position and count
     snp_gds_file = openfn.gds(SNP_GDS_FILE)
     bigsize = 35481497
     numrows = min(count, bigsize-snp_start+1)
@@ -92,6 +98,7 @@ compile_all_genotypes <- function(snp_start, count){
 #############################################
 
 extract_subject_ID <- function(tcr_repertoire_file_path){
+    # This function extracts the subjectID from the file name
     file_name = str_split(tcr_repertoire_file_path, "/")[[1]][8]
     file_root_name = str_split(file_name, ".tsv")[[1]][1]
     localID = str_split(file_root_name, "_")[[1]][3]
@@ -99,6 +106,7 @@ extract_subject_ID <- function(tcr_repertoire_file_path){
 }
 
 combine_genes_by_common_cdr3 <- function(){
+    # This function creates "cdr3 groups" by combining genes which have a common cdr3 sequence
     cdr3 = fread(CDR3_GENE_ASSIGNMENT_FILE)
     cdr3$gene = str_split(cdr3$id, fixed('*'), simplify = TRUE)[,1]
 
@@ -112,6 +120,8 @@ combine_genes_by_common_cdr3 <- function(){
 }     
 
 infer_d_gene <- function(tcr_repertoire_data){
+    # This function will infer the d-gene given the empirical distribution of v and j-genes
+    # This function will also assign a quarter of the total gene length to each trimming side (d1 or d0 trimming)
     tcrs_with_d_gene = tcr_repertoire_data[d_gene != '-']
     tcrs_missing_d_gene = tcr_repertoire_data[d_gene == '-']
 
@@ -160,12 +170,14 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functi
 
 
 generate_condensed_tcr_repertoire_file_name <- function(){
+    # This function will create the file name for the condensed tcr repertoire data
     inferred_d_gene_end = ifelse(KEEP_MISSING_D_GENE == 'True', '_with_inferred_d_gene.tsv', '_NO_inferred_d_gene.tsv')
     condensed_tcr_repertoires_file_name = paste0(OUTPUT_PATH, '/condensed_tcr_repertoire_data/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects_', PHENOTYPE_CLASS, '_for_', PHENOTYPE, inferred_d_gene_end)
     return(condensed_tcr_repertoires_file_name)
 }
 
 compile_condensed_tcr_repertoire_data <- function(){
+    # This function will condense the tcr repertoire data (and/or read in the existing condensed tcr repertoire data)
     file_name = generate_condensed_tcr_repertoire_file_name() 
 
     if (!file.exists(file_name)){
@@ -179,6 +191,7 @@ compile_condensed_tcr_repertoire_data <- function(){
 }
 
 filter_tcr_repertoire_data_by_productivity <- function(condensed_tcr_repertoire_data, productivity){
+    # This function filters tcr repertoire data based on productivity
     if (productivity == 'productive'){
         condensed_tcr_repertoire_data = condensed_tcr_repertoire_data[productive == 'TRUE']
     } else if (productivity == 'not_productive'){
@@ -188,11 +201,13 @@ filter_tcr_repertoire_data_by_productivity <- function(condensed_tcr_repertoire_
 }
 
 remove_small_repertoire_observations <- function(tcr_repertoire_data, productive_log10_count_cutoff = 4.25, NOT_productive_log10_count_cutoff = 3.5){
+    # This function filters tcr repertoires based on size, removing repertoires which or relatively small
     filtered_tcr_repertoire_data = tcr_repertoire_data[(productive == 'TRUE' & log10(productivity_tcr_count)>productive_log10_count_cutoff) | (productive == 'FALSE' & log10(productivity_tcr_count)>NOT_productive_log10_count_cutoff)]
     return(filtered_tcr_repertoire_data)
 }
 
 compile_population_structure_pca_data <- function(){
+    # This function compiles population structure pcas
     pca_file = fread(PCA_FILE)
     pca_file$localID = map_scanID_to_localID(pca_file$scanID)
     pca_columns = c('localID', paste0('EV', seq(1,PCA_COUNT)))
@@ -201,6 +216,7 @@ compile_population_structure_pca_data <- function(){
 }
 
 compile_d_allele_status_correction_data <- function(){
+    # This function compiles TRBD2 allele genotype data
     allele_statuses = fread(paste0(PROJECT_PATH, '/tcr-gwas/_ignore/emerson_trbd2_alleles.tsv'))
     allele_statuses[allele_0 == 'TRBD2*02', alt_allele_genotype := 1]
     allele_statuses[allele_0 != 'TRBD2*02', alt_allele_genotype := 0]
@@ -210,6 +226,7 @@ compile_d_allele_status_correction_data <- function(){
 }
 
 compile_phenotype_data <- function(){
+    # This function compiles phenotype data for the specific regressions
     tcr_repertoire_data = compile_condensed_tcr_repertoire_data()
     if (PHENOTYPE != 'tcr_div'){
         #TODO remove the following if statement
@@ -237,6 +254,7 @@ compile_phenotype_data <- function(){
 ########################
 
 make_regression_file_path <- function(){
+    # This function creates the file path for the regression outputs
     path_to_file = paste0(OUTPUT_PATH, '/cluster_job_results/', PHENOTYPE, '_', CONDENSING_VARIABLE, '/D_infer_', KEEP_MISSING_D_GENE, '/', PCA_COUNT, '_PCAir_PCs/')
 
     if (!dir.exists(path_to_file)){
@@ -247,16 +265,19 @@ make_regression_file_path <- function(){
 }
 
 find_regression_file_path_for_shell <- function(){
+    # This function reads the regression output path for shell scripts
     cat(make_regression_file_path())
 }
 
 make_regression_file_name <- function(){
+    # This function creates the file name, path for the regression outputs
     path = make_regression_file_path()
     file_name = paste0(PHENOTYPE, '_regressions_condensing_', CONDENSING_VARIABLE, '_for_', SNPS_PER_JOB, '_snps_starting_at_', START, '.tsv')
     return(paste0(path, file_name)) 
 }
 
 execute_regressions <- function(snp_meta_data, genotypes, phenotypes, write.table){
+    # This function executes the specified regressions!
     regression_data = merge(genotypes, phenotypes, by = 'localID')
     if (nrow(genotypes) == 0){
         results = data.table(snp = NA, slope = NA, standard_error = NA, pvalue = NA, parameter = NA, phenotype = NA, bootstraps = NA, productive = NA)
@@ -280,15 +301,18 @@ execute_regressions <- function(snp_meta_data, genotypes, phenotypes, write.tabl
     }   
 }
 
-
+# read in phenotype class specific functions
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functions/phenotype_classes/', PHENOTYPE_CLASS, '_class_functions.R'))
+
 ##############################
 make_compiled_file_name <- function(){
+    # This function creates the file name, path for the compiled regression output
     file_name = paste0(OUTPUT_PATH, '/results/', PHENOTYPE, '_regressions_', CONDENSING_VARIABLE, '_d_infer-', KEEP_MISSING_D_GENE, '_', PCA_COUNT, '_PCAir_PCs.tsv')
     return(file_name)
 }
 
 remove_empty_file_names <- function(files_list){
+    # The function removes regression output files which are empty
     for (file in files_list){
         if (nrow(vroom(file)) == 0){
             files_list = files_list[files_list != file]
@@ -298,7 +322,7 @@ remove_empty_file_names <- function(files_list){
 }
 
 compile_regressions <- function(){
-    # files = list.files(make_regression_file_path(), pattern = "*.tsv", full.names=TRUE)
+    # this function compiles all individual regression files into one master regression output file
     files = fs::dir_ls(path = make_regression_file_path())
     files = remove_empty_file_names(files)
     compiled_filename = make_compiled_file_name()

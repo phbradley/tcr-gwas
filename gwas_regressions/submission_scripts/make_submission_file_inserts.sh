@@ -1,4 +1,6 @@
 #!/bin/sh
+
+# This script will make the cluster submission file for all insertion types
 set -eu
 
 SCRIPT=$1

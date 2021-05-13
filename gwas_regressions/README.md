@@ -25,7 +25,7 @@ These scripts are written specifically for a cluster set up to use the Slurm job
         3. number of cluster cores per job
     * i.e. `bash submit_phenotype.sh v_trim partition-name 2` will run the pipeline for v_trim by submitting 2 core jobs to the cluster partition named "partition-name"
     * A full list of possible phenotypes and phenotype classes is listed below
-3. Plot [figures](plotting_scripts/final/) from the manuscript.
+3. Plot [figures](plotting_scripts/final) from the manuscript.
     * Also, have a look at the plotting [README](plotting_scripts/README.md) for more details.
 
 # About the genome-wide analysis

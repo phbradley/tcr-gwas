@@ -1,1 +1,0 @@
-bash /home/mrussel2/tcr-gwas/gwas_regressions/submission_scripts/run_regressions_genome_wide.sh tcr_div campus-new 1 > /home/mrussel2/tcr-gwas/gwas_regressions/submission_outputs/tcr_div_submissions
