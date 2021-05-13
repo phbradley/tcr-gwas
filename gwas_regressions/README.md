@@ -27,6 +27,18 @@ These scripts are written specifically for a cluster set up to use the Slurm job
     * A full list of possible phenotypes and phenotype classes is listed below
 3. Plot [figures](plotting_scripts/final) from the manuscript.
     * Also, have a look at the plotting [README](plotting_scripts/README.md) for more details.
+4. Run conditional analysis to identify independent snp associations within specified gene regions and phenotypes
+    * To do this, you can run [run_conditional_analysis.sh](run_conditional_analysis.sh) either locally or by submitting to a cluster. 
+    * This script takes the following arguments:
+        1. gene (i.e. artemis, dntt, etc.)
+        2. phenotype (i.e. v_trim, vd_insert, etc.)
+        3. number of cluster cores
+5. Run analysis for Nicaraguan validation cohort (two snps). Since this analysis is only for two snps, it can easily be run locally. To run this, you can run `Rscript analysis_scripts/validation_cohort_analysis/execute_validation_data_regressions.R [phenotype] [number of cores] [TCR chain]` which can take the arguments:
+    1. phenotype (i.e. v_trim, vd_insert, etc.)
+    2. number of cluster cores
+    3. TCR chain (either `beta` or `alpha`)
+
+**Note: all output files will be located at the indicated `OUTPUT_PATH` as specified in the [config](config) files**
 
 # About the genome-wide analysis
 
