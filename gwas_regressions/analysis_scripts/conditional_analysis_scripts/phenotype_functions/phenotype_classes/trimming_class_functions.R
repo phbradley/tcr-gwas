@@ -76,6 +76,12 @@ bootstrap_by_localID <- function(snp, list_of_snps_in_regression, regression, re
             next
         }
 
+        unique_genotypes_per_snp = lengths(lapply(non_na_data, unique))
+        nonsingular_unique_genotypes_per_snp = unique_genotypes_per_snp[unique_genotypes_per_snp != 1]
+        if (length(nonsingular_unique_genotypes_per_snp) != length(unique_genotypes_per_snp)){
+            next
+        }
+
         formula = formula(regression)
 
         bootstrap_regression = eval(bquote(lm(formula = formula, data = bootstrap_data, weights = .(as.name(weight)))))
