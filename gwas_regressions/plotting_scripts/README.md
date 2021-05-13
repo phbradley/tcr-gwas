@@ -1,3 +1,5 @@
+# Plotting scripts
+
 This directory contains plotting scripts and files: 
 
 * [Scripts to recreate manuscript plots](final_plots)

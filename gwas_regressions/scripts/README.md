@@ -1,3 +1,5 @@
+# Genome-wide analysis scripts
+
 This directory contains files for running the analyses genome-wide for a variety of phenotypes: 
 
 * [Analysis execution script](execute_regressions.R) which is sourced by top-level analysis run scripts (i.e. ../submit_phenotype.sh and ../submit_phenotype_class.sh) 

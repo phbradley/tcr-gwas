@@ -1,3 +1,5 @@
+# Submission scripts
+
 This directory contains files for running the analyses genome-wide for a variety of phenotypes GENOME-WIDE by splitting up the regressions into cluster jobs.
 The files are as follows:
 
