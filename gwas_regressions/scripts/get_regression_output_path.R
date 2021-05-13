@@ -1,3 +1,4 @@
+# This script will return the output regression file path
 source('config/config.R')
 
 args = commandArgs(trailingOnly=TRUE)

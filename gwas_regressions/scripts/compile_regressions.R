@@ -1,3 +1,4 @@
+# This script will combine all genome-wide regression runs (1000 per file) into one master file
 source('config/config.R')
 
 library(RhpcBLASctl)

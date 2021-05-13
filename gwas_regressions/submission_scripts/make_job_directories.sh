@@ -1,4 +1,5 @@
 #!/bin/sh
+# This script will create a directory for every cluster job containing the appropriate job-specific scripts
 set -eu
 
 PHENOTYPE=$1

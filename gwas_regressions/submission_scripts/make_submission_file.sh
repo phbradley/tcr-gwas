@@ -1,4 +1,6 @@
 #!/bin/sh
+
+# This script will make the appropriate cluster submission script for non-insertion phenotype classes
 set -eu
 
 SCRIPT=$1

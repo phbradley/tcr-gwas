@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# This script will run the regressions for a given phenotype, partition, and number of cpus genome-wide
+
 source $HOME/miniconda3/etc/profile.d/conda.sh
 conda activate tcr-gwas 
 set -eu

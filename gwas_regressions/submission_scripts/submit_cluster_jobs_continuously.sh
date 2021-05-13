@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# This script will continuously sumbit cluster jobs until all jobs are complete
 set -eu
 
 PHENOTYPE=$1
