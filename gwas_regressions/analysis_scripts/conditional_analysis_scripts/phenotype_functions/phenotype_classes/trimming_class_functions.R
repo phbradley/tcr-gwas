@@ -119,7 +119,8 @@ conditional_regress <- function(snp, snps, regression_data, conditional_snp_list
     regression_results_together = data.table()
     all_snps = c(snp, conditional_snp_list)
     non_na_data = regression_data[productive == productivity][, ..all_snps][complete.cases(regression_data[productive == productivity][, ..all_snps]),]
-    if (nrow(non_na_data) > 0){
+    data_similarity = 
+    if (nrow(non_na_data) > 0 & length(unique(as.list(non_na_data))) > 1){
         regression = eval(bquote(lm(formula = formula, data = regression_data[productive == productivity], weights = .(as.name(weight)))))
         regression_results = calculate_regression_results(snp, regression, regression_data[productive == productivity], conditional_snp_list)
         regression_results$productive = productivity
