@@ -49,7 +49,7 @@ set_regression_formula <- function(snp, conditional_snp_list = NULL){
     return(formula)
 }
 
-bootstrap_by_localID <- function(snp, regression, regression_data_filtered_by_productivity){
+bootstrap_by_localID <- function(snp, list_of_snps_in_regression, regression, regression_data_filtered_by_productivity){
     subjects = names(table(regression_data_filtered_by_productivity$localID))
     bootstrap_results = matrix(NA, nrow=REPETITIONS, ncol = 1)
     weight = paste0('weighted_', GENE_TYPE, '_count')
@@ -70,6 +70,12 @@ bootstrap_by_localID <- function(snp, regression, regression_data_filtered_by_pr
             next
         }
         
+        all_snps = list_of_snps_in_regression     
+        non_na_data = bootstrap_data[, ..all_snps][complete.cases(bootstrap_data[, ..all_snps]),]
+        if (nrow(non_na_data) == 0 | length(unique(as.list(non_na_data))) == 1){
+            next
+        }
+
         formula = formula(regression)
 
         bootstrap_regression = eval(bquote(lm(formula = formula, data = bootstrap_data, weights = .(as.name(weight)))))
@@ -94,7 +100,7 @@ calculate_regression_results <- function(snp, regression, regression_data_filter
                                     phenotype = PHENOTYPE, 
                                     bootstraps = 0)
     if (regression_results$pvalue < BOOTSTRAP_PVALUE_CUTOFF){
-        regression_results$standard_error = bootstrap_by_localID(snp, regression, regression_data_filtered_by_productivity)        
+        regression_results$standard_error = bootstrap_by_localID(snp, c(snp, conditional_snp_list), regression, regression_data_filtered_by_productivity)        
         regression_results$pvalue = recalculate_pvalue(regression_results$slope, regression_results$standard_error)
         regression_results$bootstraps = REPETITIONS
     }
@@ -105,7 +111,7 @@ calculate_regression_results <- function(snp, regression, regression_data_filter
         regression_results[, paste0('conditional_snp_', cond_snp, '_pvalue') := summary(regression)$coefficients[paste0('`', conditional_snp_list[cond_snp], '`'),'Pr(>|t|)']]
 
         if (regression_results[[paste0('conditional_snp_', cond_snp, '_pvalue')]] < BOOTSTRAP_PVALUE_CUTOFF){
-            regression_results[[paste0('conditional_snp_', cond_snp, '_standard_error')]] = bootstrap_by_localID(paste0(conditional_snp_list[cond_snp]), regression, regression_data_filtered_by_productivity)
+            regression_results[[paste0('conditional_snp_', cond_snp, '_standard_error')]] = bootstrap_by_localID(paste0(conditional_snp_list[cond_snp]), c(snp, conditional_snp_list), regression, regression_data_filtered_by_productivity)
             regression_results[[paste0('conditional_snp_', cond_snp, '_pvalue')]] = recalculate_pvalue(regression_results[[paste0('conditional_snp_', cond_snp, '_slope')]], regression_results[[paste0('conditional_snp_', cond_snp, '_standard_error')]])
         }
     }
@@ -119,7 +125,6 @@ conditional_regress <- function(snp, snps, regression_data, conditional_snp_list
     regression_results_together = data.table()
     all_snps = c(snp, conditional_snp_list)
     non_na_data = regression_data[productive == productivity][, ..all_snps][complete.cases(regression_data[productive == productivity][, ..all_snps]),]
-    data_similarity = 
     if (nrow(non_na_data) > 0 & length(unique(as.list(non_na_data))) > 1){
         regression = eval(bquote(lm(formula = formula, data = regression_data[productive == productivity], weights = .(as.name(weight)))))
         regression_results = calculate_regression_results(snp, regression, regression_data[productive == productivity], conditional_snp_list)
