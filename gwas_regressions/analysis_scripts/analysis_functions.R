@@ -28,6 +28,15 @@ compile_all_genotypes_snp_list <- function(snp_list){
     return(genotype_dt)
 }
 
+get_actual_sample_size_by_genotypes_snp_list <- function(snp_list){
+    genotypes = compile_all_genotypes_snp_list(snp_list)
+    sample_size = as.data.frame(colSums(!is.na(genotypes)))
+    sample_size$snp = rownames(sample_size)
+    rownames(sample_size) = NULL
+    colnames(sample_size) = c('sample_size', 'snp')
+    return(sample_size)
+}
+
 snp_file_by_snp_list <- function(snp_list){
     snp_data = fread(SNP_META_DATA_FILE)[, -c('V1')]
     snp_data_subset = snp_data[snpid %in% snp_list]
@@ -219,6 +228,31 @@ calculate_lambda_by_phenotype <- function(phenotype_dataframe){
     return(lambda)
 }
 
+combine_rsids <- function(dataframe){
+    rsids = fread(RSIDS)
+    colnames(rsids) = c('snp', 'rsid')
+    together = merge(dataframe, rsids)
+    return(together)
+}
+
+get_association_count <- function(dataframe, name){
+    if (name == 'gene_usage'){
+        significance_cutoff = determine_stat_significance_cutoff(0.05, significance_cutoff_type = 'genome-wide', dataframe, phenotype = unique(dataframe$gene))
+    } else {
+        significance_cutoff = determine_stat_significance_cutoff(0.05, significance_cutoff_type = 'genome-wide', dataframe)
+    }
+    print(paste0('The significance cutoff for ', name, ' is ', significance_cutoff))
+    
+    print(paste0('There are ', nrow(dataframe[pvalue < significance_cutoff]), ' significant associations for ', name, ' at a genome-wide significance threshold'))
+
+    print(dataframe[pvalue < significance_cutoff][, .N, by = .(phenotype, productive)])
+    sigs = dataframe[pvalue < significance_cutoff]
+    sigs = combine_rsids(sigs)
+    fwrite(sigs, paste0(OUTPUT_PATH, '/significant_associations/', name, '.txt'), sep = '\t')
+    return(dataframe[pvalue < significance_cutoff][, .N, by = .(phenotype, productive)])
+}
+
+
 get_sig_snps_stats <- function(dataframe, name, gene, significance_cutoff_type_for_gene_locus){
     if (name == 'gene_usage'){
         significance_cutoff = determine_stat_significance_cutoff(0.05, significance_cutoff_type = 'genome-wide', dataframe, phenotype = unique(dataframe$gene))
@@ -237,6 +271,7 @@ get_sig_snps_stats <- function(dataframe, name, gene, significance_cutoff_type_f
         gene_significance_cutoff = determine_stat_significance_cutoff(0.05, significance_cutoff_type = significance_cutoff_type_for_gene_locus, dataframe, gene = gene)
     }
 
+    gene_dataframe = combine_rsids(gene_dataframe)
     # gene_dataframe = look_for_feature_overlap(gene_dataframe)
     print(paste0('The significance cutoff for ', name, ' for ', gene, ' ', significance_cutoff_type_for_gene_locus, ' is ', gene_significance_cutoff))
 
@@ -270,7 +305,8 @@ get_lambdas <- function(dataframe, name){
         }
     }
     together = process_names(together)
-    fwrite(together, file = paste0('analysis/', name, '_lambda_table.txt'), sep = ',')
+    together = combine_rsids(together)
+    fwrite(together, file = paste0(OUTPUT_PATH, '/significant_associations/', name, '_lambda_table.txt'), sep = ',')
     return(together)
 }
 
@@ -284,7 +320,8 @@ get_lambdas_gene_usage <- function(dataframe){
             print(paste0('The genome-wide lambda value for ', gene_name, ' and productivity=', prod, ' is ', lambda))
         }
     }
-    fwrite(together, file = paste0('analysis/gene_usage_lambda_table.txt'), sep = ',')
+    together = combine_rsids(together)
+    fwrite(together, file = paste0(OUTPUT_PATH, '/significant_associations/gene_usage_lambda_table.txt'), sep = ',')
     return(together)
 }
 
@@ -413,4 +450,12 @@ find_feature_overlaps <- function(dataframe, gene_subset, significance_cutoff_ty
     # sig_snps[chr == gene$chr | hg19_pos < pos1 | hg19_pos > pos2, feature := 'not in the locus']
     print(sig_snps[, .N, by = feature])
 }
- 
+
+clean_supp_data <- function(dataframe){
+    dataframe = combine_rsids(dataframe)
+    sample_sizes = get_actual_sample_size_by_genotypes_snp_list(dataframe$snp)
+    together = merge(dataframe, sample_sizes)
+    final = together[, c('rsid', 'chr', 'hg19_pos', 'phenotype', 'productive', 'slope', 'standard_error', 'pvalue', 'sample_size')]
+    colnames(final) = c('rsid', 'chr', 'hg19_pos', 'phenotype', 'productive', 'beta', 'standard_error', 'pvalue', 'sample_size')
+    return(final)
+}

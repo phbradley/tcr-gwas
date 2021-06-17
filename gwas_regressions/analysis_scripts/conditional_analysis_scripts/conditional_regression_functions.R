@@ -255,6 +255,13 @@ make_regression_file_name <- function(productivity, round_number){
     file_name = paste0(PHENOTYPE, '_', productivity, '_regressions_condensing_', CONDENSING_VARIABLE, '_', GENE, '_conditional_analysis_ROUND_', round_number, '.tsv')
     return(paste0(path, file_name)) 
 }
+
+make_regression_file_name_final <- function(){
+    path = paste0(OUTPUT_PATH, '/results/conditional_results/') 
+    file_name = paste0(PHENOTYPE, '_regressions_condensing_', CONDENSING_VARIABLE, '_', GENE, '_conditional_analysis.tsv')
+    return(paste0(path, file_name)) 
+}
+
 #TODO fix this
 execute_conditional_regressions <- function(genotypes, phenotypes, conditional_snp_start, productivity, significance_threshold){
     regression_data = merge(genotypes, phenotypes, by = 'localID')
@@ -285,4 +292,22 @@ execute_conditional_regressions <- function(genotypes, phenotypes, conditional_s
             conditional_snp_list = c(conditional_snp_list, significant_signal_snp)
         }
     }
+}
+
+write_final_compiled_file <- function(significance_threshold, original_analysis_data){
+    files = fs::dir_ls(path = make_regression_file_path())
+    together = data.table()
+    for (file in files){
+        temp_file = fread(file)
+        together = rbind(together, temp_file, fill = TRUE)
+    }
+    file_name = make_regression_file_name_final()
+    sig = together[pvalue < significance_threshold]
+
+    if (nrow(sig) != 0){
+        original = original_analysis_data[snp %in% unique(sig$conditional_snps)]
+        sig = rbind(sig, original, fill = TRUE)
+    }
+
+    fwrite(sig, file_name, sep = '\t')
 }

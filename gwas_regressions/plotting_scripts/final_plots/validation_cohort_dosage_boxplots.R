@@ -17,11 +17,6 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plottin
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/gene_annotations.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/analysis_scripts/analysis_functions.R'))
 
-# %PB not sure where to put this, but it might be nice to add a supplementary
-# figure showing the trimming distributions for a common gene as a function of
-# Artemis SNP genotype, something like the one I posted t    o slack. Where you
-# can see the ``dosage'' effect of the minor allele. And also, truth in
-# advertising, the relatively small magnitude of the overall change.
 compile_data <- function(phenotype){
     PHENOTYPE <<- phenotype
     source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/regression_functions_validation_cohort.R'))

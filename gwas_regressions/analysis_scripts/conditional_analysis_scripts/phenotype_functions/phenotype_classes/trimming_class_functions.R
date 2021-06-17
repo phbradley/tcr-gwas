@@ -72,7 +72,7 @@ bootstrap_by_localID <- function(snp, list_of_snps_in_regression, regression, re
         
         all_snps = list_of_snps_in_regression     
         non_na_data = bootstrap_data[, ..all_snps][complete.cases(bootstrap_data[, ..all_snps]),]
-        if (nrow(non_na_data) == 0 | length(unique(as.list(non_na_data))) == 1){
+        if (nrow(non_na_data) == 0 | length(unique(as.list(non_na_data))) != length(all_snps)){
             next
         }
 
@@ -131,7 +131,7 @@ conditional_regress <- function(snp, snps, regression_data, conditional_snp_list
     regression_results_together = data.table()
     all_snps = c(snp, conditional_snp_list)
     non_na_data = regression_data[productive == productivity][, ..all_snps][complete.cases(regression_data[productive == productivity][, ..all_snps]),]
-    if (nrow(non_na_data) > 0 & length(unique(as.list(non_na_data))) > 1){
+    if (nrow(non_na_data) > 0 & length(unique(as.list(non_na_data))) == length(all_snps)){
         regression = eval(bquote(lm(formula = formula, data = regression_data[productive == productivity], weights = .(as.name(weight)))))
         regression_results = calculate_regression_results(snp, regression, regression_data[productive == productivity], conditional_snp_list)
         regression_results$productive = productivity

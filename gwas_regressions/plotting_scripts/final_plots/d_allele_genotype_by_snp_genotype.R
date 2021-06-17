@@ -50,7 +50,8 @@ plot = ggplot(heatmap_data, aes(x = TRBD2_alt_allele_genotype, snp16814596))+
 
 filename = set_file_name(top_snp, type = 'allele_genotype', final_figure = TRUE)
 
-final_plot = plot +  theme_cowplot(font_family = 'Arial') + theme(axis.line = element_blank(), axis.text = element_text(size = 30), text = element_text(size = 30), legend.key.width = unit(0.5, "in"), legend.key.height = unit(1, "in")) + ggtitle('') + ylab('Genotype of the top association TCRB SNP') + xlab('TRBD2 allele genotype')
+final_plot = plot +  theme_cowplot(font_family = 'Arial') + theme(axis.line = element_blank(), axis.text = element_text(size = 20), text = element_text(size = 30), legend.key.width = unit(0.5, "in"), legend.key.height = unit(1, "in")) + ggtitle('') + ylab('Genotype of the top TCRB SNP association') + xlab('TRBD2 allele genotype') +
+panel_border(color = 'gray60', size = 1.5)
 
 
 ggsave(filename, plot = final_plot, width = 12, height = 10, units = 'in', dpi = 750, device = cairo_pdf)

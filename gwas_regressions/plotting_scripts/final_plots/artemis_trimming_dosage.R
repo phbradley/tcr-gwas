@@ -38,6 +38,17 @@ association_genotype_assignment <- function(association_slope, genotype_data){
     return(genotype_data)
 }
 
+get_significance <- function(data, feature_of_interest){
+    stat.test = data %>% 
+        group_by(productivity) %>%
+        t_test(formula(paste0(feature_of_interest, '~ snp'))) %>% 
+        add_significance() %>%
+        add_xy_position(x = 'snp') %>%
+        arrange(group2, n1, group1)
+    return(stat.test)
+}
+
+
 boxplot_by_snp <- function(trimming_data, genotype_data, gene_of_interest, feature_of_interest){
     mean_trimming_by_gene = create_distribution_data(trimming_data, feature_of_interest, gene_of_interest)
     together = merge(mean_trimming_by_gene, genotype_data, by = 'localID')
@@ -47,19 +58,17 @@ boxplot_by_snp <- function(trimming_data, genotype_data, gene_of_interest, featu
     filtered[productive == TRUE, productivity := 'productive']
     filtered[productive == FALSE, productivity := 'non-productive']
 
-    print(cor.test(as.numeric(filtered[productive == TRUE]$snp), filtered[productive == TRUE]$mean_trim, method = "pearson")) 
-    print(cor.test(as.numeric(filtered[productive == FALSE]$snp), filtered[productive == FALSE]$mean_trim, method = "pearson"))
+    stats = get_significance(filtered, 'mean_trim') 
 
     plot = ggboxplot(filtered, x = 'snp', y = 'mean_trim', fill = 'snp', lwd = 1.5) +
         facet_wrap(~productivity)+
         geom_jitter(shape=16, position=position_jitter(0.1), size = 4, alpha = 0.5) +
-        # stat_compare_means(comparisons = comparisons, aes(label = paste0('p = ', ..p.format..)), size = 10, family = 'Arial') +
-        # stat_pvalue_manual(t_test, label = 'p', size = 10, family = 'Arial') +
+        stat_pvalue_manual(stats, label = 'p', tip.length = 0.01, family = 'Arial', size = 8) +
         theme_classic(base_family = 'Arial') + 
         theme(text = element_text(size = 40, family = 'Arial'),legend.position = "none") +
         scale_fill_brewer(palette="Greys")
 
-    final_plot = plot + theme_cowplot(font_family = 'Arial') + theme(legend.position = "none", text = element_text(size = 35), axis.text.x=element_text(size = 16), axis.text.y = element_text(size = 16), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'y') + panel_border(color = 'gray60', size = 1.5) 
+    final_plot = plot + theme_cowplot(font_family = 'Arial') + theme(legend.position = "none", text = element_text(size = 30), axis.text.x=element_text(size = 18), axis.text.y = element_text(size = 18), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'y') + panel_border(color = 'gray60', size = 1.5) 
     return(final_plot)
 }
 
@@ -99,12 +108,13 @@ top_j_gene = j_gene_usage[max_N == N][, .N, by = .(j_gene)][order(-N)][2]
 
 
 j_trim_boxplot = boxplot_by_snp(trimmings, j_genotypes, top_j_gene$j_gene, 'j_trim')
-final_j_trim_boxplot = j_trim_boxplot + xlab('Genotype of the top J-gene trimming associated DCLRE1C SNP') + ylab('Number of J-gene nucleotides deleted') + geom_smooth(formula = y~x, method = lm, aes(x=snp, y = mean_trim,group = productivity), size = 3, fill = '#4292c6', color = '#08519c')
+final_j_trim_boxplot = j_trim_boxplot + xlab('rs7078277 SNP genotype') + ylab('Number of J-gene nucleotides deleted')
 
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/j_trim_boxplot_', top_j_gene$j_gene, '_snp', top_j_snp$snp, '.pdf'), plot = final_j_trim_boxplot, width = 14, height = 10, units = 'in', dpi = 750, device = cairo_pdf)
 
 v_trim_boxplot = boxplot_by_snp(trimmings, v_genotypes, top_v_gene$v_gene, 'v_trim')
-final_v_trim_boxplot = v_trim_boxplot + xlab('Genotype of the top V-gene trimming associated DCLRE1C SNP') + ylab('Number of V-gene nucleotides deleted')+ geom_smooth(formula = y~x, method = lm, aes(x=snp, y = mean_trim,group = productivity), size = 3, fill = '#4292c6', color = '#08519c')
+final_v_trim_boxplot = v_trim_boxplot + xlab('Genotype of the top V-gene trimming associated DCLRE1C SNP') + ylab('Number of V-gene nucleotides deleted')
 
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/v_trim_boxplot_', top_v_gene$v_gene, '_snp', top_v_snp$snp, '.pdf'), plot = final_v_trim_boxplot, width = 14, height = 10, units = 'in', dpi = 750, device = cairo_pdf)
+
 
