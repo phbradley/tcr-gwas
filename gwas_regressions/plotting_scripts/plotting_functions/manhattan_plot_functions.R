@@ -72,14 +72,18 @@ determine_significance_cutoff <- function(alpha, type, genome_wide_dataframe, ph
         snps_total = length(unique(genome_wide_dataframe$snp))
     } else {
         gene = GENE_ANNOTATIONS[gene_common_name == type]
-        dataframe = genome_wide_dataframe[hg19_pos < (gene$pos2 + 200000) & hg19_pos > (gene$pos1 - 200000) & chr == gene$chr]
+        gene_chr = gene$chr
+        gene_pos1 = gene$pos1
+        gene_pos2 = gene$pos2
+ 
+        dataframe = genome_wide_dataframe[hg19_pos < (gene_pos2 + 200000) & hg19_pos > (gene_pos1 - 200000) & chr == gene_chr]
         snps_total = length(unique(dataframe$snp))
     }
     sig_cutoff = (alpha/snps_total)/features
     return(sig_cutoff)
 }
 
-manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = NA, plot_title, file_name, plotting_p_value_cutoff, significance_cutoff_type = 'genome-wide', gene_usage = NA){
+manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = NA, plot_title, file_name, plotting_p_value_cutoff, significance_cutoff_type = 'genome-wide', gene_usage = NA, subsample_point_cutoff = NA){
     stopifnot(length(significance_cutoff_type) <= 2)
     dataframe = dataframe[!is.na(phenotype)]
     if (!is.na(phenotype_values)){
@@ -124,6 +128,16 @@ manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = 
     }
     
     label_position = 1.2*max(-log10(dataframe$pvalue))
+
+    if (!is.na(subsample_point_cutoff)){
+        above_cut = dataframe[-log10(pvalue) > subsample_point_cutoff]
+        below_cut = dataframe[-log10(pvalue) <= subsample_point_cutoff] 
+        set.seed(42)
+        count = nrow(below_cut)*0.1
+        rows = sample(nrow(below_cut), size = count)
+        below_sample = below_cut[rows,]
+        dataframe = rbind(above_cut, below_sample)
+    }
     
     # scatter rows in dataframe to get scattered colors
     if (!is.na(gene_usage)){
