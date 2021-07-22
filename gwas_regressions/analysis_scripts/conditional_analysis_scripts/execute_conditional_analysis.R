@@ -26,15 +26,18 @@ gene = GENE_ANNOTATIONS[gene_common_name == GENE]
 
 original_analysis_gene = original_analysis[hg19_pos < (gene$pos2 + 200000) & hg19_pos > (gene$pos1 - 200000) & chr == gene$chr]
 # multiply by two since we are only looking at one productivity status at a time
-significance_cutoff = determine_significance_cutoff(0.05, type = GENE, original_analysis_gene)*2
-
+if (PHENOTYPE == 'gene_usage'){
+    significance_cutoff = determine_significance_cutoff(0.05, type = GENE, original_analysis_gene, phenotype = unique(original_analysis_gene$gene))*2
+} else {
+    significance_cutoff = determine_significance_cutoff(0.05, type = GENE, original_analysis_gene)*2
+}
 original_analysis_gene_sig = original_analysis_gene[pvalue < significance_cutoff][order(pvalue)]
 
 source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/analysis_scripts/conditional_analysis_scripts/conditional_regression_functions.R'))
 
 
 for (productivity in c(TRUE, FALSE)){
-         genotypes = compile_all_genotypes_snp_list(original_analysis_gene[productive == productivity]$snp)
+         genotypes = compile_all_genotypes_snp_list(unique(original_analysis_gene[productive == productivity]$snp))
          phenotypes = compile_phenotype_data()
          # snp_meta_data = snp_file_by_snp_list(original_analysis_gene[productive == productivity]$snp)
          
