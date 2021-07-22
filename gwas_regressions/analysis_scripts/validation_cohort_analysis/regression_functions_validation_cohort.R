@@ -176,6 +176,7 @@ execute_regressions <- function(genotypes, phenotypes, write.table){
     if (write.table == TRUE){
         file_name = make_regression_file_name()
         write.table(as.data.frame(results), file = file_name, quote=FALSE, sep='\t', col.names = NA)
+        return(results)
     } else if (write.table == FALSE){
         return(results)
     }   
