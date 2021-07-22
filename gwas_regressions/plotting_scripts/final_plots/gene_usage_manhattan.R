@@ -17,7 +17,8 @@ manhattan_plot(dataframe = compile_manhattan_plot_data(features),
                plot_title = set_manhattan_plot_title('gene_usage'), 
                file_name = make_file_name('gene_usage'), 
                plotting_p_value_cutoff = plotting_cutoff, 
-               gene_usage = TRUE)
+               gene_usage = TRUE,
+               subsample_point_cutoff = -log10(5e-7))
 
 assign('gene_usage_manhattan', readRDS(paste0(make_file_name('gene_usage'), '.rds')))
 

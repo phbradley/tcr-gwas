@@ -1,3 +1,4 @@
+library(tidyverse)
 library(cowplot)
 library(ggpubr)
 library(RColorBrewer)
@@ -23,12 +24,14 @@ together$productive = ifelse(together$productive == TRUE, 'productive', 'non-pro
 average_all = together[, mean(total_inserts), by = .(productive)]
 setnames(average_all, 'V1', 'total_insert_mean')
 setnames(together, 'race.g', 'ancestry_group')
+together$ancestry_group = str_replace(together$ancestry_group, ' ', '\n')
+together$pca_cluster = paste0('\"', together$ancestry_group, '\"-\nassociated')
 
 t_test = together %>%
     group_by(productive) %>%
-    t_test(total_inserts ~ ancestry_group, ref.group = 'all')
+    t_test(total_inserts ~ pca_cluster, ref.group = 'all')
 
-plot = ggboxplot(together, x = 'ancestry_group', y = 'total_inserts', fill = 'ancestry_group', lwd = 1.5) +
+plot = ggboxplot(together, x = 'pca_cluster', y = 'total_inserts', fill = 'pca_cluster', lwd = 1.5) +
     facet_grid(cols = vars(productive)) +
     geom_jitter(shape=16, position=position_jitter(0.1), size = 4, alpha = 0.5) +
     stat_pvalue_manual(t_test, label = "p = {p}", size = 8, y.position = 12, remove.bracket = TRUE, family = 'Arial') +
@@ -36,10 +39,10 @@ plot = ggboxplot(together, x = 'ancestry_group', y = 'total_inserts', fill = 'an
     theme(text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5), legend.position = "none") +
     ggtitle('Mean Total Insertions by Ancestry Group') +
     geom_hline(data = average_all, aes(yintercept = total_insert_mean), size = 2.5, color = 'red', linetype = 2) +
-    xlab('Ancestry Group') +
+    xlab('PCA cluster') +
     ylab('Mean total inserts') + 
     scale_fill_brewer(palette = 'Set2')
 
-final_plot = plot + theme_cowplot(font_family = 'Arial') + theme(legend.position = "none", text = element_text(size = 40), axis.text.x=element_text(angle = 45, vjust = 0.5, size = 24), axis.text.y = element_text(size = 24), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') + panel_border(color = 'gray60', size = 1.5)
+final_plot = plot + theme_cowplot(font_family = 'Arial') + theme(legend.position = "none", text = element_text(size = 40), axis.text.x=element_text(size = 22), axis.text.y = element_text(size = 22), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') + panel_border(color = 'gray60', size = 1.5)
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/figures/insertions_by_race.pdf'), plot = final_plot, width = 25, height = 12, units = 'in', dpi = 750, device = cairo_pdf)
 

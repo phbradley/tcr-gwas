@@ -19,7 +19,8 @@ manhattan_plot(dataframe = compile_manhattan_plot_data(c('vd_insert', 'dj_insert
                phenotype_values = c('V-D-gene junction N-insertions', 'D-J-gene junction N-insertions'),
                plot_title = set_manhattan_plot_title('insertion'), 
                file_name = make_file_name('insertion'), 
-               plotting_p_value_cutoff =  -log10(5e-3)) 
+               plotting_p_value_cutoff =  -log10(5e-3), 
+               subsample_point_cutoff = -log10(0.001)) 
 
 insertion_manhattan = readRDS(paste0(make_file_name('insertion'), '.rds')) + labs(color = NULL)
 insertion_manhattan_dntt = readRDS(paste0(make_file_name('insertion', 'dntt'), '.rds')) + labs(color = NULL)
@@ -37,5 +38,7 @@ aligned_plots = align_plots(revised_insertion, revised_dntt, align = 'h', axis =
 together = plot_grid(aligned_plots[[1]], aligned_plots[[2]], ncol = 2, rel_widths = c(2, 0.8), label_size = 40, labels = "AUTO", scale = 0.97)
 
 file_name = paste0(paste0(make_file_name('insertion'), '_with_dntt_multipanel.pdf'))
+
 ggsave(file_name, plot = together, width = 26, height = 18, units = 'in', dpi = 750, device = cairo_pdf)
+
 
