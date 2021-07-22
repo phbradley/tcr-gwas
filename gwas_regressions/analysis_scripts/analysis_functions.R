@@ -200,11 +200,16 @@ determine_stat_significance_cutoff <- function(alpha, significance_cutoff_type, 
     } else {
         stopifnot(!is.na(gene))
         gene_dt = GENE_ANNOTATIONS[gene_common_name == gene]
+
+        gene_chr = gene_dt$chr
+        gene_pos1 = gene_dt$pos1
+        gene_pos2 = gene_dt$pos2
+
         if (significance_cutoff_type == 'gene'){
-            dataframe = genome_wide_dataframe[hg19_pos < (gene_dt$pos2) & hg19_pos > (gene_dt$pos1) & chr == gene_dt$chr]
+            dataframe = genome_wide_dataframe[hg19_pos < gene_pos2 & hg19_pos > gene_pos1 & chr == gene_chr]
         }
         else {
-            dataframe = genome_wide_dataframe[hg19_pos < (gene_dt$pos2 + 200000) & hg19_pos > (gene_dt$pos1 - 200000) & chr == gene_dt$chr]
+            dataframe = genome_wide_dataframe[hg19_pos < (gene_pos2 + 200000) & hg19_pos > (gene_pos1 - 200000) & chr == gene_chr]
         }
 
         snps_total = length(unique(dataframe$snp))
@@ -222,6 +227,34 @@ look_for_feature_overlap <- function(dataframe){
     return(dataframe)
 }
 
+get_scale_factor <- function(random_bootstrap_data, whole_genome_data, productivity){
+    together = merge(whole_genome_data, random_bootstrap_data, by = c('snp', 'productive'))
+
+    together = together[productive == productivity]
+    together$z2.x = (together$slope.x/together$standard_error.x)^2
+    together$z2.y = (together$slope.y/together$standard_error.y)^2
+
+    scale = lm(together$z2.y ~ together$z2.x)
+    return(scale)
+}
+
+temp_get_merged_data <- function(random_bootstrap_data, whole_genome_data, productivity){
+    together = merge(whole_genome_data, random_bootstrap_data, by = c('snp', 'productive'))
+
+    together = together[productive == productivity]
+    together$z2.x = (together$slope.x/together$standard_error.x)^2
+    together$z2.y = (together$slope.y/together$standard_error.y)^2
+
+    return(together)
+}
+
+
+transform_z2_using_scale <- function(scale, z2){
+    z2_transform = z2*(scale$coefficients[2]) + (scale$coefficients[1])
+    return(z2_transform)
+}
+
+
 calculate_lambda_by_phenotype <- function(phenotype_dataframe){
     phenotype_dataframe$chisq = qchisq(1-phenotype_dataframe$pvalue, 1)
     lambda = median(phenotype_dataframe$chisq)/qchisq(0.5,1)
@@ -230,9 +263,21 @@ calculate_lambda_by_phenotype <- function(phenotype_dataframe){
 
 combine_rsids <- function(dataframe){
     rsids = fread(RSIDS)
-    colnames(rsids) = c('snp', 'rsid')
     together = merge(dataframe, rsids)
     return(together)
+}
+
+get_snp_genotype <- function(rsid_name, phenotype){
+    source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
+
+    rsids = fread(RSIDS)
+    rsid_info = rsids[substring(rsid, 1, nchar(rsid_name)) == rsid_name]
+    phenotype_results = compile_manhattan_plot_data(phenotype)
+    snp_id = rsid_info$snp
+    phenotype_results_subset = phenotype_results[snp == snp_id]
+    print(phenotype_results_subset)
+
+    return(rsid_info)
 }
 
 get_association_count <- function(dataframe, name){
@@ -245,11 +290,12 @@ get_association_count <- function(dataframe, name){
     
     print(paste0('There are ', nrow(dataframe[pvalue < significance_cutoff]), ' significant associations for ', name, ' at a genome-wide significance threshold'))
 
-    print(dataframe[pvalue < significance_cutoff][, .N, by = .(phenotype, productive)])
     sigs = dataframe[pvalue < significance_cutoff]
     sigs = combine_rsids(sigs)
-    fwrite(sigs, paste0(OUTPUT_PATH, '/significant_associations/', name, '.txt'), sep = '\t')
-    return(dataframe[pvalue < significance_cutoff][, .N, by = .(phenotype, productive)])
+
+    print(sigs[, .N, by = .(phenotype, productive)])
+
+    return(sigs)
 }
 
 
@@ -294,7 +340,7 @@ process_names <- function(lambda_dataframe){
     return(lambda_dataframe)
 }
 
-get_lambdas <- function(dataframe, name){
+get_lambdas_standard <- function(dataframe){
     together = data.table()
     for (feature in unique(dataframe$phenotype)){
         for (prod in unique(dataframe$productive)){
@@ -305,8 +351,6 @@ get_lambdas <- function(dataframe, name){
         }
     }
     together = process_names(together)
-    together = combine_rsids(together)
-    fwrite(together, file = paste0(OUTPUT_PATH, '/significant_associations/', name, '_lambda_table.txt'), sep = ',')
     return(together)
 }
 
@@ -320,11 +364,19 @@ get_lambdas_gene_usage <- function(dataframe){
             print(paste0('The genome-wide lambda value for ', gene_name, ' and productivity=', prod, ' is ', lambda))
         }
     }
-    together = combine_rsids(together)
-    fwrite(together, file = paste0(OUTPUT_PATH, '/significant_associations/gene_usage_lambda_table.txt'), sep = ',')
     return(together)
 }
 
+get_lambdas <- function(dataframe, name){
+    if (name == 'gene_usage'){
+        lambdas = get_lambdas_gene_usage(dataframe)
+    } else {
+        lambdas = get_lambdas_standard(dataframe)
+    }
+
+    fwrite(lambdas, file = paste0(OUTPUT_PATH, '/results/lambdas/', name, '_lambda_table.txt'), sep = ',')
+    return(lambdas)
+}
 
 
 ######################################################
@@ -458,4 +510,20 @@ clean_supp_data <- function(dataframe){
     final = together[, c('rsid', 'chr', 'hg19_pos', 'phenotype', 'productive', 'slope', 'standard_error', 'pvalue', 'sample_size')]
     colnames(final) = c('rsid', 'chr', 'hg19_pos', 'phenotype', 'productive', 'beta', 'standard_error', 'pvalue', 'sample_size')
     return(final)
+}
+
+compile_random_bootstrapped_results <- function(){
+    path = paste0(OUTPUT_PATH, '/results/bootstrap_lambda_analysis/', PHENOTYPE, '_', REPETITIONS)
+    files = fs::dir_ls(path)
+    compiled_filename = paste0(OUTPUT_PATH, '/results/bootstrap_lambda_analysis/', PHENOTYPE, '_', REPETITIONS, '_random_bootstraps.tsv')
+    vroom::vroom_write(vroom::vroom(files, num_threads = NCPU), compiled_filename)
+}
+
+get_random_boostrap_results <- function(){
+    filename = paste0(OUTPUT_PATH, '/results/bootstrap_lambda_analysis/', PHENOTYPE, '_', REPETITIONS, '_random_bootstraps.tsv')
+    if (!file.exists(filename)){
+        compile_random_bootstrapped_results()
+    }
+    file = fread(filename)
+    return(file)
 }
