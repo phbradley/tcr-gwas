@@ -21,5 +21,11 @@ The following scripts will create figures of interest:
 * [Plot trimming associations within the Artemis region](trimming_artemis_loci.R)
 * [Plot genome-wide manhattan plot for trimming](trimming_j1_subset_manhattan.R) for only TCRs which contain TRBJ1
 * [Plot genome-wide manhattan plot for trimming](trimming_manhattan.R)
-* [Plot SNP "dosage" effect for the validation cohort](validation_cohort_dosage_boxplots.R)
+* Plot SNP "dosage" effect for the validation cohort:
+    * [Alpha chain insertions](validation_insertion_alpha_boxplots.R)
+    * [Beta chain insertions](validation_insertion_beta_boxplots.R)
+    * [Beta chain insertions--Discovery cohort](validation_insertion_snp_discovery_cohort.R)
+    * [Alpha chain trimming](validation_trimming_alpha_boxplots.R)
+    * [Beta chain trimming](validation_trimming_beta_boxplots.R)
+    * [Beta chain trimming--Discovery cohort](validation_trimming_snp_discovery_cohort.R)
 
