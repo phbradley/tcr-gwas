@@ -20,4 +20,4 @@ TCR_DIV_FILE = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/emerson_tcrdiv_scores.tsv
 SNP_META_DATA_FILE = paste0('/fh/fast/matsen_e/shared/tcr-gwas/emerson_snp_data.csv')
 
 #rsid meta data file 
-RSIDS = paste0('/fh/fast/matsen_e/shared/tcr-gwas/emerson_rsids.csv')
+RSIDS = paste0('/fh/fast/matsen_e/shared/tcr-gwas/emerson_snp_rs_data.tsv')

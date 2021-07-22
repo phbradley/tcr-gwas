@@ -6,4 +6,7 @@ TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/nicaragu
 
 VALIDATION_SNP_PATH = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/nicaraguan_snp_data/snp_genotypes_ints.tsv')
 
+VALIDATION_SNP_ALLELES = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/nicaraguan_snp_data/snp_genotypes_strings.tsv')
+
+
 PCA_FILE = paste0(PROJECT_PATH, '/tcr-gwas/_ignore/nicaraguan_snp_data/snp_ancestry_PCA.tsv')
