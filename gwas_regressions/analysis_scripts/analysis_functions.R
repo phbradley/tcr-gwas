@@ -515,6 +515,9 @@ clean_supp_data <- function(dataframe){
 compile_random_bootstrapped_results <- function(){
     path = paste0(OUTPUT_PATH, '/results/bootstrap_lambda_analysis/', PHENOTYPE, '_', REPETITIONS)
     files = fs::dir_ls(path)
+    if (length(files) <= 1){
+        stop('Need to run `submit_all_random_bootstraps_analyses.sh` for specified phenotype before calculating lambda')
+    }
     compiled_filename = paste0(OUTPUT_PATH, '/results/bootstrap_lambda_analysis/', PHENOTYPE, '_', REPETITIONS, '_random_bootstraps.tsv')
     vroom::vroom_write(vroom::vroom(files, num_threads = NCPU), compiled_filename)
 }
