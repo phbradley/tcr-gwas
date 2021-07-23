@@ -16,7 +16,7 @@ These scripts are written specifically for a cluster set up to use the Slurm job
 (Some minor modifications to the [single job submission script](submission_scripts/run_regressions_genome_wide.sh) and the [genome-wide submission script](submission_scripts/submit_cluster_jobs_continuously.sh) could allow this pipeline to be run using a different cluster workload manager.) 
 
 # Analysis outline: 
-1. Download data into the directory `tcr-gwas/_ignore/` (TODO add sources and/or write script to do this)
+1. Download data into the directory `tcr-gwas/_ignore/` 
 2. Edit [config](config/) files to be project and/or computer specific
 2. Run the genome-wide GWAS analysis for a phenotype or phenotype class of interest
     * You can run [submit_phenotype.sh](submit_phenotype.sh) or [submit_phenotype_class.sh](submit_phenotype_class.sh). Both scripts take three arguments: 
@@ -25,7 +25,7 @@ These scripts are written specifically for a cluster set up to use the Slurm job
         3. number of cluster cores per job
     * i.e. `bash submit_phenotype.sh v_trim partition-name 2` will run the pipeline for v_trim by submitting 2 core jobs to the cluster partition named "partition-name"
     * A full list of possible phenotypes and phenotype classes is listed below
-3. Plot [figures](plotting_scripts/final) from the manuscript.
+3. Plot [figures](plotting_scripts/final_plots) from the manuscript.
     * Also, have a look at the plotting [README](plotting_scripts/README.md) for more details.
 4. Run conditional analysis to identify independent snp associations within specified gene regions and phenotypes
     * To do this, you can run [run_conditional_analysis.sh](run_conditional_analysis.sh) either locally or by submitting to a cluster. 
