@@ -1,12 +1,11 @@
-# Hide data, submission directories, and old pipeline files
-trimming_regression/
+# Custom directories 
 current_cluster_job_directories/
 _ignore/
 analysis/
 figures/
-analysis_plots/
+submission_outputs/
 
-# Custom
+# Custom files
 *.html
 *.key
 *.pdf
@@ -14,10 +13,7 @@ analysis_plots/
 *.nfs*
 slurm*
 temp_*
-*_submissions
-tcr_div*
 test*
-plotting_scripts/*.R
 
 # History files
 .Rhistory
