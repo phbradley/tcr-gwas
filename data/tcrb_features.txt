@@ -1,0 +1,103 @@
+Accession,Start,Stop,Gene symbol,Strand,NCBI Gene ID,Name
+NW_003571040.1,253669,364275,MGAM2,plus,93432,maltase-glucoamylase 2 (putative)
+NW_003571040.1,382707,389037,MOXD2P,minus,100289017,"monooxygenase DBH like 2, pseudogene"
+NW_003571040.1,394114,400029,PRSS58,minus,136541,serine protease 58
+NW_003571040.1,410252,414219,TRY2P,minus,207147,trypsinogen-like pseudogene
+NW_003571040.1,429228,433587,PRSS3P3,minus,136540,PRSS3 pseudogene 3
+NW_003571040.1,441002,1016331,TRB,plus,6957,T cell receptor beta locus
+NW_003571040.1,441002,441451,TRBV1,plus,28621,T cell receptor beta variable 1 (pseudogene)
+NW_003571040.1,442972,443406,TRBV2,plus,28620,T cell receptor beta variable 2
+NW_003571040.1,450563,451022,TRBV3-1,plus,28619,T cell receptor beta variable 3-1
+NW_003571040.1,455187,455640,TRBV4-1,plus,28617,T cell receptor beta variable 4-1
+NW_003571040.1,463045,463514,TRBV5-1,plus,28614,T cell receptor beta variable 5-1
+NW_003571040.1,470329,470761,TRBV6-1,plus,28606,T cell receptor beta variable 6-1
+NW_003571040.1,474190,474678,TRBV7-1,plus,28597,T cell receptor beta variable 7-1 (non-functional)
+NW_003571040.1,487514,487967,TRBV4-2,plus,28616,T cell receptor beta variable 4-2
+NW_003571040.1,491214,491646,TRBV6-2,plus,28605,T cell receptor beta variable 6-2 (gene/pseudogene)
+NW_003571040.1,501173,501632,TRBV3-2,plus,28618,T cell receptor beta variable 3-2 (pseudogene)
+NW_003571040.1,504632,505085,TRBV4-3,plus,28615,T cell receptor beta variable 4-3
+NW_003571040.1,512867,513299,TRBV6-3,plus,28604,T cell receptor beta variable 6-3
+NW_003571040.1,516501,517001,TRBV7-2,plus,28596,T cell receptor beta variable 7-2
+NW_003571040.1,522274,522560,TRBV8-1,plus,28588,T cell receptor beta variable 8-1 (pseudogene)
+NW_003571040.1,536126,536566,TRBV5-2,plus,28613,T cell receptor beta variable 5-2 (pseudogene)
+NW_003571040.1,544475,544909,TRBV6-4,plus,28603,T cell receptor beta variable 6-4
+NW_003571040.1,548046,548502,TRBV7-3,plus,28595,T cell receptor beta variable 7-3
+NW_003571040.1,549848,550308,TRBV8-2,plus,28587,T cell receptor beta variable 8-2 (pseudogene)
+NW_003571040.1,552864,553330,TRBV5-3,plus,28612,T cell receptor beta variable 5-3 (non-functional)
+NW_003571040.1,555600,556074,TRBV9,plus,28586,T cell receptor beta variable 9
+NW_003571040.1,563592,564041,TRBV10-1,plus,28585,T cell receptor beta variable 10-1(gene/pseudogene)
+NW_003571040.1,571347,571794,TRBV11-1,plus,28582,T cell receptor beta variable 11-1
+NW_003571040.1,578882,579324,TRBV12-1,plus,28579,T cell receptor beta variable 12-1 (pseudogene)
+NW_003571040.1,588654,589103,TRBV10-2,plus,28584,T cell receptor beta variable 10-2
+NW_003571040.1,597606,598044,TRBV11-2,plus,28581,T cell receptor beta variable 11-2
+NW_003571040.1,604534,604976,TRBV12-2,plus,28578,T cell receptor beta variable 12-2 (pseudogene)
+NW_003571040.1,614664,615099,TRBV6-5,plus,28602,T cell receptor beta variable 6-5
+NW_003571040.1,618824,619285,TRBV7-4,plus,28594,T cell receptor beta variable 7-4 (gene/pseudogene)
+NW_003571040.1,626770,627234,TRBV5-4,plus,28611,T cell receptor beta variable 5-4
+NW_003571040.1,633251,633683,TRBV6-6,plus,28601,T cell receptor beta variable 6-6
+NW_003571040.1,637765,638236,TRBV7-5,plus,28593,T cell receptor beta variable 7-5 (pseudogene)
+NW_003571040.1,638196,638272,MIR11400,plus,113839523,microRNA 11400
+NW_003571040.1,646222,646686,TRBV5-5,plus,28610,T cell receptor beta variable 5-5
+NW_003571040.1,651530,651962,TRBV6-7,plus,28600,T cell receptor beta variable 6-7 (non-functional)
+NW_003571040.1,655844,656336,TRBV7-6,plus,28592,T cell receptor beta variable 7-6
+NW_003571040.1,663737,664202,TRBV5-6,plus,28609,T cell receptor beta variable 5-6
+NW_003571040.1,671049,671477,TRBV6-8,plus,28599,T cell receptor beta variable 6-8
+NW_003571040.1,675293,675794,TRBV7-7,plus,28591,T cell receptor beta variable 7-7
+NW_003571040.1,683755,684221,TRBV5-7,plus,28608,T cell receptor beta variable 5-7 (non-functional)
+NW_003571040.1,691061,691493,TRBV6-9,plus,28598,T cell receptor beta variable 6-9
+NW_003571040.1,695676,696159,TRBV7-8,plus,28590,T cell receptor beta variable 7-8
+NW_003571040.1,703893,704359,TRBV5-8,plus,28607,T cell receptor beta variable 5-8
+NW_003571040.1,713094,713566,TRBV7-9,plus,28589,T cell receptor beta variable 7-9
+NW_003571040.1,719611,720094,TRBV13,plus,28574,T cell receptor beta variable 13
+NW_003571040.1,728018,728467,TRBV10-3,plus,28583,T cell receptor beta variable 10-3
+NW_003571040.1,738661,739098,TRBV11-3,plus,28580,T cell receptor beta variable 11-3
+NW_003571040.1,744248,744694,TRBV12-3,plus,28577,T cell receptor beta variable 12-3
+NW_003571040.1,747559,748005,TRBV12-4,plus,28576,T cell receptor beta variable 12-4
+NW_003571040.1,764770,765216,TRBV12-5,plus,28575,T cell receptor beta variable 12-5
+NW_003571040.1,771714,772146,TRBV14,plus,28573,T cell receptor beta variable 14
+NW_003571040.1,776792,777260,TRBV15,plus,28572,T cell receptor beta variable 15
+NW_003571040.1,781803,782256,TRBV16,plus,28571,T cell receptor beta variable 16 (gene/pseudogene)
+NW_003571040.1,785413,786145,TRBV17,plus,28570,T cell receptor beta variable 17 (non-functional)
+NW_003571040.1,799531,800149,TRBV18,plus,28569,T cell receptor beta variable 18
+NW_003571040.1,802791,803266,TRBV19,plus,28568,T cell receptor beta variable 19
+NW_003571040.1,810460,811132,TRBV20-1,plus,28567,T cell receptor beta variable 20-1
+NW_003571040.1,820643,821103,TRBV21-1,plus,28566,T cell receptor beta variable 21-1 (pseudogene)
+NW_003571040.1,825465,825915,TRBV22-1,plus,28565,T cell receptor beta variable 22-1 (pseudogene)
+NW_003571040.1,829684,830180,TRBV23-1,plus,28564,T cell receptor beta variable 23-1 (non-functional)
+NW_003571040.1,839025,839501,TRBV24-1,plus,28563,T cell receptor beta variable 24-1
+NW_003571040.1,848923,850317,MTRNR2L6,plus,100463482,MT-RNR2 like 6
+NW_003571040.1,853401,853868,TRBV25-1,plus,28562,T cell receptor beta variable 25-1
+NW_003571040.1,864027,864481,TRBVA,plus,28556,T cell receptor beta variable A (pseudogene)
+NW_003571040.1,878320,878804,TRBV26,plus,28561,T cell receptor beta variable 26 (pseudogene)
+NW_003571040.1,894036,894576,TRBVB,plus,28555,T cell receptor beta variable B (pseudogene)
+NW_003571040.1,898042,898514,TRBV27,plus,28560,T cell receptor beta variable 27
+NW_003571040.1,903333,903813,TRBV28,plus,28559,T cell receptor beta variable 28
+NW_003571040.1,904907,905591,PGBD4P1,plus,107161154,piggyBac transposable element derived 4 pseudogene 1
+NW_003571040.1,922937,923558,TRBV29-1,plus,28558,T cell receptor beta variable 29-1
+NW_003571040.1,932140,935740,PRSS1,plus,5644,serine protease 1
+NW_003571040.1,943081,946647,PRSS3P1,plus,168330,PRSS3 pseudogene 1
+NW_003571040.1,953574,957217,PRSS3P2,plus,154754,PRSS3 pseudogene 2
+NW_003571040.1,963749,967318,TRY7,plus,207148,trypsinogen D
+NW_003571040.1,974014,977604,PRSS2,plus,5645,serine protease 2
+NW_003571040.1,981687,982582,WBP1LP1,minus,106479029,WBP1L pseudogene 1
+NW_003571040.1,989257,989268,TRBD1,plus,28637,T cell receptor beta diversity 1
+NW_003571040.1,989924,989971,TRBJ1-1,plus,28635,T cell receptor beta joining 1-1
+NW_003571040.1,990061,990108,TRBJ1-2,plus,28634,T cell receptor beta joining 1-2
+NW_003571040.1,990674,990723,TRBJ1-3,plus,28633,T cell receptor beta joining 1-3
+NW_003571040.1,991269,991319,TRBJ1-4,plus,28632,T cell receptor beta joining 1-4
+NW_003571040.1,991542,991591,TRBJ1-5,plus,28631,T cell receptor beta joining 1-5
+NW_003571040.1,992032,992084,TRBJ1-6,plus,28630,T cell receptor beta joining 1-6
+NW_003571040.1,994738,996185,TRBC1,plus,28639,T cell receptor beta constant 1
+NW_003571040.1,998749,998764,TRBD2,plus,28636,T cell receptor beta diversity 2
+NW_003571040.1,999409,999458,TRBJ2-1,plus,28629,T cell receptor beta joining 2-1
+NW_003571040.1,999604,999654,TRBJ2-2,plus,28628,T cell receptor beta joining 2-2
+NW_003571040.1,999741,999786,TRBJ2-2P,plus,28627,T cell receptor beta joining 2-2P (non-functional)
+NW_003571040.1,999891,999939,TRBJ2-3,plus,28626,T cell receptor beta joining 2-3
+NW_003571040.1,1000042,1000091,TRBJ2-4,plus,28625,T cell receptor beta joining 2-4
+NW_003571040.1,1000163,1000210,TRBJ2-5,plus,28624,T cell receptor beta joining 2-5
+NW_003571040.1,1000283,1000335,TRBJ2-6,plus,28623,T cell receptor beta joining 2-6
+NW_003571040.1,1000500,1000546,TRBJ2-7,plus,28622,T cell receptor beta joining 2-7
+NW_003571040.1,1004085,1005573,TRBC2,plus,28638,T cell receptor beta constant 2
+NW_003571040.1,1015630,1016331,TRBV30,minus,28557,T cell receptor beta variable 30 (gene/pseudogene)
+NW_003571040.1,1058203,1074207,EPHB6,plus,2051,EPH receptor B6
+NW_003571040.1,1074321,1088856,TRPV6,minus,55503,transient receptor potential cation channel subfamily V member 6
