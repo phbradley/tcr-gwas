@@ -17,9 +17,9 @@ NCPU <<- as.numeric(args[2])
 CHAIN <<- args[3]
 
 source('config/config.R')
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/config/validation_file_paths_', CHAIN, '.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/config/validation_file_paths_', CHAIN, '.R'))
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/analysis_scripts/validation_cohort_analysis/regression_functions_validation_cohort.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/analysis_scripts/validation_cohort_analysis/regression_functions_validation_cohort.R'))
 
 genotypes = compile_all_genotypes(VALIDATION_SNP_PATH) 
 phenotypes = compile_phenotype_data() 

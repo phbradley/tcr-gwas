@@ -2,7 +2,7 @@
 
 set -eu
 
-PROJECT_PATH="/home/mrussel2"
+PROJECT_PATH=$HOME
 OUTPUT_PATH="/fh/fast/matsen_e/shared/tcr-gwas/trimming_regression_output"
 PHENOTYPE=$1
 

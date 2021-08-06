@@ -17,9 +17,9 @@ NCPU <<- as.numeric(args[2])
 CHAIN <<- args[3]
 
 source('config/config.R')
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/config/validation_file_paths_', CHAIN, '.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/config/validation_file_paths_', CHAIN, '.R'))
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/analysis_scripts/validation_cohort_analysis/regression_functions_validation_cohort.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/analysis_scripts/validation_cohort_analysis/regression_functions_validation_cohort.R'))
 
 genotypes = compile_all_genotypes(VALIDATION_SNP_PATH) 
 phenotypes = compile_phenotype_data() 
@@ -31,9 +31,9 @@ validate$one_side_pvalue = 0.5 * validate$pvalue
 
 if (CHAIN == 'beta'){
     source('config/file_paths.R')
-    source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/regression_functions.R'))
-    source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
-    source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/analysis_scripts/analysis_functions.R'))
+    source(paste0(PROJECT_PATH, '/tcr-gwas/scripts/regression_functions.R'))
+    source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
+    source(paste0(PROJECT_PATH, '/tcr-gwas/analysis_scripts/analysis_functions.R'))
 
     original_data = compile_manhattan_plot_data(PHENOTYPE)
     original_data = combine_rsids(original_data)

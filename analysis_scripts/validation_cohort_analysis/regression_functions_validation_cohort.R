@@ -82,7 +82,7 @@ infer_d_gene <- function(tcr_repertoire_data){
 # Import phenotype specific functions #
 #######################################
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functions/', PHENOTYPE, '.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/scripts/phenotype_functions/', PHENOTYPE, '.R'))
 
 PCA_COUNT <<- 3
 
@@ -183,4 +183,4 @@ execute_regressions <- function(genotypes, phenotypes, write.table){
 }
 
 
-source(paste0(PROJECT_PATH, '/tcr-gwas/gwas_regressions/scripts/phenotype_functions/phenotype_classes/', PHENOTYPE_CLASS, '_class_functions.R'))
+source(paste0(PROJECT_PATH, '/tcr-gwas/scripts/phenotype_functions/phenotype_classes/', PHENOTYPE_CLASS, '_class_functions.R'))
