@@ -10,6 +10,10 @@ library(ggpubr)
 library(rstatix)
 library(Cairo)
 
+args = commandArgs(trailingOnly=TRUE)
+
+NCPU <<- as.numeric(args[1])
+
 source('config/config.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/config/file_paths.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/maf_functions.R'))
@@ -26,9 +30,8 @@ genotypes = compile_all_genotypes(as.numeric(snp_start), as.numeric(count))
 
 genotype_dt = merge(ethnicity[,c('localID', 'race.g')], genotypes, by = 'localID')
 
-insertions = fread(file = MEAN_INSERTS)[,c('patient_id', 'vj_insert', 'vd_insert', 'dj_insert', 'productive')]
+insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))[,c('localID', 'vj_insert', 'vd_insert', 'dj_insert', 'productive')]
 
-setnames(insertions, 'patient_id', 'localID')
 insertions = insertions[productive == TRUE,lapply(.SD, mean), by = .(localID, productive)]
 together = merge(insertions, genotype_dt, by = 'localID')
 together$total_inserts = together$vj_insert + together$vd_insert + together$dj_insert

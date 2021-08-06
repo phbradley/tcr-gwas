@@ -14,7 +14,6 @@ make_file_name <- function(phenotype_class, gene_subset = 'NA'){
     return(file)
 }
 
-
 compile_manhattan_plot_data <- function(phenotype_list){
     compiled_data = data.table()
     for (phenotype in phenotype_list){
@@ -23,6 +22,44 @@ compile_manhattan_plot_data <- function(phenotype_list){
         compiled_data = rbind(compiled_data, fread(file_name))
     }
     return(compiled_data)
+}
+
+extract_subject_ID <- function(tcr_repertoire_file_path){
+    # This function extracts the subjectID from the file name
+    file_name = str_split(tcr_repertoire_file_path, "/")[[1]][8]
+    file_root_name = str_split(file_name, ".tsv")[[1]][1]
+    localID = str_split(file_root_name, "_")[[1]][3]
+    return(localID)
+}
+
+create_distribution_data <- function(data, gene_types, paired_feature_types){
+    stopifnot(length(gene_types)==length(paired_feature_types))
+    together = data.table()
+    for (i in seq(length(gene_types))){
+        temp = data
+        names(temp)[names(temp) == paste0(gene_types[i])] <- 'gene_of_interest'
+        names(temp)[names(temp) == paste0(paired_feature_types[i])] <- 'feature_of_interest'
+        temp$productivity = ifelse(data$productive == FALSE, 'non-productive', 'productive')
+        temp_condensed = temp[, mean(feature_of_interest), by = .(gene_of_interest, productivity, localID)]
+        temp_condensed$feature = paired_feature_types[i]
+        temp_condensed$gene_type = gene_types[i]
+        together = rbind(together, temp_condensed)
+        temp = data.table()
+        temp_condensed = data.table()
+    }
+    setnames(together, 'V1', 'feature_of_interest')
+    return(together)
+}
+
+compile_mean_phenotype_data <- function(gene_types, paired_feature_types){
+    files = list.files(TCR_REPERTOIRE_DATA_DIRECTORY, pattern = "*.tsv", full.names=TRUE)
+    registerDoParallel(cores=NCPU)
+    mean_tcr_data = foreach(file = files, .combine = 'rbind') %dopar% {
+        file_data = fread(file)
+        file_data$localID = extract_subject_ID(file)
+        create_distribution_data(file_data, gene_types, paired_feature_types)
+    }
+    return(mean_tcr_data)
 }
 
 set_manhattan_plot_title <- function(phenotype_class, gene_subset = 'NA'){

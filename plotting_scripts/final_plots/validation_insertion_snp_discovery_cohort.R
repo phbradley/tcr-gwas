@@ -10,6 +10,10 @@ library(RColorBrewer)
 library(rstatix)
 library(Cairo)
 
+args = commandArgs(trailingOnly=TRUE)
+
+NCPU <<- as.numeric(args[1])
+
 source('config/config.R')
 source('config/file_paths.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
@@ -19,8 +23,7 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/dosag
 
 CHAIN = 'beta'
 
-insertions = fread(file = MEAN_INSERTS)[,-1]
-setnames(insertions, 'patient_id', 'localID')
+insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
 
 insertion_associations = compile_manhattan_plot_data(c('vd_insert', 'dj_insert'))
 

@@ -229,7 +229,6 @@ compile_phenotype_data <- function(){
     # This function compiles phenotype data for the specific regressions
     tcr_repertoire_data = compile_condensed_tcr_repertoire_data()
     if (PHENOTYPE != 'tcr_div'){
-        #TODO remove the following if statement
         if (!('productivity_tcr_count' %in% colnames(tcr_repertoire_data))){
             tcr_repertoire_data$productivity_tcr_count = tcr_repertoire_data$tcr_count
         }

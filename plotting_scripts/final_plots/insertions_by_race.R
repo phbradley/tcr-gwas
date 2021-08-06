@@ -9,11 +9,15 @@ library(RColorBrewer)
 library(rstatix)
 library(Cairo)
 
+args = commandArgs(trailingOnly=TRUE)
+
+NCPU <<- as.numeric(args[1])
+
 source('config/config.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
-insertions = fread(file = MEAN_INSERTS)[,-1]
-setnames(insertions, 'patient_id', 'localID')
+insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
+
 ethnicity = fread(file = ETHNICITY)[,c('localID', 'race.g')]
 
 together = merge(insertions, ethnicity, by = 'localID')[,c('localID', 'vj_insert', 'vd_insert', 'dj_insert', 'race.g', 'productive')]

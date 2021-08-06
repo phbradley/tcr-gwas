@@ -22,12 +22,6 @@ SNP_META_DATA_FILE = paste0('/fh/fast/matsen_e/shared/tcr-gwas/emerson_snp_data.
 #rsid meta data file 
 RSIDS = paste0('/fh/fast/matsen_e/shared/tcr-gwas/emerson_snp_rs_data.tsv')
 
-# mean trimming by subject
-MEAN_TRIMS = paste0('/fh/fast/matsen_e/shared/tcr-gwas/insertion_data/trim_by_patient.tsv')
-
-# mean inserts by subject
-MEAN_INSERTS = paste0('/fh/fast/matsen_e/shared/tcr-gwas/insertion_data/insertions_by_patient.tsv')
-
 # ethnicity file 
 ETHNICITY = paste0(PROJECT_PATH, "/tcr-gwas/_ignore/race_pcs_18Nov2020.txt")
 

@@ -10,6 +10,10 @@ library(RColorBrewer)
 library(rstatix)
 library(Cairo)
 
+args = commandArgs(trailingOnly=TRUE)
+
+NCPU <<- as.numeric(args[1])
+
 source('config/config.R')
 source('config/file_paths.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
@@ -17,9 +21,7 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/gene_
 source(paste0(PROJECT_PATH, '/tcr-gwas/analysis_scripts/analysis_functions.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/dosage_functions.R'))
 
-
-trimmings = fread(file = MEAN_TRIMS)[,-1]
-setnames(trimmings, 'patient_id', 'localID')
+trimmings = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('v_trim', 'd0_trim', 'd1_trim', 'j_trim'))
 
 trimming_associations = compile_manhattan_plot_data(c('v_trim', 'j_trim', 'd1_trim', 'd0_trim'))
 gene = GENE_ANNOTATIONS[gene_common_name == 'artemis']

@@ -50,7 +50,6 @@ make_title_from_regression_data <- function(data){
 }
 
 boxplot_by_snp <- function(data, snp, gene_of_interest = NA, feature_of_interest, final_plot = FALSE){
-    #TODO incorporate gene of interest thing
     if (final_plot == FALSE){
         regression_data = get_regression_data(snp_name = snp, phenotype = feature_of_interest)
         title = make_title_from_regression_data(regression_data)

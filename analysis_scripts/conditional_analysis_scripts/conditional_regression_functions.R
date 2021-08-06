@@ -212,7 +212,6 @@ compile_d_allele_status_correction_data <- function(){
 compile_phenotype_data <- function(){
     tcr_repertoire_data = compile_condensed_tcr_repertoire_data()
     if (PHENOTYPE != 'tcr_div'){
-        #TODO remove the following if statement
         if (!('productivity_tcr_count' %in% colnames(tcr_repertoire_data))){
             tcr_repertoire_data$productivity_tcr_count = tcr_repertoire_data$tcr_count
         }
@@ -262,7 +261,6 @@ make_regression_file_name_final <- function(){
     return(paste0(path, file_name)) 
 }
 
-#TODO fix this
 execute_conditional_regressions <- function(genotypes, phenotypes, conditional_snp_start, productivity, significance_threshold){
     regression_data = merge(genotypes, phenotypes, by = 'localID')
     conditional_snp_list = conditional_snp_start
