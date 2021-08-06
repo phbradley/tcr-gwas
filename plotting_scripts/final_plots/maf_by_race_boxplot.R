@@ -21,7 +21,7 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manha
 
 dntt = find_snp_start_by_position(chromosome = 10, position1 = 98064085, position2 =98098321)
 
-ethnicity = fread(file = ETHNICITY)
+ethnicity = fread(file = PCA_FILE)
 
 snp_start = dntt[1]
 count = dntt[2]

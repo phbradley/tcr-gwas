@@ -13,7 +13,7 @@ source('config/config.R')
 source('config/file_paths.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
-ethnicity = fread(file = ETHNICITY)[,c('localID', 'scanID', 'race.g')]
+ethnicity = fread(file = PCA_FILE)[,c('localID', 'scanID', 'race.g')]
 
 counts = ethnicity[, .N, by = race.g]
 counts$race.g = factor(counts$race.g, levels = c('Caucasian', 'Hispanic', 'African', 'Asian', 'Native American', 'Middle Eastern'))

@@ -10,7 +10,7 @@ create_distribution_data <- function(data, feature_of_interest,gene_of_interest 
 }
 
 get_genotype_alleles <- function(snp_meta_data, switched_genotypes, genotypes){
-    alleles = str_split(snp_meta_data$snpallele, '/')
+    alleles = str_split(snp_meta_data$allele, '/')
     A_allele = alleles[[1]][1]
     B_allele = alleles[[1]][2]
     allele_genotypes = c()
@@ -37,7 +37,7 @@ order_allele_genotypes <- function(genotype_data){
 
 association_genotype_assignment <- function(association_slope, genotype_data){
     snp_num = colnames(genotype_data)[colnames(genotype_data) != 'localID']
-    snp_data = fread(SNP_META_DATA_FILE)[, -c('V1')]
+    snp_data = fread(SNP_META_DATA_FILE)
     snp_meta = snp_data[snpid == snp_num]
 
     if (association_slope < 0){

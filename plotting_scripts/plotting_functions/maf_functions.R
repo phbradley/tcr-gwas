@@ -34,7 +34,7 @@ calculate_maf <- function(snp, minor_allele, race, genotype_dt){
 
 find_snp_start_by_position <- function(chromosome, position1, position2){
     snp_meta_data = fread(SNP_META_DATA_FILE)
-    colnames(snp_meta_data) =c('snpindex', 'snpid', 'snppos', 'snpchrome', 'snpallele')
+    colnames(snp_meta_data) =c('snpid','snppos', 'snpchrome', 'snpallele', 'rsid')
     filtered = snp_meta_data[snpchrome == chromosome & snppos > position1 & snppos < position2]
     filtered_ordered = filtered[order(filtered$snpindex),]
     return(c(filtered_ordered$snpindex[1],

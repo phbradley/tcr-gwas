@@ -38,10 +38,10 @@ get_actual_sample_size_by_genotypes_snp_list <- function(snp_list){
 }
 
 snp_file_by_snp_list <- function(snp_list){
-    snp_data = fread(SNP_META_DATA_FILE)[, -c('V1')]
+    snp_data = fread(SNP_META_DATA_FILE)
     snp_data_subset = snp_data[snpid %in% snp_list]
-    colnames(snp_data_subset) = c('snp', 'hg19_pos', 'chr', 'snpallele')
-    return(snp_data_subset[, -c('snpallele')])
+    colnames(snp_data_subset) = c('snp', 'hg19_pos', 'chr', 'snpallele', 'rsid')
+    return(snp_data_subset[, -c('snpallele', 'rsid')])
 }
 
 
@@ -262,7 +262,7 @@ calculate_lambda_by_phenotype <- function(phenotype_dataframe){
 }
 
 combine_rsids <- function(dataframe){
-    rsids = fread(RSIDS)
+    rsids = fread(SNP_META_DATA_FILE)
     together = merge(dataframe, rsids)
     return(together)
 }
@@ -270,7 +270,7 @@ combine_rsids <- function(dataframe){
 get_snp_genotype <- function(rsid_name, phenotype){
     source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
-    rsids = fread(RSIDS)
+    rsids = fread(SNP_META_DATA_FILE)
     rsid_info = rsids[substring(rsid, 1, nchar(rsid_name)) == rsid_name]
     phenotype_results = compile_manhattan_plot_data(phenotype)
     snp_id = rsid_info$snp

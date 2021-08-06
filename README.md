@@ -15,7 +15,7 @@ These scripts are written specifically for a cluster set up to use the Slurm job
 (Some minor modifications to the [single job submission script](submission_scripts/run_regressions_genome_wide.sh) and the [genome-wide submission script](submission_scripts/submit_cluster_jobs_continuously.sh) could allow this pipeline to be run using a different cluster workload manager.) 
 
 # Analysis outline: 
-1. Download data into the directory `tcr-gwas/_ignore/` 
+1. Download data into the directory `tcr-gwas/data/` 
 2. Edit [config](config/) files to be project and/or computer specific
 2. Run the genome-wide GWAS analysis for a phenotype or phenotype class of interest
     * You can run [submit_phenotype.sh](submit_phenotype.sh) or [submit_phenotype_class.sh](submit_phenotype_class.sh). Both scripts take three arguments: 

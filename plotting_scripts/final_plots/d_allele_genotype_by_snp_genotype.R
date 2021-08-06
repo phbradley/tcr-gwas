@@ -25,7 +25,7 @@ tcrb_sig_snps = trimming_data[pvalue < significance_cutoff & chr == tcrb$chr & h
 genotypes = compile_all_genotypes_snp_list(unique(tcrb_sig_snps$snp))
 colnames(genotypes)[-1] = paste0('snp', colnames(genotypes)[-1])
 
-allele_statuses = fread(paste0(PROJECT_PATH, '/tcr-gwas/_ignore/emerson_trbd2_alleles.tsv'))
+allele_statuses = fread(D_ALLELES)
 allele_statuses[allele_0 == 'TRBD2*02', alt_allele_genotype := 1]
 allele_statuses[allele_0 != 'TRBD2*02', alt_allele_genotype := 0]
 allele_statuses[allele_1 == 'TRBD2*02', alt_allele_genotype := alt_allele_genotype + 1]
