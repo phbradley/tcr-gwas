@@ -5,7 +5,6 @@ The goal of this project is to identify genetic biases within T-cell receptor re
 Everything R 4.0.3 based. R packages that are required can be installed via [miniconda](https://docs.conda.io/en/latest/miniconda.html): 
 
 ```bash 
-cd gwas-regressions/
 conda env create -f environment.yml
 conda activate tcr-gwas 
 ```
