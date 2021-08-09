@@ -12,7 +12,35 @@ map_scanID_to_localID <- function(scanIDs_to_convert){
 }
 
 create_maf_file <- function(genotype_dataframe){
-    #TODO
+    snp_gds_file = openfn.gds(SNP_GDS_FILE, readonly = TRUE, allow.fork = TRUE)
+    bigsize = 35481497
+    snp_starts = seq(1, bigsize, by = 10000)
+    mafs = data.table()
+    registerDoParallel(cores=NCPU)
+    mafs = foreach(start = snp_starts, .combine = 'rbind') %dopar% {
+        numrows = min(10000, bigsize-start+1)
+        snp_ids = read.gdsn(index.gdsn(snp_gds_file, "snp.id"),
+                                       start=start,
+                                       count=numrows)
+        genotype_matrix = read.gdsn(index.gdsn(snp_gds_file, "genotype"),
+                                    start=c(1,start),
+                                    count=c(398, numrows))
+        colnames(genotype_matrix) = snp_ids
+        genotype_matrix[genotype_matrix == 3] <- NA 
+        genotype_dt = as.data.table(genotype_matrix)
+        subject_counts = colSums(!is.na(genotype_dt))
+        nonNA_subject_counts = subject_counts[subject_counts != 0]
+        cols = names(nonNA_subject_counts)
+        allele_counts = colSums(genotype_dt[, ..cols], na.rm = TRUE)
+        temp = data.table(snp = names(nonNA_subject_counts), maf = allele_counts/(2*nonNA_subject_counts))
+        temp[maf >= 0.5, maf := 1-maf]
+        print(paste0('finished processing mafs for snps ', start, ' to ', start + 10000))
+        temp
+    }
+    stopImplicitCluster()
+    closefn.gds(snp_gds_file)
+    fwrite(mafs, paste0(OUTPUT_PATH, '/maf_all_snps.tsv'), sep = '\t')
+    return(mafs)
 }
 
 
