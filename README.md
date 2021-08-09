@@ -26,13 +26,20 @@ These scripts are written specifically for a cluster set up to use the Slurm job
     * A full list of possible phenotypes and phenotype classes is listed below
 3. Plot [figures](plotting_scripts/final_plots) from the manuscript.
     * Also, have a look at the plotting [README](plotting_scripts/README.md) for more details.
+4. Run lambda calculations for a phenotype of interest to measure potential genomic inflation within genome-wide GWAS analysis
+    * To do this, you can run [calculate_lambda.sh](calculate_lambda.sh) either locally or by submitting to a cluster. 
+    * This script takes four arguments:
+        1. phenotype (i.e. v_trim, vd_insert, etc.)
+        2. phenotype class (i.e. trimming, insertion, gene_usage, etc.)
+        3. cluster partition (lambda calculations for trimming analysis must be run on a cluster-this script is set up to run with a slurm cluster scheduler)
+        4. number of cluster cores per job
 4. Run conditional analysis to identify independent snp associations within specified gene regions and phenotypes
     * To do this, you can run [run_conditional_analysis.sh](run_conditional_analysis.sh) either locally or by submitting to a cluster. 
     * This script takes the following arguments:
         1. gene (i.e. artemis, dntt, etc.)
         2. phenotype (i.e. v_trim, vd_insert, etc.)
         3. number of cluster cores
-5. Run analysis for Nicaraguan validation cohort (two snps). Since this analysis is only for two snps, it can easily be run locally. To run this, you can run `Rscript analysis_scripts/validation_cohort_analysis/execute_validation_data_regressions.R [phenotype] [number of cores] [TCR chain]` which can take the arguments:
+5. Run analysis for Nicaraguan validation cohort (two snps). Since this analysis is only for two snps, it can easily be run locally (or on a cluster). To run this, you can run [run_validation_cohort_analysis.sh](run_validation_cohort_analysis.sh) which takes the following three arguments: 
     1. phenotype (i.e. v_trim, vd_insert, etc.)
     2. number of cluster cores
     3. TCR chain (either `beta` or `alpha`)
