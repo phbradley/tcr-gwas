@@ -14,6 +14,8 @@ map_scanID_to_localID <- function(scanIDs_to_convert){
 }
 
 create_maf_file <- function(genotype_dataframe){
+    snps = compile_all_genotypes(1, 35481497)
+    total_subj = 
     #TODO
 }
 

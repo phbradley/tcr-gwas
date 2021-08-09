@@ -4,6 +4,7 @@ _ignore/
 analysis/
 figures/
 submission_outputs/
+downloaded_data/
 
 # Custom files
 *.html
