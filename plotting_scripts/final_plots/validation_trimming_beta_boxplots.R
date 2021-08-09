@@ -29,16 +29,6 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/valid
 v_trim_data = compile_data(phenotype = 'v_trim')
 j_trim_data = compile_data(phenotype = 'j_trim')
 
-# cdr3 = combine_genes_by_common_cdr3()
-# j_gene = 'TRBJ1-1*01'
-# j_gene_cdr3_id = cdr3[id == j_gene]$cdr3_gene_group
-# j_trim_data_subset = j_trim_data[cdr3_gene_group == j_gene_cdr3_id]
-
-# # v_gene = 'TRBV12-3*01'
-# v_gene = 'TRBV23-1*01'
-# v_gene_cdr3_id = cdr3[id == v_gene]$cdr3_gene_group
-# v_trim_data_subset = v_trim_data[cdr3_gene_group == v_gene_cdr3_id]
-
 v_trim_data_mean = v_trim_data[, sum(v_trim*v_gene_count)/sum(v_gene_count), by = .(localID, productive, rs12768894, rs3762093)]
 setnames(v_trim_data_mean, 'V1', 'v_trim')
 

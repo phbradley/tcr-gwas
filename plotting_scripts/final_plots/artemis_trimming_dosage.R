@@ -21,32 +21,30 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/gene_
 source(paste0(PROJECT_PATH, '/tcr-gwas/analysis_scripts/analysis_functions.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/dosage_functions.R'))
 
+# compile trimming distribution data
 trimmings = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('v_trim', 'd0_trim', 'd1_trim', 'j_trim'))
 
+# compile trimming gwas data
 trimming_associations = compile_manhattan_plot_data(c('v_trim', 'j_trim', 'd1_trim', 'd0_trim'))
 gene = GENE_ANNOTATIONS[gene_common_name == 'artemis']
 
+# filter for artemis region associations
 artemis_associations = trimming_associations[hg19_pos < (gene$pos2 + 200000) & hg19_pos > (gene$pos1 - 200000) & chr == gene$chr]
- 
 top_associations = artemis_associations[order(pvalue)][1:10]
 top_associations[, min_p := min(pvalue), by = .(phenotype, productive)]
-
 top_j_snp = top_associations[phenotype == 'j_trim'][1]
 top_v_snp = top_associations[phenotype == 'v_trim'][1]
 
+# get genotypes for top snps
 j_genotypes = compile_all_genotypes_snp_list(top_j_snp$snp)
 v_genotypes = compile_all_genotypes_snp_list(top_v_snp$snp)
-# colnames(j_genotypes)[-1] = paste0('snp', colnames(j_genotypes)[-1])
-# colnames(v_genotypes)[-1] = paste0('snp', colnames(v_genotypes)[-1])
-
 j_genotypes = association_genotype_assignment(top_j_snp$slope, j_genotypes)
 v_genotypes = association_genotype_assignment(top_v_snp$slope, v_genotypes)
 
+# get gene usage
 v_gene_usage = trimmings[, .N, by = .(v_gene, localID, productive)]
 v_gene_usage[, max_N := max(N), by = .(localID, productive)]
-
 top_v_gene = v_gene_usage[max_N == N][, .N, by = .(v_gene)][order(-N)][1]
-
 j_gene_usage = trimmings[, .N, by = .(j_gene, localID, productive)]
 j_gene_usage[, max_N := max(N), by = .(localID, productive)]
 

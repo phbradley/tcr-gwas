@@ -19,23 +19,24 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/config/file_paths.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/maf_functions.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
+# get dntt snps, genotypes, and ethnicity data
 dntt = find_snp_start_by_position(chromosome = 10, position1 = 98064085, position2 =98098321)
-
 ethnicity = fread(file = PCA_FILE)
-
 snp_start = dntt[1]
 count = dntt[2]
-
 genotypes = compile_all_genotypes(as.numeric(snp_start), as.numeric(count))
-
 genotype_dt = merge(ethnicity[,c('localID', 'race.g')], genotypes, by = 'localID')
 
+# get insertion distribution data
 insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))[,c('localID', 'vj_insert', 'vd_insert', 'dj_insert', 'productive')]
-
 insertions = insertions[productive == TRUE,lapply(.SD, mean), by = .(localID, productive)]
+
+# combine data
 together = merge(insertions, genotype_dt, by = 'localID')
 together$total_inserts = together$vj_insert + together$vd_insert + together$dj_insert
 
+
+# get MAF
 maf_dt = data.table()
 for (snp in colnames(genotypes)[colnames(genotypes) != 'localID']){
     minor_allele = determine_true_minor_allele(snp, together)
@@ -49,15 +50,17 @@ for (snp in colnames(genotypes)[colnames(genotypes) != 'localID']){
 maf_dt$ancestry_group = str_replace(maf_dt$ancestry_group, ' ', '\n')
 maf_dt$pca_cluster = paste0('\"', maf_dt$ancestry_group, '\"-\nassociated')
 
+# get significant snps (from analysis without population structure correction)
 bonferroni = 7.74e-9
 sig_snps = find_significant_snps(c('vd_insert_no_pca', 'dj_insert_no_pca'), bonferroni)
-
 sig_snps_together_mafs = maf_dt[snp %in% sig_snps$snp]
 sig_snps_together_mafs[pca_cluster == '\"all\"-\nassociated', pca_cluster := 'population']
 
+# t test
 t_test = sig_snps_together_mafs %>%
     t_test(maf ~ pca_cluster, ref.group = 'population')
 
+# get overall average
 average_all = mean(sig_snps_together_mafs[pca_cluster == 'population']$maf)
 
 plot = ggboxplot(sig_snps_together_mafs[pca_cluster != 'population'], x = 'pca_cluster', y = 'maf', fill = 'pca_cluster', lwd = 1.5) +

@@ -16,21 +16,20 @@ NCPU <<- as.numeric(args[1])
 source('config/config.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
+# get insertion distribution and ethnicity data
 insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
-
 ethnicity = fread(file = PCA_FILE)[,c('localID', 'race.g')]
-
 together = merge(insertions, ethnicity, by = 'localID')[,c('localID', 'vj_insert', 'vd_insert', 'dj_insert', 'race.g', 'productive')]
 together = together[, lapply(.SD, mean), by = .(localID, productive, race.g)]
 together$total_inserts = together$vj_insert + together$vd_insert + together$dj_insert
 together$productive = ifelse(together$productive == TRUE, 'productive', 'non-productive')
-
 average_all = together[, mean(total_inserts), by = .(productive)]
 setnames(average_all, 'V1', 'total_insert_mean')
 setnames(together, 'race.g', 'ancestry_group')
 together$ancestry_group = str_replace(together$ancestry_group, ' ', '\n')
 together$pca_cluster = paste0('\"', together$ancestry_group, '\"-\nassociated')
 
+# t-test
 t_test = together %>%
     group_by(productive) %>%
     t_test(total_inserts ~ pca_cluster, ref.group = 'all')
