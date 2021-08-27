@@ -8,6 +8,12 @@ setDTthreads(1)
 library(ggplot2)
 library(RColorBrewer)
 library(Cairo)
+library(RhpcBLASctl)
+omp_set_num_threads(1)
+blas_set_num_threads(1)
+library(foreach)
+library(doParallel)
+
 
 args = commandArgs(trailingOnly=TRUE)
 
