@@ -6,6 +6,7 @@ ID_MAPPING_FILE <<- paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/gwas_id
 
 # PCA file (download from zenodo--TODO, put link)
 PCA_FILE <<- paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/all_pc_air.txt')
+PCA_VARIANCE_FILE <<- paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/all_pc_air_variance.txt')
 
 # TCR repertoire directory path (download https://doi.org/10.21417/B7001Z)
 TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/emerson_data')

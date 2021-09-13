@@ -34,18 +34,31 @@ extract_subject_ID <- function(tcr_repertoire_file_path){
 
 create_distribution_data <- function(data, gene_types, paired_feature_types){
     stopifnot(length(gene_types)==length(paired_feature_types))
+    type = str_split(paired_feature_types[1], '_')[[1]][2]
     together = data.table()
-    for (i in seq(length(gene_types))){
-        temp = data
-        names(temp)[names(temp) == paste0(gene_types[i])] <- 'gene_of_interest'
-        names(temp)[names(temp) == paste0(paired_feature_types[i])] <- 'feature_of_interest'
-        temp$productivity = ifelse(data$productive == FALSE, 'non-productive', 'productive')
-        temp_condensed = temp[, mean(feature_of_interest), by = .(gene_of_interest, productivity, localID)]
-        temp_condensed$feature = paired_feature_types[i]
-        temp_condensed$gene_type = gene_types[i]
-        together = rbind(together, temp_condensed)
-        temp = data.table()
-        temp_condensed = data.table()
+    if (type == 'trim'){
+        for (i in seq(length(gene_types))){
+            temp = data
+            names(temp)[names(temp) == paste0(gene_types[i])] <- 'gene_of_interest'
+            names(temp)[names(temp) == paste0(paired_feature_types[i])] <- 'feature_of_interest'
+            temp$productivity = ifelse(data$productive == FALSE, 'non-productive', 'productive')
+            temp_condensed = temp[, mean(feature_of_interest), by = .(gene_of_interest, productivity, localID)]
+            temp_condensed$feature = paired_feature_types[i]
+            temp_condensed$gene_type = gene_types[i]
+            together = rbind(together, temp_condensed)
+            temp = data.table()
+            temp_condensed = data.table()
+        }
+    } else if (type == 'insert'){
+        together = data
+        together$productivity = ifelse(data$productive == FALSE, 'non-productive', 'productive')
+        inserts = unique(paired_feature_types)
+        together$feature_of_interest = 0
+        for (insert in inserts){
+            together$feature_of_interest = together$feature_of_interest + together[[insert]]
+        }
+        together = together[, mean(feature_of_interest), by = .(productivity, localID)]
+        together$feature = 'total_insert'
     }
     setnames(together, 'V1', 'feature_of_interest')
     return(together)
@@ -59,6 +72,7 @@ compile_mean_phenotype_data <- function(gene_types, paired_feature_types){
         file_data$localID = extract_subject_ID(file)
         create_distribution_data(file_data, gene_types, paired_feature_types)
     }
+    stopImplicitCluster()
     return(mean_tcr_data)
 }
 

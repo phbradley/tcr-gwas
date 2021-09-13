@@ -14,28 +14,29 @@ args = commandArgs(trailingOnly=TRUE)
 NCPU <<- as.numeric(args[1])
 
 source('config/config.R')
+source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/maf_functions.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
 # get insertion distribution and ethnicity data
 insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
 ethnicity = fread(file = PCA_FILE)[,c('localID', 'race.g')]
-together = merge(insertions, ethnicity, by = 'localID')[,c('localID', 'vj_insert', 'vd_insert', 'dj_insert', 'race.g', 'productive')]
-together = together[, lapply(.SD, mean), by = .(localID, productive, race.g)]
-together$total_inserts = together$vj_insert + together$vd_insert + together$dj_insert
-together$productive = ifelse(together$productive == TRUE, 'productive', 'non-productive')
-average_all = together[, mean(total_inserts), by = .(productive)]
+together = merge(insertions, ethnicity, by = 'localID')[,c('localID', 'feature_of_interest', 'feature', 'race.g', 'productivity')]
+average_all = together[, mean(feature_of_interest), by = .(productivity)]
 setnames(average_all, 'V1', 'total_insert_mean')
 setnames(together, 'race.g', 'ancestry_group')
 together$ancestry_group = str_replace(together$ancestry_group, ' ', '\n')
 together$pca_cluster = paste0('\"', together$ancestry_group, '\"-\nassociated')
 
+# genotypes = compile_all_genotypes(as.numeric(10000), as.numeric(10))
+# together = together[localID %in% genotypes$localID]
+
 # t-test
 t_test = together %>%
-    group_by(productive) %>%
-    t_test(total_inserts ~ pca_cluster, ref.group = 'all')
+    group_by(productivity) %>%
+    t_test(feature_of_interest ~ pca_cluster, ref.group = 'all')
 
-plot = ggboxplot(together, x = 'pca_cluster', y = 'total_inserts', fill = 'pca_cluster', lwd = 1.5) +
-    facet_grid(cols = vars(productive)) +
+plot = ggboxplot(together, x = 'pca_cluster', y = 'feature_of_interest', fill = 'pca_cluster', lwd = 1.5) +
+    facet_grid(cols = vars(productivity)) +
     geom_jitter(shape=16, position=position_jitter(0.1), size = 4, alpha = 0.5) +
     stat_pvalue_manual(t_test, label = "p = {p}", size = 8, y.position = 12, remove.bracket = TRUE, family = 'Arial') +
     theme_classic() + 

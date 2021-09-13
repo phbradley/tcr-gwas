@@ -28,13 +28,10 @@ genotypes = compile_all_genotypes(as.numeric(snp_start), as.numeric(count))
 genotype_dt = merge(ethnicity[,c('localID', 'race.g')], genotypes, by = 'localID')
 
 # get insertion distribution data
-insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))[,c('localID', 'vj_insert', 'vd_insert', 'dj_insert', 'productive')]
-insertions = insertions[productive == TRUE,lapply(.SD, mean), by = .(localID, productive)]
+insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
 
 # combine data
 together = merge(insertions, genotype_dt, by = 'localID')
-together$total_inserts = together$vj_insert + together$vd_insert + together$dj_insert
-
 
 # get MAF
 maf_dt = data.table()

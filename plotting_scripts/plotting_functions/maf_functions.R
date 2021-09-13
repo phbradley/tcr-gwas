@@ -4,9 +4,9 @@ find_significant_snps <- function(phenotype_list, signficance_cutoff){
 }
 
 determine_true_minor_allele <- function(snp, phenotype_genotype_dt){
-    columns = c('total_inserts', paste(snp))
-    simplified_dt = phenotype_genotype_dt[productive == 'TRUE'][,..columns]
-    regression = lm(simplified_dt$total_inserts ~ simplified_dt[[paste(snp)]])
+    columns = c('feature_of_interest', paste(snp))
+    simplified_dt = phenotype_genotype_dt[productivity == 'productive'][,..columns]
+    regression = lm(simplified_dt$feature_of_interest ~ simplified_dt[[paste(snp)]])
     slope = coef(regression)['simplified_dt[[paste(snp)]]']
     minor_allele = ifelse(slope < 0, 2, 0)
     return(minor_allele)
@@ -35,10 +35,11 @@ calculate_maf <- function(snp, minor_allele, race, genotype_dt){
 find_snp_start_by_position <- function(chromosome, position1, position2){
     snp_meta_data = fread(SNP_META_DATA_FILE)
     colnames(snp_meta_data) =c('snpid','snppos', 'snpchrome', 'snpallele', 'rsid')
+    snp_meta_data$snpindex = seq(1, nrow(snp_meta_data))
     filtered = snp_meta_data[snpchrome == chromosome & snppos > position1 & snppos < position2]
     filtered_ordered = filtered[order(filtered$snpindex),]
     return(c(filtered_ordered$snpindex[1],
-             filtered_ordered$snpindex[nrow(filtered_ordered)]-filtered_ordered$snpindex[1]))
+            filtered_ordered$snpindex[nrow(filtered_ordered)]-filtered_ordered$snpindex[1]))
 }
 
 map_scanID_to_localID <- function(scanIDs_to_convert){

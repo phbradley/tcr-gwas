@@ -13,9 +13,7 @@ source('config/config.R')
 source('config/file_paths.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
-ethnicity = fread(file = PCA_FILE)[,c('localID', 'scanID', 'race.g')]
-pca = fread(PCA_FILE)
-together = merge(ethnicity, pca, by = c('localID', 'scanID'))
+together = fread(PCA_FILE)
 setnames(together, 'race.g', 'ancestry_group')
 together$pca_cluster = paste0('\"', together$ancestry_group, '\"-associated')
 
@@ -37,9 +35,9 @@ legend = get_legend(final_plot1 + theme(legend.position = c(0.39, 0.39)) + guide
 
 final_plot1_no_leg = final_plot1 + theme(legend.position = 'none')
 
-scree_plot = data.frame(pc=1:32, varprop = pc$varprop)
+scree_plot = fread(PCA_VARIANCE_FILE)
 
-plot2 = ggplot(scree_plot, aes(x = pc, y = 100*varprop)) +
+plot2 = ggplot(scree_plot, aes(x = pc, y = 100*variance_explained)) +
     geom_line(size = 2) +
     geom_point(size = 6) +
     theme_classic() +
