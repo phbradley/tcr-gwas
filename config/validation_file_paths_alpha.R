@@ -2,7 +2,7 @@
 CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/human_vj_alleles_alpha.tsv')
 
 # Nicaraguan data path (TODO zenodo path!)
-TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/nicaragua_data/TCRA/')
+TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/nicaragua_data/TCRA')
 
 # (TODO zenodo path!)
 VALIDATION_SNP_PATH = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/nicaragua_snp_genotypes_ints.tsv')
