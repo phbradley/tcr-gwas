@@ -14,8 +14,8 @@ TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_
 # CDR3 sequence to gene file
 CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/human_vj_allele_cdr3_nucseqs.tsv')
 
-# snp meta data file (TODO write function to generate this)
-SNP_META_DATA_FILE = paste0('/fh/fast/matsen_e/shared/tcr-gwas/emerson_snp_rs_data.tsv')
+# snp meta data file (download from zenodo--TODO, put link)
+SNP_META_DATA_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/emerson_snp_rs_data.tsv')
 
 # D gene allele genotypes (download from zenodo--TODO, put link)
 D_ALLELES = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/emerson_trbd2_alleles.tsv')
