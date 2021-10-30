@@ -19,3 +19,4 @@ SNP_META_DATA_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/emerso
 
 # D gene allele genotypes (download from zenodo--TODO, put link)
 D_ALLELES = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/emerson_trbd2_alleles.tsv')
+

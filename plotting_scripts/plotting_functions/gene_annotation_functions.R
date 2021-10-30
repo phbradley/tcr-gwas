@@ -1,19 +1,18 @@
 
 get_gene_locations <- function(){
     # genes_common_names = c('artemis', 'mhc', 'dntt', 'rag', 'tcrb', 'tcra', 'tcrb_v_dj_zoom', 'tcrb_dj_zoom')
-    genes_common_names = c('artemis', 'mhc', 'dntt', 'rag', 'tcrb', 'tcra')
+    genes_common_names = c('artemis', 'mhc', 'dntt', 'rag', 'tcrb', 'tcra', 'znf443/znf709')
 
     # genes = c('DCLRE1C', 'MHC', 'DNTT', 'RAG', 'TCRB', 'TCRA', 'TCRB_zoom', 'TCRB_zoom')
-    genes = c('DCLRE1C', 'MHC', 'DNTT', 'RAG', 'TCRB', 'TCRA') 
+    genes = c('DCLRE1C', 'MHC', 'DNTT', 'RAG', 'TCRB', 'TCRA', 'ZNF443/\nZNF709') 
 
     # chr = c(10, 6, 10, 11, 7, 14, 7, 7)
-    chr = c(10, 6, 10, 11, 7, 14)
-
+    chr = c(10, 6, 10, 11, 7, 14, 19)
     # pos1 = c(14948871, 25912984, 98064085, 36589563, 141998851, 22090057, 142336000, 142448742)
-    pos1 = c(14948871, 25912984, 98064085, 36589563, 141998851, 22090057)
+    pos1 = c(14948871, 25912984, 98064085, 36589563, 141998851, 22090057, 12540520)
 
     # pos2 = c(14996094, 33290793, 98098321, 36619829, 142510972, 23021075, 142504000, 142504000)
-    pos2 = c(14996094, 33290793, 98098321, 36619829, 142510972, 23021075)
+    pos2 = c(14996094, 33290793, 98098321, 36619829, 142510972, 23021075, 12551926)
     
     annotations = data.table(gene_common_name = genes_common_names, gene_locus = genes, chr = chr, pos1 = pos1, pos2 = pos2)
 

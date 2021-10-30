@@ -34,7 +34,9 @@ create_maf_file <- function(){
         nonNA_subject_counts = subject_counts[subject_counts != 0]
         cols = names(nonNA_subject_counts)
         allele_counts = colSums(genotype_dt[, ..cols], na.rm = TRUE)
-        temp = data.table(snp = names(nonNA_subject_counts), maf = allele_counts/(2*nonNA_subject_counts))
+        temp = data.table(snp = names(nonNA_subject_counts), maf = allele_counts/(2*nonNA_subject_counts), subject_count = nonNA_subject_counts)
+        temp[maf >= 0.5, maf_flipped := TRUE]
+        temp[maf < 0.5,  maf_flipped := FALSE]
         temp[maf >= 0.5, maf := 1-maf]
         print(paste0('finished processing mafs for snps ', start, ' to ', start + 10000))
         temp

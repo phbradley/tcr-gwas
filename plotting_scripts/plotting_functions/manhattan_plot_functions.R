@@ -221,7 +221,7 @@ manhattan_plot <- function(dataframe, phenotype_subset = NA, phenotype_values = 
     saveRDS(snps, file = paste0(file_name, '.rds'))
 }
       
-manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, file_name, gene_subset, plot_zoom = NA, plotting_features = 'gene'){
+manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, file_name, gene_subset, plot_zoom = NA, plotting_features = 'gene', unique_colors = FALSE, unique_line = FALSE){
     if (!is.na(phenotype_values)){
         dataframe$feature = mapvalues(dataframe$phenotype, from = unique(dataframe$phenotype), to = phenotype_values) 
     } else {
@@ -230,7 +230,11 @@ manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, fi
 
     # set phenotype colors
     dataframe = dataframe[order(-feature)]
-    feature_colors = brewer.pal(n = max(4, length(unique(dataframe$feature))), name = "Set2")
+    if (isTRUE(unique_colors)){
+        feature_colors = brewer.pal(n = 5, name = "Set2")[(5-length(unique(dataframe$feature))+1):5]
+    } else {
+        feature_colors = brewer.pal(n = max(4, length(unique(dataframe$feature))), name = "Set2")
+    }
     names(feature_colors) = unique(dataframe$feature)
 
     significance_cutoff = determine_significance_cutoff(0.05, type = gene_subset, dataframe)
@@ -282,13 +286,16 @@ manhattan_plot_gene <- function(dataframe, phenotype_values = NA, plot_title, fi
         theme_classic() +
         theme(panel.spacing.x=unit(0, "lines"), text = element_text(size = 40), axis.text.x = element_blank()) +
         labs(y="-log10(p-value)", x="Chromosome Position", fill = paste0(unique(plot_features$gene_locus), ' locus')) +
-        geom_hline(yintercept=-log10(significance_cutoff), color = "grey70", size=2.5) +
         ggtitle(plot_title) +
         scale_x_continuous(breaks=seq(0, 2.5e8, 0.75e8)) +
         scale_color_manual(guide = guide_legend(reverse=TRUE), values = feature_colors) +
         scale_fill_grey(guide = FALSE)
-
     
+    if (isTRUE(unique_line)){
+    snps = snps + geom_hline(yintercept=-log10(significance_cutoff), color = "black", size=2.5, linetype = 'dashed') 
+    } else {
+        snps = snps + geom_hline(yintercept=-log10(significance_cutoff), color = "grey70", size=2.5)
+    }
     # ggsave(paste0(file_name, '.pdf'), plot = snps, width = 15, height = 10, units = 'in', dpi = 750, device = cairo_pdf)
     saveRDS(snps, file = paste0(file_name, '.rds'))
 
