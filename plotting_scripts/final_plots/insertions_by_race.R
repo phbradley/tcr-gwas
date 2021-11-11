@@ -8,18 +8,22 @@ library(ggplot2)
 library(RColorBrewer)
 library(rstatix)
 library(Cairo)
+library(doParallel)
+library(foreach)
+library(rstatix)
 
 args = commandArgs(trailingOnly=TRUE)
 
 NCPU <<- as.numeric(args[1])
 
 source('config/config.R')
+source('config/file_paths.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/maf_functions.R'))
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
 # get insertion distribution and ethnicity data
 insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
-ethnicity = fread(file = PCA_FILE)[,c('localID', 'race.g')]
+ethnicity = fread(file = PCA_FILE)[,c('localID', 'race.g', 'race.s')]
 together = merge(insertions, ethnicity, by = 'localID')[,c('localID', 'feature_of_interest', 'feature', 'race.g', 'productivity')]
 average_all = together[, mean(feature_of_interest), by = .(productivity)]
 setnames(average_all, 'V1', 'total_insert_mean')
@@ -34,6 +38,14 @@ together$pca_cluster = paste0('\"', together$ancestry_group, '\"-\nassociated')
 t_test = together %>%
     group_by(productivity) %>%
     t_test(feature_of_interest ~ pca_cluster, ref.group = 'all')
+
+outliers = together %>%
+    group_by(productivity, pca_cluster) %>%
+    identify_outliers(feature_of_interest) %>%
+    as.data.table()
+
+# print outliers from this analysis
+print(outliers[, .N, by = .(localID, ancestry_group, race.s)])
 
 plot = ggboxplot(together, x = 'pca_cluster', y = 'feature_of_interest', fill = 'pca_cluster', lwd = 1.5) +
     facet_grid(cols = vars(productivity)) +

@@ -25,7 +25,7 @@ ethnicity = fread(file = PCA_FILE)
 snp_start = dntt[1]
 count = dntt[2]
 genotypes = compile_all_genotypes(as.numeric(snp_start), as.numeric(count))
-genotype_dt = merge(ethnicity[,c('localID', 'race.g')], genotypes, by = 'localID')
+genotype_dt = merge(ethnicity[,c('localID', 'race.g', 'race.s')], genotypes, by = 'localID')
 
 # get insertion distribution data
 insertions = compile_mean_phenotype_data(c('v_gene', 'd_gene', 'd_gene', 'j_gene'), c('vd_insert', 'vd_insert', 'dj_insert', 'dj_insert'))
