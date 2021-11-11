@@ -27,7 +27,8 @@ condense_individual_tcr_repertoire_data <- function(tcr_repertoire_dataframe){
         gene_freqs[, gene_usage := gene_count/tcr_count]
         gene_usage = rbind(gene_usage, gene_freqs)
     }
-    
+    # remove orphan genes
+    gene_usage = gene_usage[!(gene %like% 'OR')]
     return(gene_usage)
 }
 
