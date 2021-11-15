@@ -78,6 +78,10 @@ Specifically, you can run the analysis one of two ways:
 |                                     | vd_insert                              | Number of V-D nucleotide insertions (with population structure correction)                                     |
 |                                     | total_insert                           | Number of V-D and D-J nucleotide insertions (with population structure correction)                             |
 
+# About the TCR repertoire preprocessing
 
-
-
+TCR beta repertoire data for the discovery cohort were downloaded from the ImmuneAccess website ("Immunosequencing identifies signatures of cytomegalovirus exposure history and HLA-mediated effects on the T-cell repertoire"; project DOI https://doi.org/10.21417/B7001Z).
+Nucleotide read sequences were reparsed using the TCRdist software (version 0.0.2) with default parameters and the TCR gene sequence databases distributed therewith.
+The validation cohort data was generated from TCR alpha and beta mRNA by a 5' RACE protocol with unique molecular identifiers (UMIs); raw sequencing reads can be downloaded from the SRA database, accession XXX.
+Demultiplexing and contig assembly of paired-end FASTQ reads was done with migec (v1.2.9) (Shugay et al. 2014; PMID: 24793455) using the `CheckoutBatch` and `AssembleBatch` commands, respectively.
+Filtered nucleotide read sequences were processed using the TCRdist software as above for consistency with the discovery cohort.
