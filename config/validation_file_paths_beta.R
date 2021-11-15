@@ -1,5 +1,5 @@
 # CDR3 sequence to gene file
-CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/human_vj_allele_cdr3_nucseqs.tsv')
+CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/human_vj_allele_cdr3_nucseqs.tsv')
 
 # Nicaraguan data path (TODO zenodo path!)
 TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/nicaraguan_data/TCRB')

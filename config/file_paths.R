@@ -6,13 +6,13 @@ ID_MAPPING_FILE <<- paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/gwas_id
 
 # PCA file (download from zenodo--TODO, put link)
 PCA_FILE <<- paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/all_pc_air.txt')
-PCA_VARIANCE_FILE <<- paste0(PROJECT_PATH, '/tcr-gwas/data/all_pc_air_variance.txt')
+PCA_VARIANCE_FILE <<- paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/all_pc_air_variance.txt')
 
 # TCR repertoire directory path (download https://doi.org/10.21417/B7001Z)
 TCR_REPERTOIRE_DATA_DIRECTORY = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/emerson_data')
 
 # CDR3 sequence to gene file
-CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/human_vj_allele_cdr3_nucseqs.tsv')
+CDR3_GENE_ASSIGNMENT_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/human_vj_allele_cdr3_nucseqs.tsv')
 
 # snp meta data file (download from zenodo--TODO, put link)
 SNP_META_DATA_FILE = paste0(PROJECT_PATH, '/tcr-gwas/data/downloaded_data/emerson_snp_rs_data.tsv')
