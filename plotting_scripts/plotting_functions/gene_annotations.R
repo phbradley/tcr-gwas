@@ -13,3 +13,6 @@ tcrb_features = get_genes_in_tcrb(simplify = FALSE)
 GENE_FEATURES = rbind(dntt_features, artemis_features, tcrb_features, fill = TRUE)
 GENE_FEATURES[, pos1 := as.numeric(pos1)]
 GENE_FEATURES[, pos2 := as.numeric(pos2)]
+
+# from IMGT and Adaptive (https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-015-0238-z)
+TRB_NONPROD_ALLELE_GENES = c('TRBV6-4', 'TRBV12-5', 'TRBV7-3', 'TRBV11-1', 'TRBV11-3', 'TRBV10-1', 'TRBV30') 
