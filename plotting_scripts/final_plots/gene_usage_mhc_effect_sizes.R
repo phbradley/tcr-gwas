@@ -20,7 +20,7 @@ dataframe = fread(paste0(OUTPUT_PATH, '/source_data/figure1-source-data1.txt'))
 # filter for mhc region associations
 mhc_associations = dataframe[hg19_pos < (pos2 + 200000) & hg19_pos > (pos1 - 200000) & chr == chrom]
 
-significance_cutoff = 4.72e-11 
+significance_cutoff = 5.09e-11 
 sig_mhc = mhc_associations[pvalue < significance_cutoff]
 
 # make sure effect sizes are going in the correct direction

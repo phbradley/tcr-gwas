@@ -1,3 +1,5 @@
+library(foreach)
+library(doParallel)
 library(cowplot)
 library(tidyverse)
 library(gdsfmt)
@@ -68,7 +70,7 @@ plot = ggboxplot(sig_snps_together_mafs[pca_cluster != 'population'], x = 'pca_c
     ggtitle('Minor Allele Frequency by Ancestry Group') +
     geom_hline(yintercept = average_all, size = 2.5, color = 'red', linetype = 2) +
     xlab('PCA cluster') +
-    ylab('Minor allele frequency') + 
+    ylab('Lower-insertion allele frequency') + 
     scale_fill_brewer(palette = 'Set2')
 
 final_plot = plot + theme_cowplot(font_family = 'Arial') + theme(legend.position = "none", text = element_text(size = 35), axis.text.x=element_text(size = 22), axis.text.y = element_text(size = 22), axis.line = element_blank(),axis.ticks = element_line(color = 'gray60', size = 1.5)) + coord_cartesian(clip="off") + ggtitle('') + background_grid(major = 'xy') + ylim(-0.01,0.85) + panel_border(color = 'gray60', size = 1.5)

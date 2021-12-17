@@ -10,7 +10,7 @@ source('config/config.R')
 source(paste0(PROJECT_PATH, '/tcr-gwas/plotting_scripts/plotting_functions/manhattan_plot_functions.R'))
 
 dataframe = compile_manhattan_plot_data('gene_usage') 
-significance_cutoff = 4.72e-11 
+significance_cutoff = 5.09e-11 
 
 # get gene usage gwas data and associations by gene
 tcrb = GENE_ANNOTATIONS[gene_common_name == 'tcrb']
@@ -52,7 +52,7 @@ rows = sample(nrow(pairs))
 pairs = pairs[rows,]
 pairs[is.na(region), region := 'Other']
 
-plot = ggplot(pairs) +
+plot = ggplot(pairs[region != 'Other']) +
     geom_point(aes(x = -log10(prod_pvalue), y = -log10(nonprod_pvalue), color = region), size = 4, alpha = 0.3) +
     geom_vline(xintercept = -log10(significance_cutoff), color = 'black', size = 2)+
     geom_hline(yintercept = -log10(significance_cutoff), color = 'black', size = 2)+
@@ -64,7 +64,8 @@ plot = ggplot(pairs) +
     background_grid(major = 'xy') +
     xlab('productive -log10(p-value)') +
     ylab('non-productive -log10(p-value)') +
-    panel_border(color = 'gray60', size = 1.5)
+    panel_border(color = 'gray60', size = 1.5)+
+    guides(color = guide_legend(override.aes = list(alpha=1)))
 
 ggsave(paste0(PROJECT_PATH, '/tcr-gwas/figures/prod_nonprod_gene-usage_pvalue_comparison.pdf'), plot = plot, width = 18, height = 9, units = 'in', dpi = 750, device = cairo_pdf)
 
