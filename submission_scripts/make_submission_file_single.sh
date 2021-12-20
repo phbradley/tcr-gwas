@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script will create the appropriate cluster submission script for a single phenotype
 set -eu

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script will run the regressions for a given phenotype, partition, and number of cpus genome-wide
 
