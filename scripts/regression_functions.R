@@ -24,9 +24,11 @@ create_maf_file <- function(){
         snp_ids = read.gdsn(index.gdsn(snp_gds_file, "snp.id"),
                                        start=start,
                                        count=numrows)
+        sample_ids = read.gdsn(index.gdsn(snp_gds_file, "sample.id"))
+        sample_count = length(sample_ids)
         genotype_matrix = read.gdsn(index.gdsn(snp_gds_file, "genotype"),
                                     start=c(1,start),
-                                    count=c(398, numrows))
+                                    count=c(sample_count, numrows))
         colnames(genotype_matrix) = snp_ids
         genotype_matrix[genotype_matrix == 3] <- NA 
         genotype_dt = as.data.table(genotype_matrix)
@@ -103,13 +105,12 @@ compile_all_genotypes <- function(snp_start, count){
     snp_gds_file = openfn.gds(SNP_GDS_FILE)
     bigsize = 35481497
     numrows = min(count, bigsize-snp_start+1)
-    
+    sample_ids = read.gdsn(index.gdsn(snp_gds_file, "sample.id"))
+    sample_count = length(sample_ids)
+
     genotype_matrix = read.gdsn(index.gdsn(snp_gds_file, "genotype"),
                                  start=c(1,snp_start),
-                                 count=c(398, numrows))
-    sample_ids = read.gdsn(index.gdsn(snp_gds_file, "sample.id"),
-                            start=1,
-                            count=398)
+                                 count=c(sample_count, numrows))
     snp_ids = read.gdsn(index.gdsn(snp_gds_file, "snp.id"),
                          start=snp_start,
                          count=numrows)
@@ -201,8 +202,10 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/scripts/phenotype_functions/', PHENOTYPE,
 
 generate_condensed_tcr_repertoire_file_name <- function(){
     # This function will create the file name for the condensed tcr repertoire data
+    path = paste0(OUTPUT_PATH, '/condensed_tcr_repertoire_data') 
+    dir.create(path)
     inferred_d_gene_end = ifelse(KEEP_MISSING_D_GENE == 'True', '_with_inferred_d_gene.tsv', '_NO_inferred_d_gene.tsv')
-    condensed_tcr_repertoires_file_name = paste0(OUTPUT_PATH, '/condensed_tcr_repertoire_data/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects_', PHENOTYPE_CLASS, '_for_', PHENOTYPE, inferred_d_gene_end)
+    condensed_tcr_repertoires_file_name = paste0(path, '/', CONDENSING_VARIABLE, '_by_', GENE_TYPE, '_condensed_tcr_repertoire_data_all_subjects_', PHENOTYPE_CLASS, '_for_', PHENOTYPE, inferred_d_gene_end)
     return(condensed_tcr_repertoires_file_name)
 }
 
@@ -336,18 +339,35 @@ source(paste0(PROJECT_PATH, '/tcr-gwas/scripts/phenotype_functions/phenotype_cla
 ##############################
 make_compiled_file_name <- function(){
     # This function creates the file name, path for the compiled regression output
+    dir.create(paste0(OUTPUT_PATH, '/results'))
     file_name = paste0(OUTPUT_PATH, '/results/', PHENOTYPE, '_regressions_', CONDENSING_VARIABLE, '_d_infer-', KEEP_MISSING_D_GENE, '_', PCA_COUNT, '_PCAir_PCs.tsv')
     return(file_name)
 }
 
 remove_empty_file_names <- function(files_list){
     # The function removes regression output files which are empty
-    for (file in files_list){
-        if (nrow(vroom(file)) == 0){
-            files_list = files_list[files_list != file]
-        }
-    }
-    return(files_list)
+    require(parallel)
+    cluster = makeCluster(NCPU)
+    nonemptyfiles = parLapply(cluster, files_list, function(x){
+                                  vroom_file = vroom::vroom(x)
+                                  rows = nrow(vroom_file)
+                                  cols = ncol(vroom_file)
+                                  data.table::data.table(file = x, ncol = cols, nrow = rows)})
+    stopCluster(cluster)
+
+    together = dplyr::bind_rows(nonemptyfiles, .id = 'file')
+    nonemptyfiles_filtered = together[nrow > 0 & ncol == 11]
+    return(nonemptyfiles_filtered$file)
+}
+
+combine_files <- function(files_list){
+    require(parallel)
+    cluster = makeCluster(NCPU)
+    files = parLapply(cluster, files_list, function(x){
+                        data.table::fread(x)})
+    stopCluster(cluster)
+    rbound = rbindlist(files)
+    return(rbound)
 }
 
 compile_regressions <- function(){
@@ -355,5 +375,6 @@ compile_regressions <- function(){
     files = fs::dir_ls(path = make_regression_file_path())
     files = remove_empty_file_names(files)
     compiled_filename = make_compiled_file_name()
-    vroom::vroom_write(vroom::vroom(files, num_threads = NCPU), compiled_filename)
+    rbound_files = combine_files(files)
+    fwrite(rbound_files, compiled_filename, sep = '\t')
 }

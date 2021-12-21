@@ -6,10 +6,13 @@ get_compiled_file_name_with_arguments <- function(phenotype, condensing_variable
     return(file_name)
 }
 
-make_file_name <- function(phenotype_class, gene_subset = 'NA'){
+make_file_name <- function(phenotype_class, gene_subset = 'NA', cohort = 'NA'){
     file = paste0(PROJECT_PATH, '/tcr-gwas/figures/all_', phenotype_class, '_genome_wide_manhattan')
     if (gene_subset != 'NA'){
         file = paste0(PROJECT_PATH, '/tcr-gwas/figures/all_', phenotype_class, '_', gene_subset, '_manhattan')
+    }
+    if (cohort != 'NA') {
+        file = paste0(file, '_', cohort)
     }
     return(file)
 }
@@ -36,6 +39,7 @@ create_distribution_data <- function(data, gene_types, paired_feature_types){
     stopifnot(length(gene_types)==length(paired_feature_types))
     type = str_split(paired_feature_types[1], '_')[[1]][2]
     together = data.table()
+    print(type)
     if (type == 'trim'){
         for (i in seq(length(gene_types))){
             temp = data

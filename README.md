@@ -15,7 +15,8 @@ These scripts are written specifically for a cluster set up to use the Slurm job
 (Some minor modifications to the [single job submission script](submission_scripts/run_regressions_genome_wide.sh) and the [genome-wide submission script](submission_scripts/submit_cluster_jobs_continuously.sh) could allow this pipeline to be run using a different cluster workload manager.) 
 
 # Analysis outline: 
-1. Download data into the directory `tcr-gwas/data/downloaded_data` 
+0. Download data from Zenodo into the directory `tcr-gwas/data/downloaded_data` 
+1. Download discovery cohort SNP data from [The database of Genotypes and Phenotypes](https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001918.v1.p1) (accession number: phs001918); *Note: you may need to apply for access to The database of Genotypes and Phenotypes prior to download* 
 2. Edit [config](config/) files to be project and/or computer specific
 2. Run the genome-wide GWAS analysis for a phenotype or phenotype class of interest
     * You can run [submit_phenotype.sh](submit_phenotype.sh) or [submit_phenotype_class.sh](submit_phenotype_class.sh). Both scripts take three arguments: 
