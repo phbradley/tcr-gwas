@@ -13,7 +13,10 @@ features = c('gene_usage')
 
 # get gene usage gwas data and associations by gene
 dataframe = compile_manhattan_plot_data(features) 
-max_associations_by_gene = dataframe[, min(pvalue, na.rm = TRUE), by = .(productive, gene)]
+tcrb = GENE_ANNOTATIONS[gene_common_name == 'tcrb']
+tcrbdataframe = dataframe[hg19_pos < tcrb$pos2 & hg19_pos > tcrb$pos1 & chr == tcrb$chr]
+
+max_associations_by_gene = tcrbdataframe[, min(pvalue, na.rm = TRUE), by = .(productive, gene)]
 colnames(max_associations_by_gene) = c('productive', 'gene', 'min_pvalue')
 max_associations_by_gene[min_pvalue == Inf, min_pvalue := NA]
 max_associations_by_gene[, gene_type := paste0(substring(gene, 4, 4), '-gene')]

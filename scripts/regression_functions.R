@@ -58,7 +58,13 @@ filter_snps_by_maf <- function(genotype_matrix){
     }
     maf_data = fread(file_name)
     maf_data_filtered = maf_data[maf >= MAF_CUTOFF]
-    list_of_snps = as.numeric(intersect(colnames(genotype_matrix), maf_data_filtered$snp))
+    filtered_snps = maf_data_filtered$snp
+    qc_file = fread(SNP_META_DATA_FILE)
+    if ('quality.control' in colnames(qc_file) & 'quality.control.cc' in colnames(qc_file)){
+        not_pass = qc_file[quality.filter == FALSE | quality.filter.cc == FALSE]
+        filtered_snps = setdiff(filtered_snps, not_pass$snp)
+    }
+    list_of_snps = as.numeric(intersect(colnames(genotype_matrix), filtered_snps))
     return(list_of_snps)
 }
     

@@ -24,6 +24,10 @@ compile_manhattan_plot_data <- function(phenotype_list){
         file_name = get_compiled_file_name_with_arguments(parameters[['phenotype']], parameters[['condensing_variable']], parameters[['keep_missing_d_gene']], parameters[['pca_count']])
         compiled_data = rbind(compiled_data, fread(file_name))
     }
+    qc_file = fread(SNP_META_DATA_FILE)
+    not_pass = qc_file[quality.filter == FALSE | quality.filter.cc == FALSE]
+    filtered_snps = setdiff(compiled_data$snp, not_pass$snp)
+    compiled_data = compiled_data[snp %in% filtered_snps]
     return(compiled_data)
 }
 
