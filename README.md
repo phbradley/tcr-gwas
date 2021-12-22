@@ -15,7 +15,8 @@ These scripts are written specifically for a cluster set up to use the Slurm job
 (Some minor modifications to the [single job submission script](submission_scripts/run_regressions_genome_wide.sh) and the [genome-wide submission script](submission_scripts/submit_cluster_jobs_continuously.sh) could allow this pipeline to be run using a different cluster workload manager.) 
 
 # Analysis outline: 
-0. Download data from Zenodo into the directory `tcr-gwas/data/downloaded_data` 
+0. Download discovery cohort meta data and parsed TCRB repertoire data from Zenodo (https://doi.org/10.5281/zenodo.5719520) into the directory `tcr-gwas/data/downloaded_data` 
+1. Unzip discovery cohort parsed TCRB repertoire data using the command `tar -xvf emerson_parsed_TCRB.tgz` *(Note: these parsed TCRB repertoire data files for each individual should be located within a subdirectory called `emerson_data` within the `tcr-gwas/data/downloaded_data` directory after unzipping)*
 1. Download discovery cohort SNP data from [The database of Genotypes and Phenotypes](https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?study_id=phs001918.v1.p1) (accession number: phs001918); *Note: you may need to apply for access to The database of Genotypes and Phenotypes prior to download* 
 2. Edit [config](config/) files to be project and/or computer specific
 2. Run the genome-wide GWAS analysis for a phenotype or phenotype class of interest
@@ -40,17 +41,23 @@ These scripts are written specifically for a cluster set up to use the Slurm job
         1. gene (i.e. artemis, dntt, etc.)
         2. phenotype (i.e. v_trim, vd_insert, etc.)
         3. number of cluster cores
-5. Run analysis for Nicaraguan validation cohort (two snps). Since this analysis is only for two snps, it can easily be run locally (or on a cluster). To run this, you can run [run_validation_cohort_analysis.sh](run_validation_cohort_analysis.sh) which takes the following three arguments: 
-    1. phenotype (i.e. v_trim, vd_insert, etc.)
-    2. number of cluster cores
-    3. TCR chain (either `beta` or `alpha`)
+5. Run analysis for Nicaraguan validation cohort (two snps). Since this analysis is only for two snps, it can easily be run locally (or on a cluster). 
+    1. First, download validation cohort meta data and parsed TCRA and TCRB repertoire data from Zenodo (https://doi.org/10.5281/zenodo.5719516) into the directory `tcr-gwas/data/downloaded_data` 
+    2. Unzip validation cohort parsed TCRA repertoire data using the command `tar -xvf nicaragua_parsed_TCRA.tgz` *(Note: these parsed TCRA repertoire data files for each individual should be located within a subdirectory called `nicaragua_data/TCRA` within the `tcr-gwas/data/downloaded_data` directory after unzipping)*
+    3. Unzip validation cohort parsed TCRB repertoire data using the command `tar -xvf nicaragua_parsed_TCRB.tgz` *(Note: these parsed TCRB repertoire data files for each individual should be located within a subdirectory called `nicaragua_data/TCRB` within the `tcr-gwas/data/downloaded_data` directory after unzipping)*
+    4. To run this analysis, you can run [run_validation_cohort_analysis.sh](run_validation_cohort_analysis.sh) which takes the following three arguments: 
+        1. phenotype (i.e. v_trim, vd_insert, etc.)
+        2. number of cluster cores
+        3. TCR chain (either `beta` or `alpha`)
 
 **Note: all output files will be located at the indicated `OUTPUT_PATH` as specified in the [config](config) files**
 
 # About the genome-wide analysis
 
 With this model, we want to measure the effect of genome-wide SNPs on certain TCR repertoire features. 
-See the manuscript for specific model details. (TODO add ms details) 
+See the manuscript for specific model details: 
+
+Russell, Magdalena L., Aisha Souquette, David M. Levine, Stefan A. Schattgen, E. Kaitlynn Allen, Guillermina Kuan, Noah Simon, Angel Balmaseda, et al. 2021. “Combining Genotypes and T Cell Receptor Distributions to Infer Genetic Loci Determining V(D)J Recombination Probabilities.” bioRxiv. https://doi.org/10.1101/2021.09.17.460747.
 
 Specifically, you can run the analysis one of two ways: 
 1. Using a specific phenotype (using [submit_phenotype.sh](submit_phenotype.sh) as described above) from the options in the "TCR Phenotypes in Class" column:
